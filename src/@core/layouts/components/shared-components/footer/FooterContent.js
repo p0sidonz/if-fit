@@ -24,23 +24,20 @@ const FooterContent = () => {
           ❤️
         </Box>
         {` by `}
-        <LinkStyled target='_blank' href='https://pixinvent.com/'>
-          Pixinvent
+        <LinkStyled target='_blank' href='https://fetch.fit'>
+          iankit.me
         </LinkStyled>
       </Typography>
       {hidden ? null : (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', '& :not(:last-child)': { mr: 4 } }}>
-          <LinkStyled target='_blank' href='https://themeforest.net/licenses/standard'>
-            License
-          </LinkStyled>
           <LinkStyled target='_blank' href='https://1.envato.market/pixinvent_portfolio'>
-            More Themes
+           Terms and Conditions
           </LinkStyled>
           <LinkStyled
             target='_blank'
             href='https://demos.pixinvent.com/materialize-nextjs-admin-template/documentation'
           >
-            Documentation
+            Privacy Policy
           </LinkStyled>
           <LinkStyled target='_blank' href='https://pixinvent.ticksy.com/'>
             Support
