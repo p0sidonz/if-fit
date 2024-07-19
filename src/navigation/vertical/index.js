@@ -6,10 +6,32 @@ const navigation = () => {
       icon: 'mdi:home-outline',
     },
     {
-      title: 'Second Page',
-      path: '/second-page',
+      title: 'Social',
+      path: '/profile/profile/',
+      icon: 'mdi:home-outline',
+    },
+    {
+      title: 'Chat',
+      path: '/chat',
       icon: 'mdi:email-outline',
     },
+    {
+      title: 'Workout',
+      path: '/workout',
+      icon: 'mdi:email-outline',
+
+    },
+    {
+      title: 'Program',
+      path: '/program',
+      icon: 'mdi:email-outline',
+    },
+    {
+      title: 'Diet',
+      path: '/diet',
+      icon: 'mdi:email-outline',
+    }
+
   ]
 }
 
