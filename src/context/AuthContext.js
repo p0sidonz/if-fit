@@ -1,5 +1,6 @@
 // ** React Imports
 import { createContext, useEffect, useState } from "react";
+import {API_URL} from "../modules/consts";
 
 // ** Next Import
 import { useRouter } from "next/router";
@@ -8,7 +9,7 @@ import axios from "axios";
 
 // ** Config
 import authConfig from "src/configs/auth";
-let BASE_URL = "http://localhost:3001";
+let BASE_URL = API_URL
 // ** Defaults
 const defaultProvider = {
   user: null,
@@ -69,6 +70,7 @@ const AuthProvider = ({ children }) => {
 
 
   const handleLogin = (params, errorCallback) => {
+    console.log(BASE_URL);
     axios
       .post(BASE_URL + authConfig.loginEndpoint, params)
       .then(async (res) => {
