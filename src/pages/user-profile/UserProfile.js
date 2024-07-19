@@ -20,10 +20,10 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Icon from 'src/@core/components/icon'
 
 // ** Demo Components
-import Teams from 'src/views/pages/user-profile/teams'
-import Profile from 'src/views/pages/user-profile/profile'
-import Projects from 'src/views/pages/user-profile/projects'
-import Connections from 'src/views/pages/user-profile/connections'
+import Teams from './teams/index'
+import Profile from './profile/index'
+import Projects from './projects/index'
+import Connections from './connections/index'
 import UserProfileHeader from '../user-profile/UserProfileHeader'
 
 const TabList = styled(MuiTabList)(({ theme }) => ({

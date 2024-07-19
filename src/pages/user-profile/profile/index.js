@@ -1,10 +1,7 @@
 // ** MUI Components
 import Grid from '@mui/material/Grid'
 
-// ** Demo Components
-import AboutOverivew from 'src/views/pages/user-profile/profile/AboutOverivew'
-import ActivityTimeline from 'src/views/pages/user-profile/profile/ActivityTimeline'
-import ConnectionsTeams from 'src/views/pages/user-profile/profile/ConnectionsTeams'
+
 import UserProfileHeader from '../UserProfileHeader'
 import PostCard from 'src/views/components/PostCard'
 const data = {

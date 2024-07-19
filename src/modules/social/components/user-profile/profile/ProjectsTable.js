@@ -2,10 +2,9 @@
 import Grid from '@mui/material/Grid'
 
 // ** Demo Components
-import AboutOverivew from 'src/views/pages/user-profile/profile/AboutOverivew'
-import ProjectsTable from 'src/views/pages/user-profile/profile/ProjectsTable'
-import ActivityTimeline from 'src/views/pages/user-profile/profile/ActivityTimeline'
-import ConnectionsTeams from 'src/views/pages/user-profile/profile/ConnectionsTeams'
+import AboutOverivew from './AboutOverivew'
+import ActivityTimeline from './ActivityTimeline'
+import ConnectionsTeams from './ConnectionsTeams'
 
 const data = {
   profileHeader: {
@@ -566,7 +565,6 @@ const ProfileTab = () => {
           </Grid>
           <ConnectionsTeams connections={data.connections} teams={data.teamsTech} />
           <Grid item xs={12}>
-            <ProjectsTable />
           </Grid>
         </Grid>
       </Grid>
