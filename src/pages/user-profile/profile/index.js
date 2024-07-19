@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid'
 import AboutOverivew from 'src/views/pages/user-profile/profile/AboutOverivew'
 import ActivityTimeline from 'src/views/pages/user-profile/profile/ActivityTimeline'
 import ConnectionsTeams from 'src/views/pages/user-profile/profile/ConnectionsTeams'
-import UserProfileHeader from 'src/views/pages/user-profile/UserProfileHeader'
+import UserProfileHeader from '../UserProfileHeader'
 import PostCard from 'src/views/components/PostCard'
 const data = {
   profileHeader: {

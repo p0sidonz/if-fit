@@ -24,7 +24,7 @@ import Teams from 'src/views/pages/user-profile/teams'
 import Profile from 'src/views/pages/user-profile/profile'
 import Projects from 'src/views/pages/user-profile/projects'
 import Connections from 'src/views/pages/user-profile/connections'
-import UserProfileHeader from 'src/views/pages/user-profile/UserProfileHeader'
+import UserProfileHeader from '../UserProfileHeader'
 
 const TabList = styled(MuiTabList)(({ theme }) => ({
   '& .MuiTabs-indicator': {
