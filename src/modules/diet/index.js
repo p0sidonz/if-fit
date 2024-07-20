@@ -3,9 +3,10 @@ import React, { useEffect, useState } from "react";
 import Collapse from "@mui/material/Collapse";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { ExpandLess } from "@mui/icons-material";
-import {useGetDietList, useCreatNewDiet, useUpdateDiet} from "./hooks/useDiet";
+import { useGetDietList, useCreatNewDiet, useUpdateDiet } from "./hooks/useDiet";
 import {
   Card,
+  Box,
   CardContent,
   Container,
   Grid,
@@ -23,9 +24,12 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Fab,
+  Hidden,
+  Tooltip
 } from "@mui/material";
 import { Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
-
+import { FloatBarAction } from "../components/FloatBarAction";
 
 const DietList = () => {
   const updateDiet = useUpdateDiet();
@@ -80,7 +84,8 @@ const DietList = () => {
     // setDiets(
     //   diets.map((diet) => (diet.id === currentDiet.id ? { ...newDiet } : diet))
     // );
-    updateDiet.mutate({...newDiet, diet_id: currentDiet.id,
+    updateDiet.mutate({
+      ...newDiet, diet_id: currentDiet.id,
       //make other thing int 
       target_calories: parseInt(newDiet.target_calories) || 0,
       target_protein: parseInt(newDiet.target_protein) || 0,
@@ -170,13 +175,11 @@ const DietList = () => {
         newDiet.target_fat
       );
       if (totalCalories > newDiet.target_calories) {
-        return `Total calories exceed target by ${
-          totalCalories - newDiet.target_calories
-        }`;
+        return `Total calories exceed target by ${totalCalories - newDiet.target_calories
+          }`;
       } else if (totalCalories < newDiet.target_calories) {
-        return `Total calories are less than target by ${
-          newDiet.target_calories - totalCalories
-        }`;
+        return `Total calories are less than target by ${newDiet.target_calories - totalCalories
+          }`;
       }
     }
     return null;
@@ -187,17 +190,20 @@ const DietList = () => {
 
   return (
     <Container>
-      <div style={{display: 'flex', justifyContent: 'flex-end'}}>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleAddDiet}
-        startIcon={<AddIcon />}
-        sx={{ marginTop: 3 }}
-      >
-        Add New Diet
-      </Button>
-      </div>
+      <Hidden smDown>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleAddDiet}
+            startIcon={<AddIcon />}
+            sx={{ marginTop: 3 }}
+          >
+            Add New Diet
+          </Button>
+
+        </div>
+      </Hidden >
 
       <Card sx={{ marginTop: 3, padding: 2 }}>
         <CardContent sx={{ display: "flex", gap: 2 }}>
@@ -242,10 +248,10 @@ const DietList = () => {
           )}
         </CardContent>
       </Card>
-    
-      <Grid container spacing={1} sx={{ marginTop: 3}} >
+
+      <Grid container  spacing={2}  sx={{ marginTop: 3 }}>
         {filteredDiets.map((diet, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}  >
+          <Grid item xs={12} sm={12} md={4} key={index}>
             <DietCard diet={diet} onEdit={handleEdit} onDelete={handleDelete} />
           </Grid>
         ))}
@@ -530,6 +536,9 @@ const DietList = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Hidden smUp>
+        <FloatBarAction name="Diet" handleClick={handleAddDiet} />
+      </Hidden>
     </Container>
   );
 };

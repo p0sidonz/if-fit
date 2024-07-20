@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ProgramCard from "./components/ProgramCard";
 import {useGetProgramList, useUpdateProgram} from "./hooks/useProgram";
-import CardHeader from "@mui/material";
+import CardHeader, { Hidden } from "@mui/material";
 import { useRouter } from "next/router";
 
 import {
@@ -28,6 +28,7 @@ import {
 } from "@mui/material";
 import { Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
 import EditIcon from "@mui/icons-material/Edit";
+import { FloatBarAction } from "../components/FloatBarAction";
 
 
 const ProgramList = () => {
@@ -141,6 +142,7 @@ const ProgramList = () => {
     
     return (
       <Container>
+          <Hidden smDown>
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button
             variant="contained"
@@ -152,7 +154,7 @@ const ProgramList = () => {
             Add New Program
           </Button>
         </div>
-  
+        </Hidden>
         <Card sx={{ marginTop: 3, padding: 2 }}>
           <CardContent sx={{ display: "flex", gap: 2 }}>
             <TextField
@@ -324,6 +326,10 @@ const ProgramList = () => {
             </Button>
           </DialogActions>
         </Dialog>
+        <Hidden smUp>
+        <FloatBarAction name="Program" handleClick={handleAddProgram} />
+      </Hidden>
+
       </Container>
     );
   };

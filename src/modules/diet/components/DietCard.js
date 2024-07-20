@@ -68,90 +68,91 @@ const DietCard = ({ diet, onEdit, onDelete, id }) => {
   };
 
   return (
-      <Card
-        sx={{
-          maxWidth: 400,
-          height: 400,
-          flexDirection: "column",
-          justifyContent: "space-between",
-          boxShadow: 3,
-          margin: 2,
-          position: "relative",
-        }}
+    <Card
+      sx={{
+        maxWidth: { xs: '100%', md: '100%', md: '100%', sm: 400 },
+        width: { xs: '100%',sm: 'auto' }, 
+        height: 400,
+        display: 'flex', // Ensure flex properties are applied
+        flexDirection: "column",
+        justifyContent: "space-between",
+        boxShadow: 3,
+        position: "relative",
+      }}
+    >
+      <IconButton
+        aria-label="settings"
+        onClick={handleMenuClick}
+        sx={{ position: "absolute", top: 8, right: 8 }}
       >
-        <IconButton
-          aria-label="settings"
-          onClick={handleMenuClick}
-          sx={{ position: "absolute", top: 8, right: 8 }}
+        <MoreVertIcon />
+      </IconButton>
+      <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
+        <MenuItem onClick={handleEdit}>Edit</MenuItem>
+        <MenuItem onClick={handleDelete}>Delete</MenuItem>
+      </Menu>
+      <CardContent onClick={handleNavigation}
+        sx={{ paddingBottom: "16px !important", cursor: 'pointer' }}>
+        <Typography variant="h5" component="div" gutterBottom>
+          {title}
+        </Typography>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ marginBottom: 2 }}
         >
-          <MoreVertIcon />
-        </IconButton>
-        <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
-          <MenuItem onClick={handleEdit}>Edit</MenuItem>
-          <MenuItem onClick={handleDelete}>Delete</MenuItem>
-        </Menu>
-        <CardContent        onClick={handleNavigation}
- sx={{ paddingBottom: "16px !important", cursor: 'pointer' }}>
-          <Typography variant="h5" component="div" gutterBottom>
-            {title}
-          </Typography>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ marginBottom: 2 }}
-          >
-            {description}
-          </Typography>
-          {/* {!macro_type && <Alert icon={false} sx={{fontSize: '12px', padding: 0,textAlign: 'center' }} severity="success" color="warning">
+          {description}
+        </Typography>
+        {/* {!macro_type && <Alert icon={false} sx={{fontSize: '12px', padding: 0,textAlign: 'center' }} severity="success" color="warning">
   Please set macros
 </Alert>} */}
 
-          <List>
-            <ListItem>
-              <LocalFireDepartmentIcon color="error" />
-              <ListItemText
-                primary={`Calories: ${target_calories || 0}`}
-                sx={{ marginLeft: 0.4 }}
-              />
-            </ListItem>
-            <ListItem>
-              <FastfoodIcon color="primary" />
-              <ListItemText
-                primary={`Carbs: ${target_carbs || 0}g`}
-                sx={{ marginLeft: 0.4 }}
-              />
-            </ListItem>
-            <ListItem>
-              <OpacityIcon color="secondary" />
-              <ListItemText
-                primary={`Fat: ${target_fat || 0}g`}
-                sx={{ marginLeft: 0.4 }}
-              />
-            </ListItem>
-            <ListItem>
-              <FitnessCenterIcon color="success" />
-              <ListItemText
-                primary={`Protein: ${target_protein || 0}g`}
-                sx={{ marginLeft: 0.4 }}
-              />
-            </ListItem>
-            <ListItem>
-              <Chip
-                label={type === "veg" ? "Vegetarian" : "Non-Vegetarian"}
-                color={type === "veg" ? "success" : "error"}
-                variant="outlined"
-              />
-            </ListItem>
-          </List>
+        <List>
+          <ListItem>
+            <LocalFireDepartmentIcon color="error" />
+            <ListItemText
+              primary={`Calories: ${target_calories || 0}`}
+              sx={{ marginLeft: 0.4 }}
+            />
+          </ListItem>
+          <ListItem>
+            <FastfoodIcon color="primary" />
+            <ListItemText
+              primary={`Carbs: ${target_carbs || 0}g`}
+              sx={{ marginLeft: 0.4 }}
+            />
+          </ListItem>
+          <ListItem>
+            <OpacityIcon color="secondary" />
+            <ListItemText
+              primary={`Fat: ${target_fat || 0}g`}
+              sx={{ marginLeft: 0.4 }}
+            />
+          </ListItem>
+          <ListItem>
+            <FitnessCenterIcon color="success" />
+            <ListItemText
+              primary={`Protein: ${target_protein || 0}g`}
+              sx={{ marginLeft: 0.4 }}
+            />
+          </ListItem>
+          <ListItem>
+            <Chip
+              label={type === "veg" ? "Vegetarian" : "Non-Vegetarian"}
+              color={type === "veg" ? "success" : "error"}
+              variant="outlined"
+            />
+          </ListItem>
+        </List>
 
-          <Box sx={{ textAlign: "right", fontStyle: "italic" }}>
-            {/* <Typography variant="body2">Created at: {new Date(created_at).toLocaleDateString()}</Typography> */}
-            <Typography variant="body2">
-              Updated at: {new Date(updated_at).toLocaleDateString()}
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
+        <Box sx={{ textAlign: "right", fontStyle: "italic" }}>
+          {/* <Typography variant="body2">Created at: {new Date(created_at).toLocaleDateString()}</Typography> */}
+          <Typography variant="body2">
+            Updated at: {new Date(updated_at).toLocaleDateString()}
+          </Typography>
+        </Box>
+      </CardContent>
+    </Card>
   );
 };
 
