@@ -10,6 +10,7 @@ import DialogActions from "@mui/material/DialogActions";
 import Slide from "@mui/material/Slide";
 import DialogContentText from "@mui/material/DialogContentText";
 import Box from "@mui/material/Box";
+import { useMediaQuery } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useDropzone } from "react-dropzone";
 import Grid from "@mui/material/Grid";
@@ -30,6 +31,7 @@ import StepContent from "@mui/material/StepContent";
 import StepperWrapper from "src/@core/styles/mui/stepper";
 import clsx from "clsx";
 import { useAddPost } from "../../hooks/useSocialData";
+import { LoadingButton } from "@mui/lab";
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -56,6 +58,12 @@ const FileUploaderSingle = ({ files, setFiles }) => {
 
   const img = files.map((file) => (
     <img
+      style={{
+        maxWidth: '60%',
+        maxHeight: '300px',
+        objectFit: 'cover',
+        borderRadius: '8px',
+      }}
       key={file.name}
       alt={file.name}
       className="single-file-image"
@@ -100,6 +108,7 @@ const FileUploaderSingle = ({ files, setFiles }) => {
 
 
 const PostStepperDialog = ({ open, onClose }) => {
+  const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('sm'));
   const [activeStep, setActiveStep] = useState(0);
   const [files, setFiles] = useState([]);
   const [content, setContent] = useState('');
@@ -113,6 +122,7 @@ const PostStepperDialog = ({ open, onClose }) => {
     if (activeStep === steps.length - 1) {
       // Final step, submit the form
       handleSubmit();
+
     } else {
       setActiveStep((prevActiveStep) => prevActiveStep + 1);
     }
@@ -128,7 +138,10 @@ const PostStepperDialog = ({ open, onClose }) => {
       return;
     }
 
-    addPostMutation.mutate({ photo: files[0], content});
+    addPostMutation.mutate({ photo: files[0], content })
+    setFiles([]);
+      onClose();
+    
   };
 
   const steps = [
@@ -146,7 +159,7 @@ const PostStepperDialog = ({ open, onClose }) => {
         <Grid item xs={12}>
           <TextField
             onChange={(e) => setContent(e.target.value)}
-            sx={{ minWidth: '500px' }}
+            sx={{ minWidth: isSmallScreen ? '100%' : '450px' }}
             multiline
             rows={3}
             fullWidth
@@ -159,10 +172,11 @@ const PostStepperDialog = ({ open, onClose }) => {
   ];
 
   return (
+
     <Fragment>
       <Dialog
-        keepMounted={false}
-        sx={{ minWidth: '500px' }}
+        fullWidth
+        maxWidth="sm"
         open={open}
         onClose={onClose}
         aria-labelledby="alert-dialog-title"
@@ -175,8 +189,14 @@ const PostStepperDialog = ({ open, onClose }) => {
               <Step key={index}>
                 <StepLabel>{step.title}</StepLabel>
                 <StepContent>
-                  <Typography>{step.description}</Typography>
-                  <div className="button-wrapper">
+                  <Typography variant={isSmallScreen ? "body2" : "body1"}>{step.description}</Typography>
+                  {/* Assuming there's an input for photo upload */}
+                  {step.requiresPhoto && (
+                    <Box sx={{ my: 2 }}>
+                      <input type="file" onChange={handlePhotoUpload} />
+                    </Box>
+                  )}
+                  <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                     <Button
                       size="small"
                       color="secondary"
@@ -186,22 +206,25 @@ const PostStepperDialog = ({ open, onClose }) => {
                     >
                       Back
                     </Button>
-                    <Button
+                    <LoadingButton
+                      loading={addPostMutation.status === "pending"}
                       size="small"
                       variant="contained"
                       onClick={handleNext}
-                      sx={{ ml: 4 }}
+                      sx={{ ml: 2 }}
+                      disabled={!files.length || (activeStep === 1 && !content) }
+
                     >
                       {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
-                    </Button>
-                  </div>
+                    </LoadingButton>
+                  </Box>
                 </StepContent>
               </Step>
             ))}
           </Stepper>
           {activeStep === steps.length && (
             <Box sx={{ mt: 4 }}>
-              <Typography>All steps are completed!</Typography>
+              <Typography variant="body2">All steps are completed!</Typography>
               <Button
                 size="small"
                 sx={{ mt: 2 }}

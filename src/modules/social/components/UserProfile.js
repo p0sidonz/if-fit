@@ -43,6 +43,8 @@ const TabList = styled(MuiTabList)(({ theme }) => ({
 }));
 
 const UserProfile = ({ tab, data = [] }) => {
+  const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('sm'));
+
   // ** State
   const [showNewPostModal , setShowNewPostModal] = useState(false)
   const [activeTab, setActiveTab] = useState(tab);
@@ -96,8 +98,8 @@ const UserProfile = ({ tab, data = [] }) => {
       {activeTab === undefined ? null : (
         <Grid item xs={12}>
           <TabContext value={activeTab}>
-            <Grid container spacing={6}>
-              <Grid item xs={12} lg={10}>
+            <Grid justifyContent={"space-between"} container spacing={6}>
+              <Grid item >
                 <TabList
                   scrollButtons="auto"
                   onChange={handleChange}
@@ -162,7 +164,7 @@ const UserProfile = ({ tab, data = [] }) => {
                 >
                   <Button onClick={handleOpenNewPost} variant="contained" color="primary">
                     <Icon icon="mdi:plus" />
-                    Add Post
+                    {isSmallScreen ? null : "New Post"}
                   </Button>
                 </Box>
 

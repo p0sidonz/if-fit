@@ -30,16 +30,16 @@ const FooterContent = () => {
       </Typography>
       {hidden ? null : (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', '& :not(:last-child)': { mr: 4 } }}>
-          <LinkStyled target='_blank' href='https://1.envato.market/pixinvent_portfolio'>
+          <LinkStyled target='_blank' href='#'>
            Terms and Conditions
           </LinkStyled>
           <LinkStyled
             target='_blank'
-            href='https://demos.pixinvent.com/materialize-nextjs-admin-template/documentation'
+            href='#'
           >
             Privacy Policy
           </LinkStyled>
-          <LinkStyled target='_blank' href='https://pixinvent.ticksy.com/'>
+          <LinkStyled target='_blank' href='#'>
             Support
           </LinkStyled>
         </Box>

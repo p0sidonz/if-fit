@@ -182,6 +182,9 @@ const DietList = () => {
     return null;
   };
 
+  if (isLoading) return <Typography>Loading...</Typography>;
+  if (error) return <Typography>An error occurred: {error.message}</Typography>;
+
   return (
     <Container>
       <div style={{display: 'flex', justifyContent: 'flex-end'}}>
