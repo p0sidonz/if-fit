@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useGetProgram, useAddNewWeek, useAddWorkoutToProgramDay } from './hooks/useProgram';
+import { useGetProgram, useAddNewWeek, useAddWorkoutToProgramDay, useUpdateWeek, useDeleteWeek } from './hooks/useProgram';
 import DayBlock from './components/DayBlock';
 
 import {
@@ -15,7 +15,8 @@ import {
     DialogContent,
     DialogActions,
     IconButton,
-    Tooltip
+    Tooltip,
+    Hidden
 
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
@@ -24,10 +25,14 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import { useGetWorkouts } from '../workout/hooks/useWorkout';
 
 import AddWeek from './components/AddWeek';
+import { FloatBarAction } from '../components/FloatBarAction';
+import EditableText from '../components/EditableText';
 
 const ProgramDetails = ({ param }) => {
     const { data: workoutsList, status } = useGetWorkouts();
     const addWorkoutToProgramDay = useAddWorkoutToProgramDay();
+    const onUpdateWeek = useUpdateWeek();
+    const onDeleteweek = useDeleteWeek();
     let programId = param;
     const { data: program, refetch: refetchProgram } = useGetProgram(programId);
     const addWeek = useAddNewWeek();
@@ -48,30 +53,20 @@ const ProgramDetails = ({ param }) => {
 
     const handleAddWeek = async () => {
         addWeek.mutate(programId);
-        // try {
-        //     // Simulate API call to add week
-        //     const response = await fetch(`/api/programs/${programId}/weeks`, {
-        //         method: 'POST',
-        //         headers: { 'Content-Type': 'application/json' },
-        //         body: JSON.stringify(weekData),
-        //     });
-        //     const newWeek = await response.json();
-
-        //     setProgram(prevProgram => ({
-        //         ...prevProgram,
-        //         Program_Week: [...prevProgram?.Program_Week, newWeek]
-        //     }));
-
-        //     setOpenAddWeek(false);
-        // } catch (error) {
-        //     console.error('Error adding week:', error);
-        // }
     };
 
     const onUpdateDay = (params) => {
+        console.log('params', params);
         addWorkoutToProgramDay.mutate(params);
     }
 
+    const handleDeleteWeek = (id) => {
+        window.confirm("Are you sure you want to delete this week?")
+            ? onDeleteweek.mutate({program_week_id: id})
+            : null;
+    }
+
+    
 
 
 
@@ -92,16 +87,18 @@ const ProgramDetails = ({ param }) => {
                                 </Typography>
                             </Grid>
                             <Grid item xs={12} container justifyContent="flex-end">
-                                <Tooltip title="Click to add a new week to this program">
-                                    <LoadingButton
-                                        loading={addWeek.status === "pending"}
-                                        variant="contained"
-                                        color="primary"
-                                        onClick={handleAddWeek}
-                                    >
-                                        Add Week
-                                    </LoadingButton>
-                                </Tooltip>
+                                <Hidden smDown>
+                                    <Tooltip title="Click to add a new week to this program">
+                                        <LoadingButton
+                                            loading={addWeek.status === "pending"}
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={handleAddWeek}
+                                        >
+                                            Add Week
+                                        </LoadingButton>
+                                    </Tooltip>
+                                </Hidden>
                             </Grid>
                         </Grid>
                     </CardContent>
@@ -117,17 +114,14 @@ const ProgramDetails = ({ param }) => {
                                                 Week {weekIndex + 1}
                                             </Typography>
                                             <Box>
-                                                <IconButton onClick={() => onEditWeek(week.id)} size="small">
-                                                    <EditIcon />
+                                                <Tooltip title="Delete this week?">
+                                                <IconButton onClick={() => handleDeleteWeek(week.id)} size="small">
+                                                    <DeleteIcon color='error' />
                                                 </IconButton>
-                                                <IconButton onClick={() => onDeleteWeek(week.id)} size="small">
-                                                    <DeleteIcon />
-                                                </IconButton>
+                                                </Tooltip>
                                             </Box>
                                         </Box>
-                                        <Typography variant="body2" color="textSecondary" paragraph>
-                                            {week.notes}
-                                        </Typography>
+                                        <EditableText text={week.notes} onChange={(value) => onUpdateWeek.mutate({ week_id: week.id, notes: value })} /> 
                                         <Grid container spacing={2}>
                                             {week.Program_Days.map((day, dayIndex) => {
                                                 const cumulativeDayIndex = weekIndex * 7 + dayIndex + 1;
@@ -136,7 +130,7 @@ const ProgramDetails = ({ param }) => {
                                                         <DayBlock
                                                             workouts={workoutsList}
                                                             day={day}
-                                                            onUpdate={(workout_id, rest_day) => onUpdateDay({
+                                                            onUpdate={({workout_id, rest_day = false}) => onUpdateDay({
                                                                 week_id: week.id,
                                                                 day_id: day.id,
                                                                 workout_id,
@@ -166,6 +160,9 @@ const ProgramDetails = ({ param }) => {
                     <Button onClick={() => setOpenAddWeek(false)}>Cancel</Button>
                 </DialogActions>
             </Dialog>
+            <Hidden smUp>
+                <FloatBarAction name="Week" handleClick={handleAddWeek} />
+            </Hidden>
         </Container>
     );
 };

@@ -102,6 +102,35 @@ export const useAddNewWeek = () => {
     });
 }
 
+export const useUpdateWeek = () => {
+    const queryClient = useQueryClient();
+  
+    return useMutation({
+      mutationFn: async (weekData) => {
+        const response = await axios.post(`/program/updateWeek`, weekData);
+        return response.data;
+      },
+      onSuccess: (data) => {
+        // Success actions
+        queryClient.invalidateQueries("program");
+        return toast.success("Week updated successfully");
+      },
+      onError: (error) => {
+       if(error.response.data.message.length) {
+          error.response.data.message.forEach((msg) => {
+            toast.error(msg, {
+              className: {
+                zIndex: 10000
+              }
+            });
+          });
+       }
+       
+      },
+    });
+
+}
+
 export const useAddWorkoutToProgramDay = () => {
   const queryClient = useQueryClient();
 
@@ -131,3 +160,29 @@ export const useAddWorkoutToProgramDay = () => {
     },
   });
 };
+
+export const useDeleteWeek = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({program_week_id}) => {
+      const response = await axios.post(`/program/deleteWeek`, {program_week_id});
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries('program');
+      toast.success('Week deleted successfully');
+    },
+    onError: (error) => {
+      if (error.response?.data?.message?.length) {
+        error.response.data.message.forEach((msg) => {
+          toast.error(msg, {
+            className: {
+              zIndex: 10000,
+            },
+          });
+        });
+      }
+    },
+  });
+}

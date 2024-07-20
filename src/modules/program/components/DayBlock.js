@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
 import {
-  Card, CardContent, Typography, Button, Dialog, DialogTitle, DialogContent, TextField, DialogActions
+  Box, IconButton,
+  Chip,
+  Card, CardContent, Typography, Button, Dialog, DialogTitle, DialogContent, TextField, DialogActions,
+  Tooltip
+
 
 } from '@mui/material';
 import BottomSlider from '../workout/BottomSlider';
+import CloseIcon from '@mui/icons-material/Cancel';
+
 const DayBlock = ({ day, onUpdate, index, weekNumber, workouts }) => {
 
   const [open, setOpen] = useState(false);
@@ -16,7 +22,8 @@ const DayBlock = ({ day, onUpdate, index, weekNumber, workouts }) => {
 
 
   const handleSetRestDay = () => {
-    onUpdate({ rest_day: true, workout_id: null });
+    onUpdate({ workout_id: null, rest_day: true, });
+    closeSlider();
   };
 
   const handleOpenWorkoutDialog = () => {
@@ -29,25 +36,60 @@ const DayBlock = ({ day, onUpdate, index, weekNumber, workouts }) => {
 
   const handleAddWorkout = (workout_id) => {
     console.log('workout_id', workout_id);
-    onUpdate(workout_id)
-    handleCloseWorkoutDialog();
+    onUpdate({ workout_id, rest_day: false });
+    closeSlider();
   };
+
+  const WorkoutDay = ({ day, onRemoveWorkout }) => {
+    return (
+      <Box display="flex" alignItems="center" justifyContent="center">
+        <Typography variant="h6">
+          {day.rest_day ? (
+            <Chip label="Rest Day" color="secondary" />
+          ) : day.workout_id ? (
+            <Box display="flex" alignItems="center">
+              <Chip
+                deleteIcon={
+                  <Tooltip title={`Remove Workout from day ${index}`}>
+                    <CloseIcon />
+                  </Tooltip>
+                }
+                onDelete={onRemoveWorkout} label={`${day.Workout.title}`} color="primary" />
+
+            </Box>
+          ) : (
+            'No Workout'
+          )}
+        </Typography>
+      </Box>
+    );
+  };
+
 
   return (
     <Card>
       <CardContent style={{ position: 'relative', overflow: 'hidden' }}>
-        {JSON.stringify(day)}
-        <Typography variant="h6">
-          {day.rest_day ? 'Rest Day' : day.workout_id ? `Workout: ${day.workout_id}` : 'No Workout'}
-        </Typography>
+        {/* {day.isRestDay || day.workout_id ? (<IconButton size='small' color='error' sx={{ position: 'absolute', right: -7, top: -5 }} onClick={() => onRemoveWorkout(day.workout_id)} aria-label="remove">
+          <CancelIcon />
+        </IconButton>) : null} */}
+        <WorkoutDay
+          day={day}
+          onRemoveWorkout={handleSetRestDay}
+        />
         {/* <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px' }}>
           <Button variant="text" color="primary" size="small" onClick={handleSetRestDay}>Set Rest Day</Button>
           <Button variant="text" color="secondary" size="small" onClick={openSlider}>Add Workout</Button>
         </div> */}
         <div style={{ justifyContent: 'space-between', marginTop: '16px' }}>
-          <Button variant="text" color="primary" size="small" onClick={handleSetRestDay}>Set Rest Day</Button>
-          <Button variant="text" color="secondary" size="small" onClick={openSlider}>Add Workout</Button>
-        </div>
+          <Button color='secondary' variant="text" size="small" onClick={handleSetRestDay}>Set Rest Day</Button>
+          <Button
+            color="primary"
+            variant="text"
+            size="small"
+            onClick={openSlider}
+          >
+            {day.workout_id ? 'Change Workout' : 'Add Workout'}
+          </Button>        </div>
 
         <div style={{
           position: 'absolute',

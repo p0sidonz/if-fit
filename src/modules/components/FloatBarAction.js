@@ -9,8 +9,8 @@ export const FloatBarAction = ({ name, handleClick }) => {
         <Box
           sx={{
             position: 'fixed',
-            bottom: 16,
-            right: '5%',
+            bottom: '3%',
+            left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 99,
           }}

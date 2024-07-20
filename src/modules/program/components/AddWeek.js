@@ -28,7 +28,7 @@ const AddWeek = ({ programId, onAddWeek }) => {
       </Grid>
       {days.map((day, index) => (
         <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
-          <DayBlock day={day} onUpdate={(data) => updateDay(index, data)} />
+          <DayBlock day={day} onUpdate={(data)=> console.log(data)} />
         </Grid>
       ))}
       <Grid item xs={12}>
