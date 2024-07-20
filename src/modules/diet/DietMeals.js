@@ -465,8 +465,8 @@ const DietMeals = (props) => {
 
 
         <Drawer
-          PaperProps={{ sx: { width: "30%" } }}
-          anchor="right"
+          PaperProps={{ sx: { maxHeight: "70%" } }}
+          anchor="bottom"
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
         >
