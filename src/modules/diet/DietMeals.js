@@ -38,7 +38,8 @@ import {
   MenuItem,
   CardActionArea,
   Collapse,
-  IconButton
+  IconButton,
+  Hidden
 } from "@mui/material";
 import NutritionValueDisplay from "./NutritionValueDisplay";
 import LoadingButton from "@mui/lab/LoadingButton";
@@ -46,7 +47,8 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
 import { ExpandMore as ExpandMoreIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { styled } from '@mui/system';
-
+import MobileDietMeal from './MobileDietMeal';
+import { FloatBarAction } from "../components/FloatBarAction";
 
 const DietMeals = (props) => {
   const [foodId, setFoodId] = useState(null);
@@ -285,6 +287,7 @@ const DietMeals = (props) => {
   ];
 
 
+
   const MealTable = ({ meal, data }) => {
     console.log("Meal Table Data:", meal, data)
 
@@ -423,7 +426,14 @@ const DietMeals = (props) => {
                 </Box>
               </Box>
             </Collapse>
-            <MealTable meal={meal} data={meal.Diet_Meals_FoodList} />
+            {/* <MealTable meal={meal} data={meal.Diet_Meals_FoodList} /> */}
+            <MobileDietMeal
+              handleEditFood={handleEditFood}
+              handleDeleteFoodlModal={handleDeleteFoodlModal}
+              meal={meal}
+              data={meal.Diet_Meals_FoodList}
+
+            />
             {/* {JSON.stringify(meal.Diet_Meals_FoodList.servings.serving.filter((serve) => serve.serving_id === meal.Diet_Meals_FoodList.serving_id))} */}
           </CardContent>
           <CardActionArea>
@@ -449,14 +459,16 @@ const DietMeals = (props) => {
     <>
       <Container>
         <Grid container spacing={2} justifyContent="end">
-          <Button
-            sx={{ my: 2, mx: 2 }}
-            variant="contained"
-            color="primary"
-            onClick={() => setOpen(true)}
-          >
-            Add Meal
-          </Button>
+          <Hidden smDown>
+            <Button
+              sx={{ my: 2, mx: 2 }}
+              variant="contained"
+              color="primary"
+              onClick={() => setOpen(true)}
+            >
+              Add Meal
+            </Button>
+          </Hidden>
         </Grid>
 
         <Grid container spacing={2} justifyContent="center">
@@ -686,7 +698,7 @@ const DietMeals = (props) => {
             <Typography>Are you sure you want to delete {<Typography color={"primary"}> {selectedFoodDelete?.foodInfo?.food_name}</Typography>}?</Typography>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => { }} color="secondary">
+            <Button onClick={() => { setOpenDeleteFood(false) }} color="secondary">
               Cancel
             </Button>
             <LoadingButton loading={newMealLoading} onClick={handleDeleteFoodFromMeal} color="error">
@@ -705,6 +717,12 @@ const DietMeals = (props) => {
         setselectedServingdForEdit={setselectedServingdForEdit}
         handleSaveEditServing={handleSaveEditServing}
       />
+      <Hidden mdUp>
+        <FloatBarAction
+          name={"Meal"}
+          handleClick={() => setOpen(true)}
+        />
+      </Hidden>
 
     </>
   );

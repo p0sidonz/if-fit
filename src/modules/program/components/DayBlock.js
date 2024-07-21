@@ -9,13 +9,15 @@ import {
 } from '@mui/material';
 import BottomSlider from '../workout/BottomSlider';
 import CloseIcon from '@mui/icons-material/Cancel';
+import JustWorkout from '../workout/JustWorkout';
 
 const DayBlock = ({ day, onUpdate, index, weekNumber, workouts }) => {
 
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-
+  const [jusWorkoutSlider, setJustWorkoutSlider] = useState(false);
   const [sliderOpen, setSliderOpen] = useState(false);
+  const [selectedWorkout, setSelectedWorkout] = useState(null);
 
   const openSlider = () => setSliderOpen(true);
   const closeSlider = () => setSliderOpen(false);
@@ -40,6 +42,16 @@ const DayBlock = ({ day, onUpdate, index, weekNumber, workouts }) => {
     closeSlider();
   };
 
+  const handleShowOnlyWorkout = (day) => {
+    console.log('day', day);
+    setSelectedWorkout(day);
+    setJustWorkoutSlider(true)
+  }
+
+  const justWorkoutClose = () => {
+    setJustWorkoutSlider(false);
+  }
+
   const WorkoutDay = ({ day, onRemoveWorkout }) => {
     return (
       <Box display="flex" alignItems="center" justifyContent="center">
@@ -49,6 +61,7 @@ const DayBlock = ({ day, onUpdate, index, weekNumber, workouts }) => {
           ) : day.workout_id ? (
             <Box display="flex" alignItems="center">
               <Chip
+                onClick={() => { handleShowOnlyWorkout(day) }}
                 deleteIcon={
                   <Tooltip title={`Remove Workout from day ${index}`}>
                     <CloseIcon />
@@ -109,6 +122,19 @@ const DayBlock = ({ day, onUpdate, index, weekNumber, workouts }) => {
         workouts={workouts}
         onAddWorkout={handleAddWorkout}
       />
+
+      <Dialog open={jusWorkoutSlider} onClose={justWorkoutClose}>
+        <DialogTitle>Workout Detail</DialogTitle>
+        <DialogContent>
+          <JustWorkout workout={selectedWorkout?.Workout} />
+        </DialogContent>
+        <DialogActions>
+          <Button fullWidth onClick={justWorkoutClose} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </Card>
   );
 };
