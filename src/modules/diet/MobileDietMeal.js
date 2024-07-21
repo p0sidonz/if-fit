@@ -5,7 +5,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Grid from '@mui/material/Grid';
-import { TableCell, Button } from '@mui/material';
+import { TableCell, Button, Tooltip } from '@mui/material';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
@@ -39,37 +39,45 @@ export default function MobileDietMeal({
               aria-controls="panel1bh-content"
               id="panel1bh-header"
             >
-              <Typography variant='h6' sx={{ width: '60%', flexShrink: 0 }}>
+              <Typography variant='h6' sx={{ width: '100%', flexShrink: 0 }}>
                 {food?.foodInfo.food_name}
+
               </Typography>
-              <TableCell sx={{ border: 0, width: '40%', display: 'flex', justifyContent: 'flex-end' }}>
-                <Button onClick={() => { handleEditFood(food, activeServings) }}>
-                  <ModeEditIcon fontSize='20px' />
-                </Button>
-                <Button onClick={() => { handleDeleteFoodlModal(food) }}>
-                  <DeleteForeverIcon fontSize='20px' color="error" />
-                </Button>
-              </TableCell>
+
             </AccordionSummary>
             <AccordionDetails>
+
               <Grid container spacing={2}>
                 <Grid item xs={3}>
-                  <Typography color={"primary"} variant="h6" align="center">Calories</Typography>
+                  <Typography color={"primary"} sx={{ fontSize: '1rem' }} align="center">Cals</Typography>
                   <Typography variant="body1" align="center">{activeServings?.calories}</Typography>
                 </Grid>
                 <Grid item xs={3}>
-                  <Typography color={"primary"} variant="h6" align="center">Carbs</Typography>
+                  <Typography color={"primary"} sx={{ fontSize: '1rem' }} align="center">Carbs</Typography>
                   <Typography variant="body1" align="center">{activeServings?.carbohydrate}</Typography>
                 </Grid>
                 <Grid item xs={3}>
-                  <Typography color={"primary"} variant="h6" align="center">Protein</Typography>
+                  <Typography color={"primary"} sx={{ fontSize: '1rem' }} align="center">Protein</Typography>
                   <Typography variant="body1" align="center">{activeServings?.protein}</Typography>
                 </Grid>
                 <Grid item xs={3}>
-                  <Typography color={"primary"} variant="h6" align="center">Fat</Typography>
+                  <Typography color={"primary"} sx={{ fontSize: '1rem' }} align="center">Fat</Typography>
                   <Typography variant="body1" align="center">{activeServings?.fat}</Typography>
                 </Grid>
               </Grid>
+              <div style={{ display: 'flex', justifyContent: 'center', }}>
+                <Tooltip title="Edit Food" arrow>
+                  <Button fullWidth onClick={() => { handleEditFood(food, activeServings) }}>
+                    <ModeEditIcon />
+                  </Button>
+                </Tooltip>
+                <Tooltip title="Delete Food" arrow>
+
+                  <Button fullWidth onClick={() => { handleDeleteFoodlModal(food) }}>
+                    <DeleteForeverIcon color="error" />
+                  </Button>
+                </Tooltip>
+              </div>
             </AccordionDetails>
           </Accordion>
         );

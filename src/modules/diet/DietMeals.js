@@ -49,6 +49,7 @@ import { ExpandMore as ExpandMoreIcon, Edit as EditIcon, Delete as DeleteIcon } 
 import { styled } from '@mui/system';
 import MobileDietMeal from './MobileDietMeal';
 import { FloatBarAction } from "../components/FloatBarAction";
+import FoodChart from "./components/FoodChart";
 
 const DietMeals = (props) => {
   const [foodId, setFoodId] = useState(null);
@@ -377,7 +378,7 @@ const DietMeals = (props) => {
 
 
 
-  const MealCard = ({ meal }) => {
+  const MealCard = ({ meal, chart }) => {
     const [expanded, setExpanded] = useState(false);
 
 
@@ -388,7 +389,7 @@ const DietMeals = (props) => {
 
     return (
 
-      <Grid item xs={12} sm={6} lg={12} key={meal.id}>
+      <Grid key={meal.id}>
         <Card onClick={() => setSelectedMeal(meal)}>
           <CardContent>
             <Grid
@@ -425,7 +426,9 @@ const DietMeals = (props) => {
                   </Tooltip>
                 </Box>
               </Box>
+            {chart}
             </Collapse>
+
             {/* <MealTable meal={meal} data={meal.Diet_Meals_FoodList} /> */}
             <MobileDietMeal
               handleEditFood={handleEditFood}
@@ -472,7 +475,9 @@ const DietMeals = (props) => {
         </Grid>
 
         <Grid container spacing={2} justifyContent="center">
-          {meals.map((meal) => <MealCard meal={meal} />)}
+          {meals.map((meal) => <Grid lg={12} md={12} xs={12} sm={12}><MealCard meal={meal} chart={<FoodChart mealData={meal.Diet_Meals_FoodList} />} />
+
+          </Grid>)}
         </Grid>
 
 
