@@ -50,6 +50,7 @@ import { styled } from '@mui/system';
 import MobileDietMeal from './MobileDietMeal';
 import { FloatBarAction } from "../components/FloatBarAction";
 import FoodChart from "./components/FoodChart";
+import FoodSummaryInfo from "./components/FoodSummaryInfo";
 
 const DietMeals = (props) => {
   const [foodId, setFoodId] = useState(null);
@@ -426,7 +427,7 @@ const DietMeals = (props) => {
                   </Tooltip>
                 </Box>
               </Box>
-            {chart}
+              {chart}
             </Collapse>
 
             {/* <MealTable meal={meal} data={meal.Diet_Meals_FoodList} /> */}
@@ -454,6 +455,9 @@ const DietMeals = (props) => {
             </Grid>
           </CardActionArea>
         </Card>
+
+
+
       </Grid>
     )
   }
@@ -461,10 +465,10 @@ const DietMeals = (props) => {
   return (
     <>
       <Container>
-        <Grid container spacing={2} justifyContent="end">
+        <Grid container justifyContent="end">
           <Hidden smDown>
             <Button
-              sx={{ my: 2, mx: 2 }}
+              sx={{ mb: 5 }}
               variant="contained"
               color="primary"
               onClick={() => setOpen(true)}
@@ -472,13 +476,17 @@ const DietMeals = (props) => {
               Add Meal
             </Button>
           </Hidden>
+
         </Grid>
 
-        <Grid container spacing={2} justifyContent="center">
-          {meals.map((meal) => <Grid lg={12} md={12} xs={12} sm={12}><MealCard meal={meal} chart={<FoodChart mealData={meal.Diet_Meals_FoodList} />} />
+        <Grid  spacing={2} justifyContent="center">
+          {meals.map((meal) => <Grid sx={{ mb: 2 }} lg={12} md={12} xs={12} sm={12}>
+            <MealCard meal={meal} chart={<FoodChart mealData={meal.Diet_Meals_FoodList} />} />
 
           </Grid>)}
+
         </Grid>
+
 
 
         <Drawer
@@ -676,9 +684,6 @@ const DietMeals = (props) => {
           </DialogActions>
         </Dialog>
 
-
-
-
         <Dialog sx={{ minWidth: 400 }} open={openDelete} onClose={() => setOpenDelete(false)}>
           <DialogTitle>Delete Meal</DialogTitle>
           <DialogContent>
@@ -711,8 +716,6 @@ const DietMeals = (props) => {
             </LoadingButton>
           </DialogActions>
         </Dialog>
-
-
       </Container>
       <EditFoodDialog
         openFoodEdit={openFoodEdit}
@@ -728,6 +731,14 @@ const DietMeals = (props) => {
           handleClick={() => setOpen(true)}
         />
       </Hidden>
+
+      <Container >
+          <Card sx={{ mt: 2 }}>
+            <CardContent>
+              <FoodSummaryInfo mealsData={meals} />
+            </CardContent>
+          </Card>
+        </Container>
 
     </>
   );
