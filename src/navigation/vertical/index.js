@@ -30,6 +30,11 @@ const navigation = () => {
       title: 'Diet',
       path: '/diet',
       icon: 'mdi:email-outline',
+    },
+    {
+      title: 'Excercise',
+      path: '/excercises',
+      icon: 'mdi:email-outline',
     }
 
   ]
