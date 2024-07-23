@@ -1,10 +1,14 @@
 import React, { useState, useCallback } from 'react';
 import {
+    useTheme,
     List, ListItem, ListItemText, Button, Select, MenuItem, FormControl, InputLabel, Card, CardContent, Typography, TextField, CircularProgress,
-    IconButton, InputAdornment
+    IconButton, InputAdornment,useMediaQuery,
+    Grid,Collapse,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ExerciseDetail from '../workout/ExerciseDetail';
+import FilterListIcon from '@mui/icons-material/FilterList';
+
 
 
 import { useSearchExercises } from "../workout/hooks/useWorkout"
@@ -83,6 +87,9 @@ const initialFilters = {
 };
 
 const ExerciseSearch = () => {
+    const theme = useTheme()
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
     const [filters, setFilters] = useState(initialFilters);
     const [searchQuery, setSearchQuery] = useState('');
     const { data: searchResultsData, refetch: refetchExercises, isFetched: isExerciseFetched, isLoading: exerciseSearchLoading } = useSearchExercises(searchQuery || '');
@@ -160,97 +167,18 @@ const ExerciseSearch = () => {
 
                         />
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', marginTop: '20px' }}>
-                            <FormControl variant="outlined" sx={{ minWidth: 120 }}>
-                                <InputLabel>Muscle</InputLabel>
-                                <Select
-                                    name="muscle"
-                                    value={filters.muscle}
-                                    onChange={handleFilterChange}
-                                    label="Muscle"
-                                >
-                                    <MenuItem value=""><em>None</em></MenuItem>
-                                    {Object.values(Muscle).map(muscle => (
-                                        <MenuItem key={muscle} value={muscle}>{muscle}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
 
-                            <FormControl variant="outlined" sx={{ minWidth: 120 }}>
-                                <InputLabel>Force</InputLabel>
-                                <Select
-                                    name="force"
-                                    value={filters.force}
-                                    onChange={handleFilterChange}
-                                    label="Force"
-                                >
-                                    <MenuItem value=""><em>None</em></MenuItem>
-                                    {Object.values(Force).map(force => (
-                                        <MenuItem key={force} value={force}>{force}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
+                       <FilterForm
+                            filters={filters}
+                            handleFilterChange={handleFilterChange}
+                            Muscle={Muscle}
+                            Force={Force}
+                            Level={Level}
+                            Mechanic={Mechanic}
+                            Equipment={Equipment}
+                            Category={Category}
 
-                            <FormControl variant="outlined" sx={{ minWidth: 120 }}>
-                                <InputLabel>Level</InputLabel>
-                                <Select
-                                    name="level"
-                                    value={filters.level}
-                                    onChange={handleFilterChange}
-                                    label="Level"
-                                >
-                                    <MenuItem value=""><em>None</em></MenuItem>
-                                    {Object.values(Level).map(level => (
-                                        <MenuItem key={level} value={level}>{level}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-
-                            <FormControl variant="outlined" sx={{ minWidth: 120 }}>
-                                <InputLabel>Mechanic</InputLabel>
-                                <Select
-                                    name="mechanic"
-                                    value={filters.mechanic}
-                                    onChange={handleFilterChange}
-                                    label="Mechanic"
-                                >
-                                    <MenuItem value=""><em>None</em></MenuItem>
-                                    {Object.values(Mechanic).map(mechanic => (
-                                        <MenuItem key={mechanic} value={mechanic}>{mechanic}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-
-                            <FormControl variant="outlined" sx={{ minWidth: 120 }}>
-                                <InputLabel>Equipment</InputLabel>
-                                <Select
-                                    name="equipment"
-                                    value={filters.equipment}
-                                    onChange={handleFilterChange}
-                                    label="Equipment"
-                                >
-                                    <MenuItem value=""><em>None</em></MenuItem>
-                                    {Object.values(Equipment).map(equipment => (
-                                        <MenuItem key={equipment} value={equipment}>{equipment}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-
-                            <FormControl variant="outlined" sx={{ minWidth: 120 }}>
-                                <InputLabel>Category</InputLabel>
-                                <Select
-                                    name="category"
-                                    value={filters.category}
-                                    onChange={handleFilterChange}
-                                    label="Category"
-                                >
-                                    <MenuItem value=""><em>None</em></MenuItem>
-                                    {Object.values(Category).map(category => (
-                                        <MenuItem key={category} value={category}>{category}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </div>
+                       />
                     </CardContent>
                 </Card>
 
@@ -280,6 +208,131 @@ const ExerciseSearch = () => {
 
             </Container>
 
+        </div>
+    );
+};
+
+const FilterForm = ({ filters, handleFilterChange, Muscle, Force, Level, Mechanic, Equipment, Category }) => {
+    const [showFilters, setShowFilters] = useState(false);
+    const theme = useTheme();
+
+    const toggleFilters = () => {
+        setShowFilters(!showFilters);
+    };
+
+    return (
+        <div>
+            <div style={{ display: 'flex',  justifyContent: 'end', marginBottom: '20px', marginTop: '20px' }}>
+                <IconButton onClick={toggleFilters} aria-label="filter">
+                    <FilterListIcon />
+                    <span style={{ marginLeft: '8px' }}>Filters</span>
+                </IconButton>
+            </div>
+            <Collapse in={showFilters}>
+                <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6} md={4} lg={2}>
+                        <FormControl variant="outlined" fullWidth>
+                            <InputLabel>Muscle</InputLabel>
+                            <Select
+                                name="muscle"
+                                value={filters.muscle}
+                                onChange={handleFilterChange}
+                                label="Muscle"
+                            >
+                                <MenuItem value=""><em>None</em></MenuItem>
+                                {Object.values(Muscle).map(muscle => (
+                                    <MenuItem key={muscle} value={muscle}>{muscle}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} md={4} lg={2}>
+                        <FormControl variant="outlined" fullWidth>
+                            <InputLabel>Force</InputLabel>
+                            <Select
+                                name="force"
+                                value={filters.force}
+                                onChange={handleFilterChange}
+                                label="Force"
+                            >
+                                <MenuItem value=""><em>None</em></MenuItem>
+                                {Object.values(Force).map(force => (
+                                    <MenuItem key={force} value={force}>{force}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} md={4} lg={2}>
+                        <FormControl variant="outlined" fullWidth>
+                            <InputLabel>Level</InputLabel>
+                            <Select
+                                name="level"
+                                value={filters.level}
+                                onChange={handleFilterChange}
+                                label="Level"
+                            >
+                                <MenuItem value=""><em>None</em></MenuItem>
+                                {Object.values(Level).map(level => (
+                                    <MenuItem key={level} value={level}>{level}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} md={4} lg={2}>
+                        <FormControl variant="outlined" fullWidth>
+                            <InputLabel>Mechanic</InputLabel>
+                            <Select
+                                name="mechanic"
+                                value={filters.mechanic}
+                                onChange={handleFilterChange}
+                                label="Mechanic"
+                            >
+                                <MenuItem value=""><em>None</em></MenuItem>
+                                {Object.values(Mechanic).map(mechanic => (
+                                    <MenuItem key={mechanic} value={mechanic}>{mechanic}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} md={4} lg={2}>
+                        <FormControl variant="outlined" fullWidth>
+                            <InputLabel>Equipment</InputLabel>
+                            <Select
+                                name="equipment"
+                                value={filters.equipment}
+                                onChange={handleFilterChange}
+                                label="Equipment"
+                            >
+                                <MenuItem value=""><em>None</em></MenuItem>
+                                {Object.values(Equipment).map(equipment => (
+                                    <MenuItem key={equipment} value={equipment}>{equipment}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} md={4} lg={2}>
+                        <FormControl variant="outlined" fullWidth>
+                            <InputLabel>Category</InputLabel>
+                            <Select
+                                name="category"
+                                value={filters.category}
+                                onChange={handleFilterChange}
+                                label="Category"
+                            >
+                                <MenuItem value=""><em>None</em></MenuItem>
+                                {Object.values(Category).map(category => (
+                                    <MenuItem key={category} value={category}>{category}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                </Grid>
+            </Collapse>
         </div>
     );
 };

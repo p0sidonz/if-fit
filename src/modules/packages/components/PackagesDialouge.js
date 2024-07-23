@@ -5,7 +5,7 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/
 const PackagesDialouge = ({ open, handleClose, packageData }) => {
     return (
         <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-            <DialogTitle id="form-dialog-title">Package Details</DialogTitle>
+            <DialogTitle id="form-dialog-title"></DialogTitle>
             <DialogContent>
                 <TrainerPackageForm initialData={packageData} onSuccess={handleClose} />
             </DialogContent>
