@@ -4,6 +4,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import { useSearchForFood, useGetFoodById, useGetMealList, useCreateNewMeal, useAddFoodToMeal, useUpdateMealFood, useDeleteMeal, useDeleteFood, useUpdateMeal } from "./hooks/useDiet";
 import EditFoodDialog from "./EditFoodDialog";
 import Tooltip from '@mui/material/Tooltip';
+import axios from "../../utils/axios";
+import { toast } from "react-hot-toast";
 
 import {
   InputAdornment,
@@ -74,10 +76,12 @@ const DietMeals = (props) => {
   const [selectedFoodDelete, setSelectedFoodDelete] = useState(null);
   const { data: mealList, isLoading, error, refetch } = useGetMealList(props.param);
 
+  //not surre about this
+  const [showOtherData, setShowOtherData] = useState([]);
+
   {/* Food edit */ }
   const [openFoodEdit, setOpenFoodEdit] = useState(false);
   const [selectedServingdForEdit, setselectedServingdForEdit] = useState(null);
-
 
   {/* delete food  */ }
   const [openDeleteFood, setOpenDeleteFood] = useState(false);
@@ -147,7 +151,7 @@ const DietMeals = (props) => {
 
   const fetchTheFood = useSearchForFood(foodSearch);
 
-  const foodById = useGetFoodById(foodId);
+  // const foodById = useGetFoodById(foodId);
 
 
 
@@ -192,6 +196,7 @@ const DietMeals = (props) => {
   };
 
   const handleAddFoodToMeal = async () => {
+
     if (selectedMeal && selectedServing) {
       try {
         await addFoodToMeal({
@@ -203,7 +208,9 @@ const DietMeals = (props) => {
       } catch (error) {
         console.error('Error adding food to  meal:', error);
       }
+      //clear the selected food
       // setMeals(updatedMeals);
+      // setSelectedServing(null);
       setDrawerOpen(false); // Close the drawer after adding the food
       setSelectedFood(null); // Reset selected food after adding
     }
@@ -232,24 +239,29 @@ const DietMeals = (props) => {
     }
   };
 
-  const handleOnclickSelectedFood = (newFoodId) => {
-    console.log("Selected Food ID:", newFoodId);
+  const handleSearchById = async (foodId) => {
     try {
-      setFoodId(newFoodId); // Update the foodId state
-      foodById
-        .refetch()
-        .then((data) => {
-          if (data.status === "success") {
-            console.log("Data from foodById:", data);
-            setServingData(data.data.data || {});
-          }
-        })
-        .catch((error) => {
-          console.error("Error getting food by id:", error);
-        });
+      const result = await axios.get(`misc/food-id/${foodId}`);
+      return result?.data.data || {};
     } catch (error) {
-      console.error("Error setting foodId:", error);
+      console.error("Error fetching food by ID:", error);
+      toast.error(`${error.message} ${error.response?.data?.message || ""}`, {
+        duration: 4000,
+      });
+      throw error;
+
+
     }
+  }
+
+
+
+  const handleOnclickSelectedFood = async (newFoodId) => {
+    setFoodId(newFoodId);
+    // Refetch the food data by ID
+    const result = await handleSearchById(newFoodId);
+    console.log("Data from foodById:", result);
+    setServingData(result || {});
   };
 
   const debounce = (func, wait) => {
@@ -274,87 +286,6 @@ const DietMeals = (props) => {
   const handleSearchFood = (value) => {
     setFoodSearch(value);
     debouncedFetchFood(value);
-  };
-
-
-
-
-  const headCells = [
-    { id: "title", label: "Title" },
-    { id: "protein", label: "Protein (g)" },
-    { id: "carbs", label: "Carbs (g)" },
-    { id: "fat", label: "Fat (g)" },
-    { id: "kals", label: "Calories" },
-    { id: "quantity", label: "Quantity" },
-  ];
-
-
-
-  const MealTable = ({ meal, data }) => {
-    console.log("Meal Table Data:", meal, data)
-
-    return (
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  color="primary"
-                  inputProps={{
-                    'aria-label': 'select all foods',
-                  }}
-                />
-              </TableCell>
-              {headCells.map((headCell) => (
-                <TableCell key={headCell.id}>
-                  <TableSortLabel>{headCell.label}</TableSortLabel>
-                </TableCell>
-              ))}
-              <TableCell>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {meal.Diet_Meals_FoodList.map((food) => {
-              let activeServings
-              if (food.is_custom) {
-                activeServings = food.custom_serving
-              }
-              else {
-                activeServings = food.foodInfo.servings.serving.filter((serve) => serve.serving_id === JSON.stringify(food.serving_id))[0]
-              }
-              if (!activeServings) return null;
-              console.log("Active Servings:", food);
-              return (
-                <TableRow key={activeServings.id}>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      color="primary"
-                      inputProps={{
-                        'aria-label': `select ${food.foodInfo.food_name}`,
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>{food?.foodInfo.food_name}</TableCell>
-                  <TableCell>{activeServings?.protein}</TableCell>
-                  <TableCell>{activeServings?.carbohydrate}</TableCell>
-                  <TableCell>{activeServings?.fat}</TableCell>
-                  <TableCell>{activeServings?.calories}</TableCell>
-                  <TableCell>{JSON.parse(activeServings?.metric_serving_amount).toFixed(1)} {" "} {activeServings?.measurement_description}</TableCell>
-                  <TableCell>
-                    <Button onClick={() => {
-                      handleEditFood(food, activeServings)
-
-                    }}><ModeEditIcon /></Button>
-                    <Button onClick={() => { handleDeleteFoodlModal(food) }}><DeleteForeverIcon color="error" /> </Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    );
   };
 
   const handleServingsChange = (e) => {
@@ -479,7 +410,7 @@ const DietMeals = (props) => {
 
         </Grid>
 
-        <Grid  spacing={2} justifyContent="center">
+        <Grid spacing={2} justifyContent="center">
           {meals.map((meal) => <Grid sx={{ mb: 2 }} lg={12} md={12} xs={12} sm={12}>
             <MealCard meal={meal} chart={<FoodChart mealData={meal.Diet_Meals_FoodList} />} />
 
@@ -521,6 +452,7 @@ const DietMeals = (props) => {
               sx={{ margin: 2 }}
               variant="text"
               onClick={() => {
+                setSelectedServing(null);
                 setFoodId(null);
                 setSelectedFood(null);
               }}
@@ -564,7 +496,7 @@ const DietMeals = (props) => {
 
             {foodId && (
               <>
-                <ListItem>
+                <ListItem  >
                   <ListItemText
                     primary={
                       <>
@@ -579,14 +511,15 @@ const DietMeals = (props) => {
                             onChange={handleServingsChange}
                           >
                             {console.log("Serving Data:", servingData)}
-                            {servingData?.servings?.serving?.map((serve) => (
-                              <MenuItem
-                                key={serve.serving_id}
-                                value={serve.serving_id}
-                              >
-                                {serve.serving_description}
-                              </MenuItem>
-                            ))}
+                            {servingData?.servings?.serving ? (
+                              servingData.servings.serving.map((serving) => (
+                                <MenuItem key={serving.serving_id} value={serving.serving_id}>
+                                  {serving.serving_description}
+                                </MenuItem>
+                              ))
+                            ) : (
+                              <MenuItem disabled>Loading...</MenuItem>
+                            )}
                           </Select>
                         </FormControl>
                       </>
@@ -595,7 +528,7 @@ const DietMeals = (props) => {
                   />
                 </ListItem>
                 {selectedServing && (
-                  <NutritionValueDisplay data={selectedServing} />
+                  <NutritionValueDisplay data={selectedServing} otherData={servingData} showOtherData={true} />
                 )}
                 <Grid container spacing={2} justifyContent="center">
                   <Grid sx={{ m: 5 }} item lg={12} sm={12}>
@@ -607,6 +540,8 @@ const DietMeals = (props) => {
                     >
                       Add to Meal
                     </Button>
+                    {/* {JSON.stringify(servingData)} */}
+
                   </Grid>
                 </Grid>
               </>
@@ -733,12 +668,12 @@ const DietMeals = (props) => {
       </Hidden>
 
       <Container >
-          <Card sx={{ mt: 2 }}>
-            <CardContent>
-              <FoodSummaryInfo mealsData={meals} />
-            </CardContent>
-          </Card>
-        </Container>
+        <Card sx={{ mt: 2 }}>
+          <CardContent>
+            <FoodSummaryInfo mealsData={meals} />
+          </CardContent>
+        </Card>
+      </Container>
 
     </>
   );

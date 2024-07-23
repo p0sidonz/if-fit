@@ -12,11 +12,8 @@ const Home = () => {
         <Card>
           <CardHeader title='Dashboard 🚀'></CardHeader>
           <CardContent>
-            <Typography sx={{ mb: 2 }}>All the best for your new project.</Typography>
-            <Typography>
-              Please make sure to read our Template Documentation to understand where to go from here and how to use our
-              template.
-            </Typography>
+            <Typography sx={{ mb: 2 }}>Access the menus from the left side for now</Typography>
+            
           </CardContent>
         </Card>
       </Grid>

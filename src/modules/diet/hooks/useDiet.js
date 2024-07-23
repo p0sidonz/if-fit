@@ -19,18 +19,18 @@ const fetchFood = async (query) => {
 const fetchFoodById = async (foodId) => {
   console.log("fetchFoodById", foodId);
   if (!foodId) return {};
+  
   try {
     const result = await axios.get(`misc/food-id/${foodId}`);
     return result?.data || {};
   } catch (error) {
-    console.error(error);
-    toast.error(error.message + ' ' + (error.response?.data?.message || ""), {
-      duration: 4000
+    console.error("Error fetching food by ID:", error);
+    toast.error(`${error.message} ${error.response?.data?.message || ""}`, {
+      duration: 4000,
     });
     throw error;
   }
 };
-
 export const useGetFoodById = (foodId) => {
   return useQuery({
     queryKey: ["searchFoodById", foodId],

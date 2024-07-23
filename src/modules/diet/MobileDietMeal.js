@@ -90,6 +90,7 @@ export default function MobileDietMeal({
 
         return (
           <ArrordionMap
+            key={food.id}
             food={food}
             activeServings={activeServings}
             handleEditFood={handleEditFood}

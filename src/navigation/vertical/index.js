@@ -35,6 +35,11 @@ const navigation = () => {
       title: 'Excercise',
       path: '/excercises',
       icon: 'mdi:email-outline',
+    },
+    {
+      title: 'Packages',
+      path: '/packages',
+      icon: 'mdi:email-outline',
     }
 
   ]
