@@ -310,11 +310,19 @@ const DietMeals = (props) => {
 
   const handleCloseDrawer = () => {
     console.log("Close Drawer");
-    setDrawerOpen(false);
     setSelectedFood(null);
     setFoodId(null);
     setSelectedServing(null);
     setServingData({});
+    setSearchResults([]);
+    setDrawerOpen(false);
+    setFoodSearch("");
+
+  }
+
+  const handleOpenDrawer = () => {
+    setDrawerOpen(true);
+
   }
 
 
@@ -386,7 +394,7 @@ const DietMeals = (props) => {
                 <Button
                   size="small"
                   variant="outlined"
-                  onClick={() => setDrawerOpen(true)}
+                  onClick={handleOpenDrawer}
                 >
                   Add Food
                 </Button>
@@ -485,10 +493,10 @@ const DietMeals = (props) => {
             )}
 
             {!foodId &&
-              searchResults?.map((food) => (
+              searchResults?.map((food, index) => (
                 <ListItem
                   button
-                  key={food.id + Math.random()}
+                  key={index}
                   onClick={() => {
                     setSelectedFood(food);
                     handleOnclickSelectedFood(food.food_id);
@@ -501,7 +509,7 @@ const DietMeals = (props) => {
                 </ListItem>
               ))}
 
-            {foodId && (
+            {foodId && servingData?.servings?.serving && (
               <>
                 <ListItem  >
                   <ListItemText
@@ -519,8 +527,8 @@ const DietMeals = (props) => {
                           >
                             {console.log("Serving Data:", servingData)}
                             {servingData?.servings?.serving ? (
-                              servingData.servings.serving.map((serving) => (
-                                <MenuItem key={serving.serving_id} value={serving.serving_id}>
+                              servingData.servings.serving.map((serving, index) => (
+                                <MenuItem key={index} value={serving.serving_id}>
                                   {serving.serving_description}
                                 </MenuItem>
                               ))
