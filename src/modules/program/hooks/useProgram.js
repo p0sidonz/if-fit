@@ -186,3 +186,30 @@ export const useDeleteWeek = () => {
     },
   });
 }
+
+export const addNewProgram = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (programData) => {
+      const response = await axios.post('/program/add', programData);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries('programList');
+      toast.success('Program added successfully');
+    },
+    onError: (error) => {
+      if (error.response.data.message.length) {
+        error.response.data.message.forEach((msg) => {
+          toast.error(msg, {
+            className: {
+              zIndex: 10000,
+            },
+          });
+        });
+      }
+    },
+  });
+  
+}

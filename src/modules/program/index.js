@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ProgramCard from "./components/ProgramCard";
-import { useGetProgramList, useUpdateProgram } from "./hooks/useProgram";
+import { useGetProgramList, useUpdateProgram , addNewProgram} from "./hooks/useProgram";
 import CardHeader, { Hidden } from "@mui/material";
 import { useRouter } from "next/router";
 
@@ -34,6 +34,7 @@ import { FloatBarAction } from "../components/FloatBarAction";
 const ProgramList = () => {
   const router = useRouter();
   // const updateProgram = useUpdateProgram();
+  const createProgram = addNewProgram();
   const { data, isLoading, isError, error, isFetched } = useGetProgramList();
   // const createProgram = useCreateNewProgram();
   const [programs, setPrograms] = useState([]);
@@ -54,9 +55,6 @@ const ProgramList = () => {
   const [newProgram, setNewProgram] = useState({
     title: "",
     description: "",
-    total_weeks: "",
-    total_days: "",
-    total_workouts: "",
     type: "beginner",
   });
 
@@ -92,6 +90,7 @@ const ProgramList = () => {
   };
 
   const handleAddProgram = () => {
+
     setNewProgram({
       title: "",
       description: "",
@@ -104,11 +103,14 @@ const ProgramList = () => {
   };
 
   const handleCreateProgram = () => {
-    const newProgramData = {
-      ...newProgram,
-      image: "https://source.unsplash.com/featured/?exercise",
-    };
-    //   createProgram.mutate(newProgramData);
+      createProgram.mutate(newProgram, {
+        onSuccess: (data) => {
+          setNewProgramDialogOpen(false);
+        },
+        onError: (error) => {
+          console.log(error);
+        },
+      });
   };
 
   const handleSearch = (e) => {
