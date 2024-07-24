@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ProgramCard from "./components/ProgramCard";
-import { useGetProgramList, useUpdateProgram , addNewProgram} from "./hooks/useProgram";
+import { useGetProgramList, useUpdateProgram, addNewProgram, useDeleteProgram } from "./hooks/useProgram";
 import CardHeader, { Hidden } from "@mui/material";
 import { useRouter } from "next/router";
 
@@ -33,6 +33,7 @@ import { FloatBarAction } from "../components/FloatBarAction";
 
 const ProgramList = () => {
   const router = useRouter();
+  const deleteProgram = useDeleteProgram();
   // const updateProgram = useUpdateProgram();
   const createProgram = addNewProgram();
   const { data, isLoading, isError, error, isFetched } = useGetProgramList();
@@ -85,7 +86,17 @@ const ProgramList = () => {
   }
 
   const handleDeleteProgram = () => {
-    setPrograms(programs.filter((program) => program.id !== currentProgram.id));
+    // setPrograms(programs.filter((program) => program.id !== currentProgram.id));
+    deleteProgram.mutate(currentProgram?.id,
+      {
+        onSuccess: (data) => {
+          setDeleteDialogOpen(false);
+        },
+        onError: (error) => {
+          console.log(error);
+        },
+      }
+    );
     setDeleteDialogOpen(false);
   };
 
@@ -103,14 +114,14 @@ const ProgramList = () => {
   };
 
   const handleCreateProgram = () => {
-      createProgram.mutate(newProgram, {
-        onSuccess: (data) => {
-          setNewProgramDialogOpen(false);
-        },
-        onError: (error) => {
-          console.log(error);
-        },
-      });
+    createProgram.mutate(newProgram, {
+      onSuccess: (data) => {
+        setNewProgramDialogOpen(false);
+      },
+      onError: (error) => {
+        console.log(error);
+      },
+    });
   };
 
   const handleSearch = (e) => {
@@ -129,7 +140,7 @@ const ProgramList = () => {
     const matchesSearchQuery =
       program.title.toLowerCase().includes(searchQuery) ||
       program.description.toLowerCase().includes(searchQuery);
-    return matchesSearchQuery 
+    return matchesSearchQuery
   });
 
   if (isLoading) return <Typography>Loading...</Typography>;

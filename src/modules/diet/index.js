@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Collapse from "@mui/material/Collapse";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { ExpandLess } from "@mui/icons-material";
-import { useGetDietList, useCreatNewDiet, useUpdateDiet } from "./hooks/useDiet";
+import { useGetDietList, useCreatNewDiet, useUpdateDiet, useDeleteDiet } from "./hooks/useDiet";
 import {
   Card,
   Box,
@@ -33,6 +33,7 @@ import { FloatBarAction } from "../components/FloatBarAction";
 
 const DietList = () => {
   const updateDiet = useUpdateDiet();
+  const deleteDiet = useDeleteDiet();
   const { data, isLoading, isError, error, isFetched } = useGetDietList();
   const createDiet = useCreatNewDiet();
   const [diets, setDiets] = useState([]);
@@ -98,7 +99,15 @@ const DietList = () => {
   };
 
   const handleDeleteDiet = () => {
-    setDiets(diets.filter((diet) => diet.id !== currentDiet.id));
+    // setDiets(diets?.filter((diet) => diet.id !== currentDiet.id));
+    deleteDiet.mutate(currentDiet.id, {
+      onSuccess: (data) => {
+        setDeleteDialogOpen(false);
+      },
+      onError: (error) => {
+        console.log(error);
+      },
+    })
     setDeleteDialogOpen(false);
   };
 

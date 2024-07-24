@@ -308,6 +308,15 @@ const DietMeals = (props) => {
     }),
   }));
 
+  const handleCloseDrawer = () => {
+    console.log("Close Drawer");
+    setDrawerOpen(false);
+    setSelectedFood(null);
+    setFoodId(null);
+    setSelectedServing(null);
+    setServingData({});
+  }
+
 
 
   const MealCard = ({ meal, chart }) => {
@@ -410,21 +419,19 @@ const DietMeals = (props) => {
 
         </Grid>
 
-        <Grid spacing={2} justifyContent="center">
-          {meals.map((meal) => <Grid sx={{ mb: 2 }} lg={12} md={12} xs={12} sm={12}>
-            <MealCard meal={meal} chart={<FoodChart mealData={meal.Diet_Meals_FoodList} />} />
-
-          </Grid>)}
-
+        <Grid container justifyContent="center">
+          {meals.map((meal, index) => (
+            <Grid key={index} item sx={{ mb: 2 }} lg={12} md={12} xs={12} sm={12}>
+              <MealCard meal={meal} chart={<FoodChart mealData={meal.Diet_Meals_FoodList} />} />
+            </Grid>
+          ))}
         </Grid>
-
-
 
         <Drawer
           PaperProps={{ sx: { maxHeight: "70%" } }}
           anchor="bottom"
           open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
+          onClose={handleCloseDrawer}
         >
           {!foodId ? (
             <div style={{ marginLeft: 4, padding: 4 }}>

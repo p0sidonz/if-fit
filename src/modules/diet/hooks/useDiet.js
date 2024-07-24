@@ -133,7 +133,8 @@ export const useDeleteDiet = () => {
 
   return useMutation({
     mutationFn: async (dietData) => {
-      const response = await axios.post(`/diet/deleteDiet`, dietData);
+      console.log("dietData", dietData);
+      const response = await axios.post(`/diet/deleteDiet`, {diet_id: dietData});
       return response.data;
     },
     onSuccess: (data) => {

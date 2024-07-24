@@ -213,3 +213,29 @@ export const addNewProgram = () => {
   });
   
 }
+
+export const useDeleteProgram = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (program_id) => {
+      const response = await axios.post('/program/delete', { id: program_id });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries('programList');
+      toast.success('Program deleted successfully');
+    },
+    onError: (error) => {
+      if (error.response?.data?.message?.length) {
+        error.response.data.message.forEach((msg) => {
+          toast.error(msg, {
+            className: {
+              zIndex: 10000,
+            },
+          });
+        });
+      }
+    },
+  });
+}
