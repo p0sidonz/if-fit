@@ -5,9 +5,6 @@ import TrainerPackageList from '../../modules/packages/components/TrainerPackage
 const PackagesList = () => {
   return (
     <Container>
-      <Typography variant="h4" gutterBottom>
-        Trainer Packages
-      </Typography>
       <TrainerPackageList />
     </Container>
   );
