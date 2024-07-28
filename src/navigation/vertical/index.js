@@ -6,16 +6,6 @@ const navigation = () => {
       icon: 'mdi:home-outline',
     },
     {
-      title: 'Social',
-      path: '/profile/profile/',
-      icon: 'mdi:home-outline',
-    },
-    {
-      title: 'Chat',
-      path: '/chat',
-      icon: 'mdi:email-outline',
-    },
-    {
       title: 'Workout',
       path: '/workout',
       icon: 'mdi:email-outline',
@@ -32,15 +22,23 @@ const navigation = () => {
       icon: 'mdi:email-outline',
     },
     {
+      title: 'Packages',
+      path: '/packages',
+      icon: 'mdi:email-outline',
+    },
+    
+    {
+      title: 'Forms',
+      path: '/forms',
+      icon: 'mdi:email-outline',
+    },
+    {
       title: 'Excercise',
       path: '/excercises',
       icon: 'mdi:email-outline',
     },
-    {
-      title: 'Packages',
-      path: '/packages',
-      icon: 'mdi:email-outline',
-    }
+
+
 
   ]
 }

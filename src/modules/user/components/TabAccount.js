@@ -100,7 +100,6 @@ const TabAccount = () => {
     <Grid container spacing={6}>
       {/* Account Details Card */}
       <Grid item xs={12}>
-        {JSON.stringify(errors)}
         <Card>
           <CardHeader title="Account Details" />
           <form onSubmit={handleSubmit(onSubmit)}>

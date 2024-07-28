@@ -1,7 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useState } from 'react';
 
-const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1'];
+const COLORS = ['#93D965', '#4775ff', '#f32d12'];
 
 const aggregateNutritionData = (mealData) => {
   return mealData.Diet_Meals_FoodList.map(item => {
@@ -97,9 +97,9 @@ const NutritionChart = ({ mealsData }) => {
         <h3>Total Nutritional Information</h3>
         <p>
           <span style={{ fontWeight: 'bold' }}>Total Calories: {totals.Calories.toFixed(2)} kcal</span> |
-          <span style={{ color: '#FF6B6B' }}> Total Protein: {totals.Protein.toFixed(2)}g</span> |
-          <span style={{ color: '#4ECDC4' }}> Total Fat: {totals.Fat.toFixed(2)}g</span> |
-          <span style={{ color: '#45B7D1' }}> Total Carbohydrates: {totals.Carbohydrates.toFixed(2)}g</span>
+          <span style={{ color: '#93D965' }}> Total Protein: {totals.Protein.toFixed(2)}g</span> |
+          <span style={{ color: '#4775ff' }}> Total Fat: {totals.Fat.toFixed(2)}g</span> |
+          <span style={{ color: '#f32d12' }}> Total Carbohydrates: {totals.Carbohydrates.toFixed(2)}g</span>
         </p>
       </div>
     </div>

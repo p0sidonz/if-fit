@@ -352,3 +352,102 @@ export const useUpdateMeal = () => {
   });
 }
 
+
+export const getAllUserAndTrainerList = () => {
+  return useQuery({
+    queryKey: ['userList'],
+    queryFn: async () => {
+      try {
+        const result = await axios.get('/userandtrainer/getUsers');
+        return result.data?.data || [];
+      } catch (error) {
+        console.error('Error fetching user list:', error);
+        toast.error(`Error: ${error.message}. ${error.response?.data?.message || ''}`, {
+          duration: 4000,
+        });
+        throw error;
+      }
+    },
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export const getAssignedUserList = (diet_id) => {
+  return useQuery({
+    queryKey: ['assignedUserList', diet_id],
+    queryFn: async () => {
+      try {
+        console.log("diet_id", diet_id);
+        const result = await axios.get(`/userandtrainer/assignedDiet/${diet_id}`);
+        return result.data?.data || [];
+      } catch (error) {
+        console.error('Error fetching assigned user list:', error);
+        toast.error(`Error: ${error.message}. ${error.response?.data?.message || ''}`, {
+          duration: 4000,
+        });
+        throw error;
+      }
+    },
+    enabled: !!diet_id,
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export const assignUserToDiet = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ diet_id, assignedId }) => {
+      const response = await axios.post(`/userandtrainer/assignDiet/${diet_id}/${assignedId}`);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries('assignedUserList');
+      queryClient.invalidateQueries('userList');
+
+      toast.success('User assigned successfully');
+    },
+    onError: (error) => {
+      if (error.response?.data?.message?.length) {
+        error.response.data.message.forEach((msg) => {
+          toast.error(msg, {
+            className: {
+              zIndex: 10000,
+            },
+          });
+        });
+      }
+    },
+  });
+}
+
+export const unassignUserFromDiet = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (assignedId) => {
+      const response = await axios.post(`/userandtrainer/unassignDiet/${assignedId}`);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries('assignedUserList');
+      queryClient.invalidateQueries('userList');
+      
+      toast.success('User unassigned successfully');
+    },
+    onError: (error) => {
+      if (error.response?.data?.message?.length) {
+        error.response.data.message.forEach((msg) => {
+          toast.error(msg, {
+            className: {
+              zIndex: 10000,
+            },
+          });
+        });
+      }
+    },
+  });
+}
+

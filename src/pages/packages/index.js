@@ -4,9 +4,7 @@ import TrainerPackageList from '../../modules/packages/components/TrainerPackage
 
 const PackagesList = () => {
   return (
-    <Container>
       <TrainerPackageList />
-    </Container>
   );
 };
 

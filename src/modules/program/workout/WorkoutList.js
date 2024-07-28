@@ -11,7 +11,7 @@ const WorkoutList = ({ workouts, onAddWorkout, onClose }) => {
     <Grid container spacing={2}>
       <Grid item xs={12} sm={4}>
         <List>
-          {workouts.map((workout) => (
+          {workouts?.map((workout) => (
             <ListItem button key={workout.id} onClick={() => setSelectedWorkout(workout)}>
               <ListItemText primary={workout.title} />
               <ListItemSecondaryAction>

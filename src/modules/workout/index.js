@@ -4,8 +4,9 @@ import { useGetWorkouts, useDeleteWorkout, useCreateWorkout } from './hooks/useW
 import {
   List, ListItem, ListItemText, Button, Typography, Box, Link
   , Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid, Card, CardContent, CardActions, Tooltip,
-  Hidden
+  Hidden, Divider, IconButton, Avatar, InputAdornment,
 } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { LoadingButton } from '@mui/lab';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
@@ -13,8 +14,8 @@ import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import { useRouter } from "next/router";
 import { FloatBarAction } from '../components/FloatBarAction';
-
-
+import WorkoutCard from './component/WorkoutCard';
+import AddIcon from '@mui/icons-material/Add';
 
 const WorkoutsList = () => {
   const [openWorkoutDialog, setOpenWorkoutDialog] = useState(false);
@@ -24,6 +25,7 @@ const WorkoutsList = () => {
   const { data: workouts, isLoading, error } = useGetWorkouts();
   const { mutateAsync: createNewWorkout, isLoading: newWorkoutLoading, error: newWorkoutError, } = useCreateWorkout();
   const { mutateAsync: deleteWorkout, isLoading: deleteWorkoutLoading, error: deleteWorkoutError, } = useDeleteWorkout();
+  const [searchQuery, setSearchQuery] = useState("");
 
 
   if (isLoading) return <Typography>Loading...</Typography>;
@@ -75,75 +77,153 @@ const WorkoutsList = () => {
     router.push(`/workout/${id}`);
   };
 
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value.toLowerCase());
+  };
+
+  const filteredWorkouts = workouts.filter((workout) => {
+    const matchesSearchQuery =
+      workout.title.toLowerCase().includes(searchQuery) ||
+      workout.description.toLowerCase().includes(searchQuery);
+    return matchesSearchQuery
+  });
+
+
 
   return (
     <>
-      <Typography variant="h4" gutterBottom>Workouts</Typography>
-      <Hidden smDown>
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Button onClick={handleNewWorkout} variant="contained" color="primary" sx={{ mb: 2 }}>
-            Create New Workout
-          </Button>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Typography variant="h4" gutterBottom>
+            Workouts
+          </Typography>
+          <Hidden smDown>
+            <Tooltip title={`Add New Workout`} aria-label="add">
+              <Button startIcon={<AddIcon />} onClick={handleNewWorkout} variant="contained" color="primary" sx={{ mb: 2 }}>
+                Add New Workout
+              </Button>
+            </Tooltip>
+          </Hidden>
         </div>
-      </Hidden>
+
+
+      <Card sx={{ marginTop: 3, padding: 2, marginBottom: 3 }}>
+        <CardContent sx={{ display: "flex", gap: 2 }}>
+          <TextField
+            label="Search Workout"
+            variant="outlined"
+            fullWidth
+            value={searchQuery}
+            onChange={handleSearch}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton edge="end">
+                    <SearchIcon />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+        </CardContent>
+      </Card>
+
 
       <Grid container spacing={3}>
-        {workouts.map((workout) => (
+        {filteredWorkouts?.map((workout) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={workout.id}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <CardContent sx={{ flexGrow: 1, cursor: 'pointer' }} onClick={() => handleNavigation(workout.id)}>
-                <Box display="flex" alignItems="center" mb={2}>
-                  <Tooltip title="Workout">
-                    <AssignmentIcon color="primary" sx={{ mr: 2 }} />
-                  </Tooltip>
-                  <Typography variant="h6" component="div">
-                    <Link to={`/workouts/${workout.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            {/* <Card
+              sx={{
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: 3,
+                transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: 6,
+                },
+              }}
+            >
+              <CardContent
+                sx={{
+                  flexGrow: 1,
+                  cursor: 'pointer',
+                  padding: 3,
+                }}
+                onClick={() => handleNavigation(workout.id)}
+              >
+                <Box display="flex" alignItems="center" mb={3}>
+                  <AssignmentIcon color="primary" sx={{ mr: 2, fontSize: 28 }} />
+                  <Typography variant="h5" component="div" fontWeight="bold">
+                    <Link
+                      to={`/workouts/${workout.id}`}
+                      style={{ textDecoration: 'none', color: 'inherit' }}
+                    >
                       {workout.title}
                     </Link>
                   </Typography>
                 </Box>
 
-                <Typography variant="body2" color="textSecondary" mb={2}>
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  mb={3}
+                  sx={{ lineHeight: 1.6 }}
+                >
                   {workout.description}
                 </Typography>
 
-                <Box display="flex" justifyContent="space-around" alignItems="center" mb={2}>
+                <Box
+                  display="flex"
+                  justifyContent="space-around"
+                  alignItems="center"
+                  mb={2}
+                  sx={{
+                    backgroundColor: 'background.paper',
+                    borderRadius: 2,
+                    padding: 2,
+                  }}
+                >
                   <Box textAlign="center">
-                    <Tooltip title="Total Sets">
-                      <PlaylistAddCheckIcon color="secondary" sx={{ mb: 1 }} />
-                    </Tooltip>
-                    <Typography variant="body2">Total Sets:</Typography>
-                    <Typography variant="h6" color="textSecondary">
+                    <PlaylistAddCheckIcon color="secondary" sx={{ fontSize: 36, mb: 1 }} />
+                    <Typography variant="body2" fontWeight="medium">Total Sets</Typography>
+                    <Typography variant="h4" color="secondary" fontWeight="bold">
                       {workout.totalSets}
                     </Typography>
                   </Box>
 
+                  <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+
                   <Box textAlign="center">
-                    <Tooltip title="Total Exercises">
-                      <FitnessCenterIcon color="action" sx={{ mb: 1 }} />
-                    </Tooltip>
-                    <Typography variant="body2">Total Exercises:</Typography>
-                    <Typography variant="h6" color="textSecondary">
+                    <FitnessCenterIcon color="primary" sx={{ fontSize: 36, mb: 1 }} />
+                    <Typography variant="body2" fontWeight="medium">Total Exercises</Typography>
+                    <Typography variant="h4" color="primary" fontWeight="bold">
                       {workout.totalExercises}
                     </Typography>
                   </Box>
                 </Box>
               </CardContent>
 
-              <CardActions>
-                <Tooltip title="Delete Workout">
-                  <Button
-                    onClick={() => handleOpenDelete(workout)}
-                    startIcon={<DeleteIcon />}
-                    color="error"
-                    fullWidth
-                  >
-                    Delete
-                  </Button>
-                </Tooltip>
+              <CardActions sx={{ padding: 2, borderTop: 1, borderColor: 'divider' }}>
+                <Button
+                  onClick={() => handleOpenDelete(workout)}
+                  startIcon={<DeleteIcon />}
+                  color="error"
+                  fullWidth
+                  variant="outlined"
+                  sx={{
+                    fontWeight: 'bold',
+                    '&:hover': {
+                      backgroundColor: 'error.light',
+                      color: 'error.contrastText',
+                    },
+                  }}
+                >
+                  Delete Workout
+                </Button>
               </CardActions>
-            </Card>
+            </Card> */}
+            <WorkoutCard workout={workout} handleDelete={handleOpenDelete} handleNavigation={handleNavigation} />
           </Grid>
         ))}
       </Grid>

@@ -9,7 +9,9 @@ export const getStaticPaths = () => {
     paths: [
       { params: { tab: 'profile' } },
       { params: { tab: 'followers' } },
-      { params: { tab: 'following' } }
+      { params: { tab: 'following' } },
+      { params: { tab: 'packages' } }
+
       
 
     ],

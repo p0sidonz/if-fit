@@ -143,7 +143,6 @@ const ExerciseSearch = () => {
 
     return (
         <div>
-            <Container>
                 <Card sx={{ mr: 4, ml: 4 }}>
                     <CardContent>
                         <TextField
@@ -206,7 +205,6 @@ const ExerciseSearch = () => {
                 </div>}
 
 
-            </Container>
 
         </div>
     );

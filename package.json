@@ -61,6 +61,7 @@
     "prismjs": "1.29.0",
     "react": "18.2.0",
     "react-apexcharts": "1.4.0",
+    "react-beautiful-dnd": "^13.1.1",
     "react-body-highlighter": "^2.0.5",
     "react-chartjs-2": "5.2.0",
     "react-credit-cards": "0.8.3",

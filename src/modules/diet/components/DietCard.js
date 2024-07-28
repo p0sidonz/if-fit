@@ -6,15 +6,21 @@ import FastfoodIcon from "@mui/icons-material/Fastfood";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import OpacityIcon from "@mui/icons-material/Opacity";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
+import { Button } from "@mui/material";
+
 
 import { Card, CardContent, Typography, List, ListItem, ListItemText, IconButton, Menu, MenuItem, Box, Chip, Avatar } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
+
+
 const StyledCard = styled(Card)(({ theme }) => ({
   maxWidth: '100%',
   width: '100%',
-  height: 450,
+  height: 350,
+  
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'space-between',
@@ -47,7 +53,7 @@ const MacroText = styled(ListItemText)(({ theme }) => ({
   },
 }));
 
-const DietPlanCard = ({ title, description, target_calories, target_carbs, target_fat, target_protein, type, updated_at, handleEdit, handleDelete, handleNavigation }) => {
+const DietPlanCard = ({ diet,onAssignClick, dietId,title, description, target_calories, target_carbs, target_fat, target_protein, type, updated_at, handleEdit, handleDelete, handleNavigation }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
 
@@ -60,64 +66,83 @@ const DietPlanCard = ({ title, description, target_calories, target_carbs, targe
     setAnchorEl(null);
   };
 
+  const onAssignClicked = (dietId) => {
+    console.log("Diet ID: ", dietId);
+    onAssignClick(dietId.id);
+
+  }
+
   return (
-    <StyledCard>
-      <IconButton
-        aria-label="settings"
-        onClick={handleMenuClick}
-        sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}
-      >
-        <MoreVertIcon />
-      </IconButton>
-      <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
-        <MenuItem onClick={handleEdit}>Edit</MenuItem>
-        <MenuItem onClick={handleDelete}>Delete</MenuItem>
-      </Menu>
-      <CardContent onClick={handleNavigation} sx={{ cursor: 'pointer', height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <Typography variant="h5" component="div" gutterBottom fontWeight="bold">
-          {title}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, flexGrow: 1 }}>
-          {description}
-        </Typography>
-        <List sx={{ width: '100%', mt: 'auto' }}>
-          <MacroItem>
-            <MacroIcon color="error"><LocalFireDepartmentIcon fontSize="small" /></MacroIcon>
-            <MacroText primary={`Calories: ${target_calories || 0}`} />
-          </MacroItem>
-          <MacroItem>
-            <MacroIcon color="primary"><FastfoodIcon fontSize="small" /></MacroIcon>
-            <MacroText primary={`Carbs: ${target_carbs || 0}g`} />
-          </MacroItem>
-          <MacroItem>
-            <MacroIcon color="secondary"><OpacityIcon fontSize="small" /></MacroIcon>
-            <MacroText primary={`Fat: ${target_fat || 0}g`} />
-          </MacroItem>
-          <MacroItem>
-            <MacroIcon color="success"><FitnessCenterIcon fontSize="small" /></MacroIcon>
-            <MacroText primary={`Protein: ${target_protein || 0}g`} />
-          </MacroItem>
-        </List>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-          <Chip
-            label={type === "veg" ? "Vegetarian" : "Non-Vegetarian"}
-            color={type === "veg" ? "success" : "error"}
-            size="small"
-          />
-          <Box sx={{ display: 'flex', alignItems: 'center', typography: 'caption', color: 'text.secondary' }}>
-            <AccessTimeIcon fontSize="small" sx={{ mr: 0.5 }} />
-            {new Date(updated_at).toLocaleDateString()}
-          </Box>
-        </Box>
-      </CardContent>
-    </StyledCard>
+<StyledCard>
+  <IconButton
+    aria-label="settings"
+    onClick={handleMenuClick}
+    sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}
+  >
+    <MoreVertIcon />
+  </IconButton>
+  <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
+    <MenuItem onClick={handleEdit}>Edit</MenuItem>
+    <MenuItem onClick={handleDelete}>Delete</MenuItem>
+  </Menu>
+  <CardContent onClick={handleNavigation} sx={{ cursor: 'pointer', height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Typography variant="h5" component="div" gutterBottom fontWeight="bold">
+      {title}
+    </Typography>
+    <Typography variant="body2" color="text.secondary" sx={{ mb: 2, flexGrow: 1 }}>
+      {description}
+    </Typography>
+    <List sx={{ width: '100%', mt: 'auto' }}>
+      <MacroItem>
+        <MacroIcon color="error"><LocalFireDepartmentIcon fontSize="small" /></MacroIcon>
+        <MacroText primary={`Calories: ${target_calories || 0}`} />
+      </MacroItem>
+      <MacroItem>
+        <MacroIcon color="primary"><FastfoodIcon fontSize="small" /></MacroIcon>
+        <MacroText primary={`Carbs: ${target_carbs || 0}g`} />
+      </MacroItem>
+      <MacroItem>
+        <MacroIcon color="secondary"><OpacityIcon fontSize="small" /></MacroIcon>
+        <MacroText primary={`Fat: ${target_fat || 0}g`} />
+      </MacroItem>
+      <MacroItem>
+        <MacroIcon color="success"><FitnessCenterIcon fontSize="small" /></MacroIcon>
+        <MacroText primary={`Protein: ${target_protein || 0}g`} />
+      </MacroItem>
+    </List>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+      <Chip
+        label={type === "veg" ? "Vegetarian" : "Non-Vegetarian"}
+        color={type === "veg" ? "success" : "error"}
+        size="small"
+      />
+      <Box sx={{ display: 'flex', alignItems: 'center', typography: 'caption', color: 'text.secondary' }}>
+        <AccessTimeIcon fontSize="small" sx={{ mr: 0.5 }} />
+        {new Date(updated_at).toLocaleDateString()}
+      </Box>
+    </Box>
+    <Button
+      sx={{mt: 4}}
+    onClick={(e) => {
+      e.stopPropagation();
+      onAssignClicked(dietId);
+    }}
+    startIcon={<AssignmentIndIcon />}
+    color="primary"
+    variant="contained"
+    size="small"
+  >
+    Assign
+  </Button>
+  </CardContent>
+</StyledCard>
   );
 };
 
 
 
 
-const DietCard = ({ diet, onEdit, onDelete, id }) => {
+const DietCard = ({ diet, onEdit, onDelete, id,onAssignClick }, props) => {
   const router = useRouter();
 
   const handleNavigation = () => {
@@ -163,6 +188,9 @@ const DietCard = ({ diet, onEdit, onDelete, id }) => {
 
   return (
     <DietPlanCard
+       {...props}
+       onAssignClick={onAssignClick}
+      dietId={diet}
       title={title}
       description={description}
       target_calories={target_calories}

@@ -81,7 +81,9 @@ const TrainerPackageList = () => {
           handleClick={() => setOpen(true)}
         />
       </Hidden>
-
+      <Typography sx={{mt: 4}} variant='subtitle2'  gutterBottom>
+                    {"Note: Only Active packages will be displayed in your profile page."}
+                </Typography>
     </div>
   );
 };

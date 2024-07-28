@@ -1,11 +1,8 @@
 import React from 'react';
-import {Tooltip,
-  Card, CardHeader, CardContent, CardActions, Button, Typography, Box, IconButton, Chip, Avatar,
-  Icon,
-  Grid,
-  Link
-
-} from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { Grid,Card, CardContent, CardActions, Typography, Box, Button, Avatar, IconButton, Menu, MenuItem, Chip, List, ListItem, ListItemText } from '@mui/material';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
@@ -13,142 +10,125 @@ import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'; // New icon for total weeks
 import DirectionsRunIcon from '@mui/icons-material/DirectionsRun'; // New icon for total workouts
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd'; // New icon for assign
 
 
-const ProgramCard = ({ program, onEdit, onDelete, handleNavigation }) => (
-  
-  <Grid item xs={12} sm={6} md={4} lg={3} key={program.id}>
-  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-    <CardContent sx={{ flexGrow: 1, cursor: 'pointer' }} onClick={() => handleNavigation(program.id)}>
-      <Box display="flex" alignItems="center" mb={2}>
-        <Tooltip title="Program">
-          <AssignmentIcon color="primary" sx={{ mr: 2 }} />
-        </Tooltip>
-        <Typography variant="h6" component="div">
-          <Link to={`/workouts/${program.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-            {program.title}
-          </Link>
-        </Typography>
-      </Box>
-      
-      <Typography variant="body2" color="textSecondary" mb={2}>
-        {program.description}
-      </Typography>
 
-      <Box display="flex" justifyContent="space-around" alignItems="center" mb={2} pt={4}>
-        <Box textAlign="center">
-          <Tooltip title="Total Weeks">
-            <CalendarTodayIcon color="secondary" sx={{ mb: 1 }} />
-          </Tooltip>
-          <Typography variant="h6" color="textSecondary">
-            {program.total_weeks || 0}
-          </Typography>
-          <Typography variant="body2">Weeks</Typography>
-          
-         
-        </Box>
+const StyledProgramCard = styled(Card)(({ theme }) => ({
+  maxWidth: '100%',
+  width: '100%',
+  minWidth: 300,
+  height: 350,
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'space-between',
+  boxShadow: theme.shadows[3],
+  position: 'relative',
+  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+  '&:hover': {
+    transform: 'translateY(-5px)',
+    boxShadow: theme.shadows[10],
+  },
+  [theme.breakpoints.up('sm')]: {
+    width: 400,
+  },
+}));
 
-        <Box textAlign="center">
-          <Tooltip title="Total Exercises">
-            <FitnessCenterIcon color="action" sx={{ mb: 1 }} />
-          </Tooltip>
-          <Typography variant="h6" color="textSecondary">
-            {program.total_days  || 0}
-          </Typography>
-          <Typography variant="body2">Exercises</Typography>
-         
-        </Box>
+const ProgramItem = styled(ListItem)(({ theme }) => ({
+  padding: theme.spacing(0.5, 0),
+}));
 
-        <Box textAlign="center">
-          <Tooltip title="Total Workouts">
-            <DirectionsRunIcon color="action" sx={{ mb: 1 }} />
-          </Tooltip>
-          <Typography variant="h6" color="textSecondary">
-            {program.total_workouts || 0}
-          </Typography>
-          <Typography variant="body2">Workouts</Typography>
-          
-        </Box>
-      </Box>
-    </CardContent>
-    
-    <CardActions>
-      <Tooltip title="Delete Workout">
-        <Button
-          onClick={() => onDelete(program)}
-          startIcon={<DeleteIcon />}
-          color="error"
-          fullWidth
+const ProgramIcon = styled(Avatar)(({ theme, color }) => ({
+  backgroundColor: theme.palette[color].main,
+  width: 24,
+  height: 24,
+}));
+
+const ProgramText = styled(ListItemText)(({ theme }) => ({
+  marginLeft: theme.spacing(1),
+  '& .MuiListItemText-primary': {
+    fontSize: '0.9rem',
+  },
+}));
+
+const ProgramCard = ({ program, onEdit, onDelete, handleNavigation, onAssignClick }) => {
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
+
+  const handleMenuClick = (event) => {
+    event.stopPropagation();
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  return (
+    <Grid item xs={12} sm={6} md={4} lg={3} key={program.id}>
+      <StyledProgramCard>
+        <IconButton
+          aria-label="settings"
+          onClick={handleMenuClick}
+          sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}
         >
-          Delete
-        </Button>
-      </Tooltip>
-    </CardActions>
-  </Card>
-</Grid>
-
-
-  // <Card sx={{ margin: 1, borderRadius: 1, boxShadow: 3 }}>
-  //   <CardHeader
-  //     title={
-  //       <Typography variant="h5" sx={{ color: '#FFF' }}>
-  //         {program.title}
-  //       </Typography>
-  //     }
-  //     action={
-  //       <Tooltip title="Edit Program">
-  //         <IconButton onClick={() => onEdit(program)} sx={{ color: '#FFF' }}>
-  //           <EditIcon />
-  //         </IconButton>
-  //       </Tooltip>
-  //     }
-  //     sx={{ backgroundColor: '#666CFF', padding: 2 }}
-  //   />
-  //   <CardContent sx={{ padding: 2 }}>
-  //     <Typography variant="body1" color="textSecondary">
-  //       {program.description}
-  //     </Typography>
-  //     <Box sx={{ marginTop: 3, textAlign: 'start' }}>
-  //       <Typography variant="h6" component="h2">
-  //         Total Weeks: {program.total_weeks}
-  //       </Typography>
-  //       <Typography variant="h6" component="h2">
-  //         Total Days: {program.total_days}
-  //       </Typography>
-  //       <Typography variant="h6" component="h2">
-  //         Total Workouts: {program.total_workouts}
-  //       </Typography>
-  //     </Box>
-  //   </CardContent>
-   
-  //   <CardActions sx={{ justifyContent: 'space-between', padding: 2 }}>
-  //     {/* <Tooltip title="Edit Program">
-  //       <Button
-  //         onClick={() => onEdit(program)}
-  //         variant="contained"
-  //         color="primary"
-  //         startIcon={<EditIcon />}
-  //       >
-  //         Edit
-  //       </Button>
-  //     </Tooltip> */}
-  //       <Tooltip title="View Program">
-  //       <Button variant="text" color="primary" startIcon={<EyeIcon />}>
-  //         View Program
-  //       </Button>
-  //     </Tooltip>
-  //     <Tooltip title="Delete Program">
-  //       <Button
-  //         onClick={() => onDelete(program)}
-  //         variant="text"
-  //         color="error"
-  //         startIcon={<DeleteIcon />}
-  //       >
-  //         Delete
-  //       </Button>
-  //     </Tooltip>
-  //   </CardActions>
-  // </Card>
-);
+          <MoreVertIcon />
+        </IconButton>
+        <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
+          <MenuItem onClick={() => onEdit(program)}>Edit</MenuItem>
+          <MenuItem onClick={() => onDelete(program)}>Delete</MenuItem>
+        </Menu>
+        <CardContent onClick={() => handleNavigation(program.id)} sx={{ cursor: 'pointer', height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <Typography variant="h5" component="div" gutterBottom fontWeight="bold">
+            {program.title}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, flexGrow: 1 }}>
+            {program.description}
+          </Typography>
+          <List sx={{ width: '100%', mt: 'auto' }}>
+            <ProgramItem>
+              <ProgramIcon color="primary"><CalendarTodayIcon fontSize="small" /></ProgramIcon>
+              <ProgramText primary={`Weeks: ${program.total_weeks || 0}`} />
+            </ProgramItem>
+            <ProgramItem>
+              <ProgramIcon color="secondary"><FitnessCenterIcon fontSize="small" /></ProgramIcon>
+              <ProgramText primary={`Exercises: ${program.total_days || 0}`} />
+            </ProgramItem>
+            <ProgramItem>
+              <ProgramIcon color="success"><DirectionsRunIcon fontSize="small" /></ProgramIcon>
+              <ProgramText primary={`Workouts: ${program.total_workouts || 0}`} />
+            </ProgramItem>
+          </List>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+            <Chip
+              label={program.type || 'Program'}
+              color="primary"
+              size="small"
+            />
+            <Box sx={{ display: 'flex', alignItems: 'center', typography: 'caption', color: 'text.secondary' }}>
+              <AccessTimeIcon fontSize="small" sx={{ mr: 0.5 }} />
+              {new Date(program.updated_at).toLocaleDateString()}
+            </Box>
+          </Box>
+        </CardContent>
+        <CardActions sx={{ padding: 2, borderTop: 1, borderColor: 'divider' }}>
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              onAssignClick(program.id);
+            }}
+            startIcon={<AssignmentIndIcon />}
+            color="primary"
+            variant="contained"
+            size="small"
+            fullWidth
+          >
+            Assign Program
+          </Button>
+        </CardActions>
+      </StyledProgramCard>
+    </Grid>
+  );
+};
 
 export default ProgramCard;

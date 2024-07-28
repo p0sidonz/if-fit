@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import ProgramCard from "./components/ProgramCard";
-import { useGetProgramList, useUpdateProgram, addNewProgram, useDeleteProgram } from "./hooks/useProgram";
+import { useGetProgramList, useUpdateProgram, addNewProgram, useDeleteProgram, getAllUserAndTrainerList, getAssignedUserList, assignUserToProgram, unassignUserFromProgram} from "./hooks/useProgram";
 import CardHeader, { Hidden } from "@mui/material";
+import AssignDialog from "./AssignDialog";
 import { useRouter } from "next/router";
 
 import {
@@ -24,6 +25,7 @@ import {
   FormControl,
   InputLabel,
   Box,
+  Tooltip,
   CardActions
 } from "@mui/material";
 import { Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
@@ -34,9 +36,12 @@ import { FloatBarAction } from "../components/FloatBarAction";
 const ProgramList = () => {
   const router = useRouter();
   const deleteProgram = useDeleteProgram();
+  const assignUser = assignUserToProgram();
+  const unassignUser = unassignUserFromProgram();
   // const updateProgram = useUpdateProgram();
   const createProgram = addNewProgram();
   const { data, isLoading, isError, error, isFetched } = useGetProgramList();
+  const { data: users, isLoading: usersLoading, error: usersError, isFetched: usersFetched } = getAllUserAndTrainerList();
   // const createProgram = useCreateNewProgram();
   const [programs, setPrograms] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,6 +51,40 @@ const ProgramList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [newProgramDialogOpen, setNewProgramDialogOpen] = useState(false);
   const [currentProgram, setCurrentProgram] = useState(null);
+  const [openAssignDialog, setOpenAssignDialog] = useState(false);
+  const [selectedProgram, setSelectedProgram] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);  
+  const { data: assignedUsers, isLoading: assignedUsersLoading, error: assignedUsersError, isFetched: assignedUsersFetched } = getAssignedUserList(selectedProgram);
+
+  console.log(users);
+  const onAssignClick = (programId) => {
+    setSelectedProgram(programId);
+    setOpenAssignDialog(true);
+  };
+
+  const handleAssignConfirm = async (program_id, assignedId) => {
+    console.log("handleAssignConfirm",program_id, assignedId);
+    assignUser.mutate({program_id, assignedId}, {
+      onSuccess: (data) => {
+        // setOpenAssignDialog(false);
+      },
+      onError: (error) => {
+        console.log(error);
+      },
+    });
+    // Logic for assigning program
+  };
+
+  const handleDeleteAssignee = (assignedId) => {
+    unassignUser.mutate(assignedId, {
+      onSuccess: (data) => {
+        // setOpenAssignDialog(false);
+      },
+      onError: (error) => {
+        console.log(error);
+      },
+    });
+  };
 
   useEffect(() => {
     if (isFetched) {
@@ -148,10 +187,14 @@ const ProgramList = () => {
 
 
   return (
-    <Container>
-      <Hidden smDown>
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Button
+    <>
+    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Typography variant="h4" gutterBottom>
+          Program
+          </Typography>
+          <Hidden smDown>
+            <Tooltip title={`Add New Program`} aria-label="add">
+            <Button
             variant="contained"
             color="primary"
             onClick={handleAddProgram}
@@ -160,8 +203,12 @@ const ProgramList = () => {
           >
             Add New Program
           </Button>
+            </Tooltip>
+          </Hidden>
         </div>
-      </Hidden>
+
+
+      
       <Card sx={{ marginTop: 3, padding: 2 }}>
         <CardContent sx={{ display: "flex", gap: 2 }}>
           <TextField
@@ -186,6 +233,7 @@ const ProgramList = () => {
       <Grid container spacing={1} sx={{ marginTop: 3 }}>
         {filteredPrograms.map((program, index) => (
           <ProgramCard
+            onAssignClick={onAssignClick}
             handleNavigation={handleNavigation}
             program={program}
             onEdit={handleEdit}
@@ -310,11 +358,25 @@ const ProgramList = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <AssignDialog
+        name={"Program"}
+        programId={selectedProgram}
+        open={openAssignDialog}
+        onAssign={handleAssignConfirm}
+        onAssignLoading={assignUser.isLoading}
+        onUnassignLoading={unassignUser.isLoading}
+        onUnassign={handleDeleteAssignee}
+        onClose={() => setOpenAssignDialog(false)}
+        users={users}
+        assignedUsers={assignedUsers}
+
+      />
+
       <Hidden smUp>
         <FloatBarAction name="Program" handleClick={handleAddProgram} />
       </Hidden>
 
-    </Container>
+</> 
   );
 };
 

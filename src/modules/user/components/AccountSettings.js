@@ -23,6 +23,7 @@ import Icon from 'src/@core/components/icon'
 import TabAccount from './TabAccount'
 // import TabBilling from 'src/views/pages/account-settings/TabBilling'
 import TabSecurity from './TabSecurity'
+import TabBilling from './TabBilling'
 // import TabConnections from 'src/views/pages/account-settings/TabConnections'
 // import TabNotifications from 'src/views/pages/account-settings/TabNotifications'
 
@@ -56,7 +57,7 @@ const AccountSettings = ({ tab = "account"}) => {
   const handleChange = (event, value) => {
     setIsLoading(true)
     setActiveTab(value)
-    router.push(`/second-page/${value.toLowerCase()}`).then(() => setIsLoading(false))
+    router.push(`/settings/${value.toLowerCase()}`).then(() => setIsLoading(false))
   }
   useEffect(() => {
     if (tab && tab !== activeTab) {
@@ -68,7 +69,7 @@ const AccountSettings = ({ tab = "account"}) => {
   const tabContentList = {
     account: <TabAccount />,
     security: <TabSecurity />,
-    // connections: <TabConnections />,
+    billing: <TabBilling />,
     // notifications: <TabNotifications />,
   }
 
@@ -99,6 +100,15 @@ const AccountSettings = ({ tab = "account"}) => {
                     <Box sx={{ display: 'flex', alignItems: 'center', ...(!hideText && { '& svg': { mr: 2 } }) }}>
                       <Icon icon='mdi:lock-open-outline' />
                       {!hideText && 'Security'}
+                    </Box>
+                  }
+                />
+                 <Tab
+                  value='billing'
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', ...(!hideText && { '& svg': { mr: 2 } }) }}>
+                      <Icon icon='mdi:bookmark-outline' />
+                      {!hideText && 'Plans & Billing'}
                     </Box>
                   }
                 />

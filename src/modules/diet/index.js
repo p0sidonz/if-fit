@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Collapse from "@mui/material/Collapse";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { ExpandLess } from "@mui/icons-material";
-import { useGetDietList, useCreatNewDiet, useUpdateDiet, useDeleteDiet } from "./hooks/useDiet";
+import { useGetDietList, useCreatNewDiet, useUpdateDiet, useDeleteDiet, getAssignedUserList,getAllUserAndTrainerList, assignUserToDiet,unassignUserFromDiet } from "./hooks/useDiet";
 import {
   Card,
   Box,
@@ -30,11 +30,15 @@ import {
 } from "@mui/material";
 import { Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
 import { FloatBarAction } from "../components/FloatBarAction";
+import AssignDialog from "../program/AssignDialog";
 
 const DietList = () => {
   const updateDiet = useUpdateDiet();
   const deleteDiet = useDeleteDiet();
+  const assignUser = assignUserToDiet();
+  const unassignUser = unassignUserFromDiet();
   const { data, isLoading, isError, error, isFetched } = useGetDietList();
+  const { data: users, isLoading: usersLoading, error: usersError, isFetched: usersFetched } = getAllUserAndTrainerList();
   const createDiet = useCreatNewDiet();
   const [diets, setDiets] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,6 +49,11 @@ const DietList = () => {
   const [newDietDialogOpen, setNewDietDialogOpen] = useState(false);
   const [currentDiet, setCurrentDiet] = useState(null);
   const [viewMore, setViewMore] = useState(false);
+  const [selectedDiet, setSelectedDiet] = useState(null);
+  const [openAssignDialog, setOpenAssignDialog] = useState(false);
+
+
+  const { data: assignedUsers, isLoading: assignedUsersLoading, error: assignedUsersError, isFetched: assignedUsersFetched } = getAssignedUserList(selectedDiet);
 
 
   useEffect(() => {
@@ -52,6 +61,23 @@ const DietList = () => {
       setDiets(data);
     }
   }, [isFetched, data]);
+
+  const onAssignClick = (dietId,) => {
+    setSelectedDiet(dietId);
+    setOpenAssignDialog(true);
+  };
+
+  const handleAssignConfirm = (diet_id, assignedId) => {
+    assignUser.mutate({ diet_id, assignedId });
+  } 
+
+  const handleDeleteAssignee = (assignedId) => {
+    console.log("Deleting user", assignedId);
+    unassignUser.mutate(assignedId);
+  }
+
+
+
 
   const [newDiet, setNewDiet] = useState({
     title: "",
@@ -198,7 +224,8 @@ const DietList = () => {
   if (error) return <Typography>An error occurred: {error.message}</Typography>;
 
   return (
-    <Container>
+    <> 
+    {/* <Container> */}
       <Hidden smDown>
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button
@@ -261,7 +288,11 @@ const DietList = () => {
       <Grid container  spacing={2}  sx={{ marginTop: 3 }}>
         {filteredDiets.map((diet, index) => (
           <Grid item xs={12} sm={12} md={4} key={index}>
-            <DietCard diet={diet} onEdit={handleEdit} onDelete={handleDelete} />
+            <DietCard
+              onAssignClick={onAssignClick}
+             diet={diet} 
+             onEdit={handleEdit} 
+             onDelete={handleDelete} />
           </Grid>
         ))}
       </Grid>
@@ -548,7 +579,22 @@ const DietList = () => {
       <Hidden smUp>
         <FloatBarAction name="Diet" handleClick={handleAddDiet} />
       </Hidden>
-    </Container>
+
+      <AssignDialog
+        name={"Diet"}
+        programId={selectedDiet}
+        open={openAssignDialog}
+        onAssign={handleAssignConfirm}
+        onAssignLoading={assignUser?.isLoading}
+        onUnassignLoading={unassignUser.isLoading }
+        onUnassign={handleDeleteAssignee}
+        onClose={() => setOpenAssignDialog(false)}
+        users={users}
+        assignedUsers={assignedUsers}
+      />
+
+    {/* </Container> */}
+    </>
   );
 };
 

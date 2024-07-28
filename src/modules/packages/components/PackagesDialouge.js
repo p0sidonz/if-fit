@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import TrainerPackageForm  from "./TrainerPackageForm";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle , Typography, 
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle , Switch, Typography, 
+    FormControlLabel,
+    Tooltip
+
 
 } from '@mui/material';
 import { useCreateTrainerPackage, useUpdateTrainerPackage , useTrainerPackageById} from '../hooks/usePackages';
@@ -47,7 +50,8 @@ const PackagesDialog = ({ open, handleClose, trainerPackage }) => {
             discount: 0,
             rating: 0,
             reviews: '',
-            image: ''
+            image: '',
+            is_active: true
         });
     };
 
@@ -64,9 +68,24 @@ const PackagesDialog = ({ open, handleClose, trainerPackage }) => {
     return (
         <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">
+                <div style={{display: 'flex', justifyContent: 'space-between'}}>
                 <Typography  gutterBottom>
                     {formData.id ? 'Update Trainer Package' : 'Create Trainer Package'}
                 </Typography>
+                <Tooltip title="
+                If you want to make this package active, please switch on the button.
+                " placement="bottom">
+                <FormControlLabel control={ <Switch
+                    
+                    checked={formData.is_active}
+                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                    name="is_active"
+                    inputProps={{ 'aria-label': 'is_active' }}
+                />} label="Active" />
+                </Tooltip>
+
+                </div>
+           
             </DialogTitle>
             <DialogContent>
             <TrainerPackageForm formData={formData} setFormData={setFormData} />

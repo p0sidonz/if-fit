@@ -25,6 +25,7 @@ import Profile from 'src/views/pages/user-profile/profile'
 import Projects from 'src/views/pages/user-profile/projects'
 import Connections from 'src/views/pages/user-profile/connections'
 import UserProfileHeader from '../UserProfileHeader'
+import Packages from '../package/Package'
 
 const TabList = styled(MuiTabList)(({ theme }) => ({
   '& .MuiTabs-indicator': {
@@ -78,7 +79,8 @@ const UserProfile = ({ tab, data }) => {
     profile: <Profile data={data} />,
     teams: <Teams data={data} />,
     projects: <Projects data={data} />,
-    connections: <Connections data={data} />
+    connections: <Connections data={data} />,
+    packages : <Packages data={data} />
   }
 
   return (
@@ -130,6 +132,15 @@ const UserProfile = ({ tab, data }) => {
                       <Box sx={{ display: 'flex', alignItems: 'center', ...(!hideText && { '& svg': { mr: 2 } }) }}>
                         <Icon icon='mdi:link-variant' />
                         {!hideText && 'Connections'}
+                      </Box>
+                    }
+                  />
+                   <Tab
+                    value='packages'
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center', ...(!hideText && { '& svg': { mr: 2 } }) }}>
+                        <Icon icon='mdi:link-variant' />
+                        {!hideText && 'Packages'}
                       </Box>
                     }
                   />

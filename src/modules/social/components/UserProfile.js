@@ -8,6 +8,7 @@ import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import TabPanel from "@mui/lab/TabPanel";
+import Packages from "./package/Package"
 import TabContext from "@mui/lab/TabContext";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
@@ -88,6 +89,7 @@ const UserProfile = ({ tab, data = [] }) => {
     profile: <Profile tab={tab} />,
     followers: <Followers tab={tab} />,
     following: <Following tab={tab}/>,
+    packages: <Packages tab={tab} />,
   };
 
   return (
@@ -148,6 +150,21 @@ const UserProfile = ({ tab, data = [] }) => {
                       >
                         <Icon icon="mdi:link-variant" />
                         {!hideText && "following"}
+                      </Box>
+                    }
+                  />
+                    <Tab
+                    value="packages"
+                    label={
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          ...(!hideText && { "& svg": { mr: 2 } }),
+                        }}
+                      >
+                        <Icon icon="mdi:link-variant" />
+                        {!hideText && "packages"}
                       </Box>
                     }
                   />

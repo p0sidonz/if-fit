@@ -129,7 +129,7 @@ const UserProfileHeader = () => {
      
     </Box>
     <Button
-      onClick={() => router.push('/second-page/account/')}
+      onClick={() => router.push('/settings/account/')}
       sx={{ mt: 4, ml: { xs: 0, md: "auto" }}} // Adjust margin top and margin left for button
         size="small"
         variant="outlined"
