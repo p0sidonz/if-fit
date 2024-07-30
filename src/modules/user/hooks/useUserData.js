@@ -112,3 +112,17 @@ export const useUpdatePassword = () => {
   }
 
 
+
+export const useWhoYouAre = (username) => {
+  console.log("usernameusername", username)
+  return useQuery({
+    queryKey: ['whoYouAre'],
+    queryFn: ()=> fetchOtherUserData(username),
+    enabled: !!username,
+  });
+}
+
+const fetchOtherUserData = async (username) => {
+  const { data } = await axios.get(`/misc/whoareyou/${username}`);
+  return data.data;
+}

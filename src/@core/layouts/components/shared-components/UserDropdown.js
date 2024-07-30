@@ -123,7 +123,7 @@ const UserDropdown = props => {
           </Box>
         </Box>
         <Divider sx={{ mt: '0 !important' }} />
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/profile/profile')}>
+        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose(`/${currentUser?.username}/view`)}>
           <Box sx={styles}>
             <Icon icon='mdi:account-outline' />
             Profile

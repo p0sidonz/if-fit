@@ -5,8 +5,10 @@ import PostCard from "src/views/components/PostCard";
 import { useSocialData, useSinglePost } from "../../hooks/useSocialData";
 import CircularProgress from "@mui/material/CircularProgress";
 import PreviewPost from "src/modules/social/components/profile/PreviewPost";
+import { useRouter } from "next/router";
 
-const ProfileTab = ({ tab }) => {
+const ProfileTab = ({ tab, isSame }) => {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState(null);
   const { data: singleData, refetch, isRefetching } = useSinglePost(selectedPostId);
@@ -20,11 +22,16 @@ const ProfileTab = ({ tab }) => {
     setOpen(false);
   };
 
+
+  const { username } = router.query;
+
+
+
   const [page, setPage] = useState(0);
   const take = 10;
   const skip = page * take;
 
-  const { data, isLoading, isFetching } = useSocialData(take, skip);
+  const { data, isLoading, isFetching, refetch: refetchAll } = useSocialData(take, skip,username);
 
   const [localPosts, setLocalPosts] = useState([]);
   const [localTotal, setLocalTotal] = useState(0);
@@ -35,6 +42,13 @@ const ProfileTab = ({ tab }) => {
     }
   }, [selectedPostId, refetch]);
 
+
+  useEffect(() => {
+    if(username) {
+      refetchAll()
+    }
+  }, [username]);
+
   useEffect(() => {
     setLocalPosts(data?.posts || []);
     setLocalTotal(data?.total || 0);
@@ -42,7 +56,7 @@ const ProfileTab = ({ tab }) => {
 
   useEffect(() => {
     setPage(0); // Reset page on tab change
-  }, [tab]);
+  }, []);
 
   const totalPosts = localTotal || 0;
   const hasMore = skip + take < totalPosts;

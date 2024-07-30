@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import IconButton from "@mui/material/IconButton";
 // ** MUI Components
+import { LoadingButton } from "@mui/lab";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import Button from "@mui/material/Button";
@@ -9,12 +10,17 @@ import { styled } from "@mui/material/styles";
 import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
 import CardContent from "@mui/material/CardContent";
-import { useWhoAmI } from "../../user/hooks/useUserData";
+import { useWhoAmI, useWhoYouAre } from "../../user/hooks/useUserData";
 import { formatDate } from "../../../utils/utils";
 import { useRouter } from "next/router";
+import { useUnFollowUser, useFollowUser } from "../hooks/useSocialData";
+import { Dialog, DialogTitle, DialogContent, List, ListItem, ListItemText } from '@mui/material';
+import Followers from "./followers";
+import Following from "./following";
 
 // ** Icon Imports
 import Icon from "src/@core/components/icon";
+import Packages from "./package/Package";
 
 const ProfilePicture = styled("img")(({ theme }) => ({
   width: 120,
@@ -26,119 +32,195 @@ const ProfilePicture = styled("img")(({ theme }) => ({
   },
 }));
 
+const InfoItem = ({ icon, text }) => (
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+    <Icon icon={icon} sx={{ color: 'text.secondary' }} />
+    <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+      {text}
+    </Typography>
+  </Box>
+);
+
+const StatItem = ({ label, count, onClick }) => (
+  <Typography
+    onClick={onClick}
+    sx={{
+      color: 'text.primary',
+      fontWeight: 600,
+      cursor: 'pointer',
+      '&:hover': { textDecoration: 'underline' },
+    }}
+  >
+    <Box component="span" sx={{ fontWeight: 'bold', mr: 1 }}>{count}</Box>
+    {label}
+  </Typography>
+);
+
 const UserProfileHeader = () => {
+  
+  const followUser = useFollowUser();
+  const unFollowUser = useUnFollowUser();
   const router = useRouter();
+  const { username } = router.query;
   const { data: user, isLoading } = useWhoAmI();
+  const { data: otherUser, isLoading: otherUserLoading, refetch: refetchWhoAreYou } = useWhoYouAre(username);
+
+  const [followersDialogOpen, setFollowersDialogOpen] = useState(false);
+  const [followingDialogOpen, setFollowingDialogOpen] = useState(false);
+  const [packagesDialogOpen, setPackagesDialogOpen] = useState(false);
+
+  const handleFollowersClick = () => {
+    setFollowersDialogOpen(true);
+  };
+
+  const handleFollowingClick = () => {
+    setFollowingDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setFollowersDialogOpen(false);
+    setFollowingDialogOpen(false);
+    setPackagesDialogOpen(false);
+  };
+
 
   // ** State
   const [data, setData] = useState({
-    fullName: "John Doe",
-    location: "Vatican City",
-    joiningDate: "April 2021",
-    designation: "UX Designer",
     profileImg:
       "https://demos.pixinvent.com/materialize-nextjs-admin-template/demo-1/images/pages/profile-banner.png",
     designationIcon: "mdi:fountain-pen-tip",
-    coverImg:
-      "https://demos.pixinvent.com/materialize-nextjs-admin-template/demo-1/images/pages/profile-banner.png",
   });
 
-  const designationIcon = data?.designationIcon || "mdi:briefcase-outline";
+  const handleFollowOrUnFollow = async (type) => {
+    if (type !== "unfollow") {
+
+      await unFollowUser.mutateAsync(otherUser?.followingId);
+    } else {
+      await followUser.mutateAsync(otherUser?.id);
+    }
+    refetchWhoAreYou();
+  }
+
+  useEffect(() => {
+    refetchWhoAreYou();
+    handleCloseDialog();
+  }, [username])
+
+  const designationIcon = 'mdi:fountain-pen-tip'
   return (
-<Card>
-  <CardContent
-    sx={{
-      pt: 2, // Adjust padding top
-      display: "flex",
-      alignItems: "center", // Center the content vertically
-      flexWrap: { xs: "wrap", md: "wrap" },
-      justifyContent: { xs: "center", md: "center" },
-    }}
-  >
-    <ProfilePicture src={data.profileImg} alt="profile-picture" />
-    <Box
-      sx={{
-        width: "100%",
-        display: "flex",
-        ml: { xs: 6, md: 6 },
-        alignItems: "flex-end",
-        flexWrap: ["wrap", "wrap"],
-        justifyContent: ["center", "center"],
-      }}
-    >
-      <Box
-        sx={{
-          mb: [6, 0],
-          display: "flex",
-          flexDirection: "column",
-          alignItems: ["center", "center"],
-        }}
-      >
-        <Typography variant="h5" sx={{ mb: 4, fontSize: "1.375rem" }}>
-          {user?.first_name + " " + user?.last_name}
-        </Typography>
-        <Box
+    <>
+      <Card elevation={3}>
+        <CardContent
           sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: ["center", "center"],
+            p: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
           }}
         >
+          <ProfilePicture
+            src={data.profileImg}
+            alt="profile-picture"
+            sx={{ width: 120, height: 120, borderRadius: '50%', mb: 3 }}
+          />
+
+          <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold', textAlign: 'center' }}>
+            {`${otherUser?.first_name} ${otherUser?.last_name}`}
+          </Typography>
+
+          <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary', textAlign: 'center' }}>
+            {otherUser?.bio || "No bio available"}
+          </Typography>
+
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3, mb: 3 }}>
+            <InfoItem icon="mdi:badge-account-horizontal" text={otherUser?.role === "trainer" ? "Trainer" : "Trainee"} />
+            {otherUser?.country && <InfoItem icon="mdi:map-marker" text={otherUser.country} />}
+            <InfoItem icon="mdi:calendar" text={`Joined ${formatDate(otherUser?.created_at)}`} />
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 4, mb: 4 }}>
+            <StatItem label="followers" count={otherUser?.following || 0} onClick={handleFollowersClick} />
+            <StatItem label="following" count={otherUser?.followers || 0} onClick={handleFollowingClick} />
+          </Box>
+
           <Box
             sx={{
-              mr: 4,
-              display: "flex",
-              alignItems: "center",
-              "& svg": { mr: 1, color: "text.secondary" },
+              width: '100%',
+              display: 'flex',
+              justifyContent: { xs: 'center', md: 'flex-end' },
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              mt: 2,
+              gap: 1,
             }}
           >
-            <Icon icon={designationIcon} />
-            <Typography sx={{ color: "text.secondary", fontWeight: 600 }}>
-              {data.designation}
-            </Typography>
-          </Box>
-          {user?.country && (
-            <Box
-              sx={{
-                mr: 4,
-                display: "flex",
-                alignItems: "center",
-                "& svg": { mr: 1, color: "text.secondary" },
-              }}
+            {user?.username === otherUser?.username ? (
+              <Button
+                onClick={() => router.push('/settings/account/')}
+                variant="outlined"
+                startIcon={<Icon icon="mdi:account-edit-outline" />}
+              >
+                Edit Profile
+              </Button>
+            ) : (
+              <LoadingButton
+                sx={{ mt: { xs: 1, md: 0 } }}
+                onClick={() => { handleFollowOrUnFollow(otherUser?.isFollowing ? 'unfollow' : 'follow') }}
+                variant={otherUser?.isFollowing ? 'outlined' : 'contained'}
+                startIcon={
+                  <Icon
+                    fontSize={20}
+                    icon={
+                      otherUser?.isFollowing
+                        ? 'mdi:account-check-outline'
+                        : 'mdi:account-plus-outline'
+                    }
+                  />
+                }
+              >
+                {otherUser?.isFollowing ? 'Following' : 'Follow'}
+              </LoadingButton>
+            )}
+            <Button
+              variant="contained"
+              startIcon={<Icon icon="mdi:package-variant-closed" />}
+            onClick={() => setPackagesDialogOpen(true)}
             >
-              <Icon icon="mdi:map-marker-outline" />
-              <Typography sx={{ color: "text.secondary", fontWeight: 600 }}>
-                {user?.country}
-              </Typography>
-            </Box>
-          )}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              "& svg": { mr: 1, color: "text.secondary" },
-            }}
-          >
-            <Icon icon="mdi:calendar-blank-outline" />
-            <Typography sx={{ color: "text.secondary", fontWeight: 600 }}>
-              Joined {formatDate(user?.created_at)}
-            </Typography>
+              Packages
+            </Button>
           </Box>
-        </Box>
-      </Box>
-     
-    </Box>
-    <Button
-      onClick={() => router.push('/settings/account/')}
-      sx={{ mt: 4, ml: { xs: 0, md: "auto" }}} // Adjust margin top and margin left for button
-        size="small"
-        variant="outlined"
-        startIcon={<Icon icon="mdi:account-edit-outline" fontSize={20} />}
-      >
-        Edit Profile
-      </Button>
-  </CardContent>
-</Card>
+        </CardContent>
+      </Card>
+
+      <Dialog maxWidth="md" fullWidth open={followersDialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle>Followers</DialogTitle>
+        <DialogContent>
+          <Followers
+            username={username}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog maxWidth="md" fullWidth open={followingDialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle>Following</DialogTitle>
+        <DialogContent>
+          <Following
+            username={username}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog maxWidth="md" fullWidth open={packagesDialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle>Following</DialogTitle>
+        <DialogContent>
+          <Packages/>
+                    {/* <Following
+            username={username}
+          /> */}
+        </DialogContent>
+      </Dialog>
+
+    </>
   );
 };
 

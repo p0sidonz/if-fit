@@ -29,7 +29,8 @@ const initialData = {
   username: "",
   contact: "",
   gender: "",
-  dob: ""
+  dob: "",
+  bio: "",
 };
 
 const TabAccount = () => {
@@ -44,7 +45,8 @@ const TabAccount = () => {
     contact: "",
     gender: "",
     dob: "",
-    country: ""
+    country: "",
+    bio: ''
   };
 
   // ** State
@@ -69,7 +71,8 @@ const TabAccount = () => {
         email: realReduxData.email || "",
         gender: realReduxData.gender || "",
         dob: realReduxData.dob || "",
-        country: realReduxData.country || ""
+        country: realReduxData.country || "",
+        bio: realReduxData.bio || ""
       };
       setFormData(newFormData);
 
@@ -98,6 +101,8 @@ const TabAccount = () => {
 
   return (
     <Grid container spacing={6}>
+
+      
       {/* Account Details Card */}
       <Grid item xs={12}>
         <Card>
@@ -106,6 +111,9 @@ const TabAccount = () => {
             <Avatar />
             <Divider />
             <CardContent>
+
+            
+
               <Grid container spacing={6}>
                 <Grid item xs={12} sm={6}>
                   <Controller
@@ -253,6 +261,29 @@ const TabAccount = () => {
                     )}
                   />
                 </Grid>
+
+                <Grid item xs={12} sm={12}>
+                  <Controller
+                    name="dob"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        rows={4}
+                        multiline
+                        fullWidth
+                        label="Bio"
+                        type="text"
+                        value={formData?.bio}
+                        onChange={(e) =>
+                          handleFormChange("bio", e.target.value)
+                        }
+                      />
+                    )}
+                  />
+                </Grid>
+
+
 
                 <Grid item xs={12}>
                   <Button disabled={updateUser.isPending} type="submit" variant="contained" sx={{ mr: 3 }}>

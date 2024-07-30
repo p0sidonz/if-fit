@@ -12,9 +12,10 @@ import { FollowerAndFollowingNormalizer } from "../normalizer";
 
 const fetchSocialFollowingData = async ({ queryKey }) => {
   const data = {};
-  const [_key, { take, skip }] = queryKey;
+  const [_key, { take, skip, username }] = queryKey;
+  console.log("username x123", username);
   const followers = await axios.get(
-    `/followersystem/getFollowing?take=${take}&skip=${skip}`
+    `/followersystem/getFollowing?take=${take}&skip=${skip}&username=${username}`
   );
   const normalizedData = FollowerAndFollowingNormalizer(
     followers.data.following,
@@ -25,7 +26,7 @@ const fetchSocialFollowingData = async ({ queryKey }) => {
   return data;
 };
 
-export const useSocialData = (take = 10, skip = 0) => {
+export const useSocialData = (take = 10, skip = 0, username) => {
   const dispatch = useDispatch();
   return useQuery({
     queryKey: ["socialData", { take, skip }],
@@ -33,7 +34,7 @@ export const useSocialData = (take = 10, skip = 0) => {
       const [_key, { take, skip }] = queryKey;
       const data = {};
       const allPosts = await axios.get(
-        `/posts/myposts?take=${take}&skip=${skip}`
+        `/posts/myposts?take=${take}&skip=${skip}&username=${username}`
       );
       data.posts = allPosts.data.posts;
       data.total = allPosts.data.total;
@@ -48,14 +49,14 @@ export const useSocialData = (take = 10, skip = 0) => {
   });
 };
 
-export const useGetFollowers = (take = 3, skip = 0) => {
+export const useGetFollowers = (take = 3, skip = 0, username) => {
   const query = useQuery({
-    queryKey: ["socialFollowerData", { take, skip }],
+    queryKey: ["socialFollowerData", { take, skip, username }],
     queryFn: async ({ queryKey }) => {
-      const [_key, { take, skip }] = queryKey;
+      const [_key, { take, skip, username }] = queryKey;
       try {
         const followers = await axios.get(
-          `/followersystem/getFollowers?take=${take}&skip=${skip}`
+          `/followersystem/getFollowers?take=${take}&skip=${skip}&username=${username}`
         );
         const NormalLizedUsers = FollowerAndFollowingNormalizer(
           followers?.data?.followers,
@@ -71,14 +72,17 @@ export const useGetFollowers = (take = 3, skip = 0) => {
         return [];
       }
     },
+    enabled: !!username,
   });
   return query;
 };
 
-export const useGetFollowing = (take = 3, skip = 0) => {
+export const useGetFollowing = (take = 3, skip = 0, username) => {
+  console.log("username", username);
   return useQuery({
-    queryKey: ["socialFollowingData", { take, skip }],
+    queryKey: ["socialFollowingData", { take, skip, username }],
     queryFn: fetchSocialFollowingData,
+    enabled: !!username,
   });
 };
 
@@ -95,8 +99,8 @@ export const useUnFollowUser = () => {
     },
     onSuccess: (data) => {
       // Success actions
-      queryClient.invalidateQueries("socialFollowerData");
-      queryClient.invalidateQueries("socialFollowingData");
+      // queryClient.invalidateQueries("socialFollowerData");
+      // queryClient.invalidateQueries("socialFollowingData");
       return toast.success("User unfollowed successfully");
     },
     onError: (error) => {
@@ -118,7 +122,8 @@ export const useFollowUser = () => {
     },
     onSuccess: (data) => {
       // Success actions
-      queryClient.invalidateQueries("socialFollowerData");
+      // queryClient.invalidateQueries("socialFollowerData");
+      // queryClient.invalidateQueries("whoYouAre");
       return toast.success("User followed successfully");
     },
     onError: (error) => {

@@ -1,7 +1,9 @@
 // ** Icon Imports
+import React from "react";
 import Icon from "src/@core/components/icon";
 import Card from "@mui/material/Card";
 import Box from "@mui/material/Box";
+import Chip from "@mui/material";
 import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
 import CardContent from "@mui/material/CardContent";
@@ -10,13 +12,21 @@ import CustomChip from "src/@core/components/mui/chip";
 import OptionsMenu from "src/@core/components/option-menu";
 import Button from "@mui/material/Button";
 import LoadingButton from '@mui/lab/LoadingButton';
+import useNavigateTo from "src/modules/components/useRouterPush";
+import { 
+  ListItem, 
+  ListItemAvatar, 
+  ListItemText, 
+} from '@mui/material';
+
 
 import { useState } from "react";
 import { useUnFollowUser,useFollowUser} from "../hooks/useSocialData";
 
-const UserProfileFollowsCard = ({ item }) => {
-    const { mutate: unFollowUser, isPending: isPendingUnFollow, isSuccess: isSuccessUnFollow, data: unFollowData } = useUnFollowUser();
-  const { mutate: followUser, isPending: isPendingFollow, isSuccess: isSuccessFollow, data: dataFollow } = useFollowUser();
+const UserProfileFollowsListItem = ({ item }) => {
+  const navigateTo = useNavigateTo();
+  const { mutate: unFollowUser } = useUnFollowUser();
+  const { mutate: followUser } = useFollowUser();
 
   const [user, setUser] = useState(item);
 
@@ -30,121 +40,68 @@ const UserProfileFollowsCard = ({ item }) => {
     } else {
       followUser(user.userId, {
         onSuccess: (data) => {
-            console.log("onSuccess followUser ",data)
           setUser({ ...user, isFollowing: true, isFollowingId: data.id });
         }
       });
     }
   };
 
-    return (
-        <Card sx={{ position: "relative" }}>
-        <OptionsMenu
-          iconButtonProps={{
-            size: "small",
-            sx: { top: 12, right: 12, position: "absolute" },
-          }}
-          options={[
-            {
-              text: "UnFollow",
-              menuItemProps: { sx: { color: "error.main" } },
-            },
-          ]}
+  return (
+    <ListItem alignItems="flex-start" >
+      <ListItemAvatar>
+        <Avatar
+          src={user.avatar}
+          alt={`${user.first_name} ${user.last_name}`}
+          sx={{ width: 50, height: 50 }}
         />
-        <CardContent>
-            
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              flexDirection: "column",
-            }}
-          >
-            <Avatar
-              src={item.avatar}
-              sx={{ mb: 4, width: 100, height: 100 }}
-            />
-            <Typography variant="h6" sx={{ fontWeight: 500 }}>
-              {user.first_name} {user.last_name}
-            </Typography>
-            <Box sx={{ mb: 8, display: "flex", alignItems: "center" }}>
-              <CustomChip
-                size="small"
-                skin="light"
-                label= {`@${user.username}`}
-              />
-            </Box>
-            <Box
-              sx={{
-                mb: 8,
-                gap: 2,
-                width: "100%",
-                display: "flex",
-                flexWrap: "wrap",
-                alignItems: "center",
-                justifyContent: "space-around",
-              }}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  flexDirection: "column",
-                }}
-              >
-                <Typography variant="h5">0</Typography>
-                <Typography sx={{ color: "text.secondary" }}>
-                  Posts
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  flexDirection: "column",
-                }}
-              >
-                <Typography variant="h5">{user.followersCount}</Typography>
-                <Typography sx={{ color: "text.secondary" }}>
-                  Followers
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  flexDirection: "column",
-                }}
-              >
-                <Typography variant="h5">{user.followingCount}</Typography>
-                <Typography sx={{ color: "text.secondary" }}>
-                  Following
-                </Typography>
-              </Box>
-            </Box>
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <LoadingButton
-                onClick={handleFollowOrUnFollow}
-                variant={user.isFollowing ? "outlined" : "contained"}
-                startIcon={
-                  <Icon
-                    fontSize={20}
-                    icon={
-                        user.isFollowing
-                        ? "mdi:account-check-outline"
-                        : "mdi:account-plus-outline"
-                    }
-                  />
-                }
-              >
-                {user.isFollowing ? "Following" : "Follow"}
-              </LoadingButton>
-              
-            </Box>
-          </Box>
-        </CardContent>
-      </Card>
-    )
-}
+      </ListItemAvatar>
+      
+      <ListItemText
+        primary={
+          <Typography variant="subtitle1">
+            {user.first_name} {user.last_name}
+          </Typography>
+        }
 
-export default UserProfileFollowsCard
+        secondary={
+          
+          <React.Fragment>
+            <CustomChip
+              onClick={() => navigateTo(`/${user?.username}/view`)}
+              label={`@${user.username}`}
+            />
+            {" — "}
+            <Typography
+              component="span"
+              variant="body2"
+              color="text.secondary"
+            >
+              {user.followersCount} followers
+            </Typography>
+          </React.Fragment>
+        }
+      />
+      <Box sx={{ ml: 2, mt: 3, display: 'flex', alignItems: 'center' }}>
+        <LoadingButton
+          onClick={handleFollowOrUnFollow}
+          variant={user.isFollowing ? "outlined" : "contained"}
+          size="small"
+          startIcon={
+            <Icon
+              fontSize={20}
+              icon={
+                user.isFollowing
+                  ? "mdi:account-check-outline"
+                  : "mdi:account-plus-outline"
+              }
+            />
+          }
+        >
+          {user.isFollowing ? "Following" : "Follow"}
+        </LoadingButton>
+      </Box>
+    </ListItem>
+  );
+};
+
+export default UserProfileFollowsListItem

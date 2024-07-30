@@ -1,11 +1,8 @@
 import UserProfile from './UserProfile'
-const UserProfileTab = ({ tab}) => {
-  return <UserProfile tab={tab}  />
+
+const UserProfileTab = ({ username}) => {
+  return <UserProfile  username={username} />
 }
 
-const InitComponent = ({ tab = "profile" }) => {
 
-  return <UserProfileTab tab={tab} />
-}
-
-export default InitComponent
+export default UserProfileTab

@@ -25,57 +25,34 @@ import Followers from "./followers";
 import Following from "./following";
 import UserProfileHeader from "./UserProfileHeader";
 
-const TabList = styled(MuiTabList)(({ theme }) => ({
-  "& .MuiTabs-indicator": {
-    display: "none",
-  },
-  "& .Mui-selected": {
-    backgroundColor: theme.palette.primary.main,
-    color: `${theme.palette.common.white} !important`,
-  },
-  "& .MuiTab-root": {
-    minWidth: 65,
-    minHeight: 38,
-    borderRadius: theme.shape.borderRadius,
-    [theme.breakpoints.up("sm")]: {
-      minWidth: 130,
-    },
-  },
-}));
 
-const UserProfile = ({ tab, data = [] }) => {
+const UserProfile = ({ data = [], username }) => {
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('sm'));
-
   // ** State
-  const [showNewPostModal , setShowNewPostModal] = useState(false)
-  const [activeTab, setActiveTab] = useState(tab);
+  const [showNewPostModal, setShowNewPostModal] = useState(false)
   const [isLoading, setIsLoading] = useState(true);
 
   // ** Hooks
   const router = useRouter();
   const hideText = useMediaQuery((theme) => theme.breakpoints.down("sm"));
 
-  const handleChange = (event, value) => {
-    setIsLoading(false);
-    setActiveTab(value);
-    router
-      .push({
-        pathname: `/profile/${value.toLowerCase()}`,
-      })
-      .then(() => setIsLoading(false));
-  };
+
   useEffect(() => {
     if (data) {
       setIsLoading(false);
     }
   }, [data]);
 
+  const currentUser = JSON.parse(localStorage.getItem("userData"));
+
+  const [isCurrentUser, setIsCurrentUser] = useState(false);
+
   useEffect(() => {
-    if (tab && tab !== activeTab) {
-      setActiveTab(tab);
+    if (currentUser && currentUser.username === username) {
+      setIsCurrentUser(true)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab]);
+  }, [username])
+
 
   const handleOpenNewPost = () => {
     setShowNewPostModal(true)
@@ -85,133 +62,63 @@ const UserProfile = ({ tab, data = [] }) => {
     setShowNewPostModal(false)
   }
 
-  const tabContentList = {
-    profile: <Profile tab={tab} />,
-    followers: <Followers tab={tab} />,
-    following: <Following tab={tab}/>,
-    packages: <Packages tab={tab} />,
-  };
-
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
-        <UserProfileHeader />
+        <UserProfileHeader
+          currentUser={currentUser}
+          isSame={isCurrentUser}
+          username={isCurrentUser ? null : username}
+        />
       </Grid>
-      {activeTab === undefined ? null : (
-        <Grid item xs={12}>
-          <TabContext value={activeTab}>
-            <Grid justifyContent={"space-between"} container spacing={6}>
-              <Grid item >
-                <TabList
-                  scrollButtons="auto"
-                  onChange={handleChange}
-                  aria-label="customized tabs example"
-                >
-                  <Tab
-                    
-                    value="profile"
-                    label={
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          ...(!hideText && { "& svg": { mr: 2 } }),
-                        }}
-                      >
-                        <Icon icon="mdi:account-outline" />
-                        {!hideText && "Home"}
-                      </Box>
-                    }
-                  />
-                  <Tab
-                    value="followers"
-                    label={
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          ...(!hideText && { "& svg": { mr: 2 } }),
-                        }}
-                      >
-                        <Icon icon="mdi:link-variant" />
-                        {!hideText && "followers"}
-                      </Box>
-                    }
-                  />
-                  <Tab
-                    value="following"
-                    label={
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          ...(!hideText && { "& svg": { mr: 2 } }),
-                        }}
-                      >
-                        <Icon icon="mdi:link-variant" />
-                        {!hideText && "following"}
-                      </Box>
-                    }
-                  />
-                    <Tab
-                    value="packages"
-                    label={
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          ...(!hideText && { "& svg": { mr: 2 } }),
-                        }}
-                      >
-                        <Icon icon="mdi:link-variant" />
-                        {!hideText && "packages"}
-                      </Box>
-                    }
-                  />
-                </TabList>
-              </Grid>
-              <Grid>
-                <Box
-                  sx={{
-                    mt: 6,
-                    display: "flex",
-                    justifyContent: "end",
-                    alignItems: "flex-end",
-                  }}
-                >
-                  <Button onClick={handleOpenNewPost} variant="contained" color="primary">
-                    <Icon icon="mdi:plus" />
-                    {isSmallScreen ? null : "New Post"}
-                  </Button>
-                </Box>
 
-              </Grid>
-              <Grid item xs={12}>
-                {isLoading ? (
-                  <Box
-                    sx={{
-                      mt: 6,
-                      display: "flex",
-                      alignItems: "center",
-                      flexDirection: "column",
-                    }}
-                  >
-                    <CircularProgress sx={{ mb: 4 }} />
-                    <Typography>Loading...</Typography>
-                  </Box>
-                ) : (
-                  <TabPanel sx={{ p: 0 }} value={activeTab} >
-                    {tabContentList[activeTab]}
-                  </TabPanel>
-                )}
-              </Grid>
-            </Grid>
-          </TabContext>
+      <Grid item xs={12}>
+        <Grid justifyContent={"space-between"} container spacing={6}>
+          <Grid item >
+          </Grid>
+          <Grid>
+            <Box
+              sx={{
+                mt: 6,
+                display: "flex",
+                justifyContent: "end",
+                alignItems: "flex-end",
+              }}
+            >
+              <Button onClick={handleOpenNewPost} variant="contained" color="primary">
+                <Icon icon="mdi:plus" />
+                {isSmallScreen ? null : "New Post"}
+              </Button>
+            </Box>
+
+          </Grid>
+          <Grid item xs={12}>
+            {isLoading ? (
+              <Box
+                sx={{
+                  mt: 6,
+                  display: "flex",
+                  alignItems: "center",
+                  flexDirection: "column",
+                }}
+              >
+                <CircularProgress sx={{ mb: 4 }} />
+                <Typography>Loading...</Typography>
+              </Box>
+            ) : (
+              <Profile
+                currentUser={currentUser}
+                isSame={isCurrentUser}
+                username={username}
+              />
+            )}
+          </Grid>
         </Grid>
-      )}
+      </Grid>
+
       <ShowNewPost
-      open={showNewPostModal}
-      onClose={handleCloseNewPost}
+        open={showNewPostModal}
+        onClose={handleCloseNewPost}
       />
     </Grid>
   );
