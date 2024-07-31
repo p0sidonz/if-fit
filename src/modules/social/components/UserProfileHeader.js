@@ -17,6 +17,7 @@ import { useUnFollowUser, useFollowUser } from "../hooks/useSocialData";
 import { Dialog, DialogTitle, DialogContent, List, ListItem, ListItemText } from '@mui/material';
 import Followers from "./followers";
 import Following from "./following";
+import Skeleton from "@mui/material/Skeleton";
 
 // ** Icon Imports
 import Icon from "src/@core/components/icon";
@@ -92,10 +93,11 @@ const UserProfileHeader = () => {
   });
 
   const handleFollowOrUnFollow = async (type) => {
-    if (type !== "unfollow") {
+    if (type == "unfollow") {
 
       await unFollowUser.mutateAsync(otherUser?.followingId);
     } else {
+     
       await followUser.mutateAsync(otherUser?.id);
     }
     refetchWhoAreYou();
@@ -109,88 +111,114 @@ const UserProfileHeader = () => {
   const designationIcon = 'mdi:fountain-pen-tip'
   return (
     <>
-      <Card elevation={3}>
-        <CardContent
-          sx={{
-            p: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <ProfilePicture
-            src={data.profileImg}
-            alt="profile-picture"
-            sx={{ width: 120, height: 120, borderRadius: '50%', mb: 3 }}
-          />
+     <Card elevation={3}>
+      <CardContent
+        sx={{
+          p: 4,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        {user?.status === "pending" || otherUser?.status === "pending" ? (
+          // Skeleton loader for profile
+          <>
+            <Skeleton variant="circular" width={120} height={120} sx={{ mb: 3 }} />
+            <Skeleton variant="text" width={200} height={40} sx={{ mb: 2 }} />
+            <Skeleton variant="text" width={300} height={20} sx={{ mb: 3 }} />
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3, mb: 3 }}>
+              <Skeleton variant="text" width={100} height={20} />
+              <Skeleton variant="text" width={100} height={20} />
+              <Skeleton variant="text" width={100} height={20} />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 4, mb: 4 }}>
+              <Skeleton variant="text" width={80} height={40} />
+              <Skeleton variant="text" width={80} height={40} />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Skeleton variant="rectangular" width={120} height={36} />
+              <Skeleton variant="rectangular" width={120} height={36} />
+            </Box>
+          </>
+        ) : (
+          // Actual content
+          <>
+            <ProfilePicture
+              src={data.profileImg}
+              alt="profile-picture"
+              sx={{ width: 120, height: 120, borderRadius: '50%', mb: 3 }}
+            />
 
-          <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold', textAlign: 'center' }}>
-            {`${otherUser?.first_name} ${otherUser?.last_name}`}
-          </Typography>
+            <Typography variant="h4" sx={{ mb: 2, fontWeight: 'bold', textAlign: 'center' }}>
+              {`${otherUser?.first_name} ${otherUser?.last_name}`}
+            </Typography>
 
-          <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary', textAlign: 'center' }}>
-            {otherUser?.bio || "No bio available"}
-          </Typography>
+            <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary', textAlign: 'center' }}>
+              {otherUser?.bio || "No bio available"}
+            </Typography>
 
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3, mb: 3 }}>
-            <InfoItem icon="mdi:badge-account-horizontal" text={otherUser?.role === "trainer" ? "Trainer" : "Trainee"} />
-            {otherUser?.country && <InfoItem icon="mdi:map-marker" text={otherUser.country} />}
-            <InfoItem icon="mdi:calendar" text={`Joined ${formatDate(otherUser?.created_at)}`} />
-          </Box>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3, mb: 3 }}>
+              <InfoItem icon="mdi:badge-account-horizontal" text={otherUser?.role === "trainer" ? "Trainer" : "Trainee"} />
+              {otherUser?.country && <InfoItem icon="mdi:map-marker" text={otherUser.country} />}
+              <InfoItem icon="mdi:calendar" text={`Joined ${formatDate(otherUser?.created_at)}`} />
+            </Box>
 
-          <Box sx={{ display: 'flex', gap: 4, mb: 4 }}>
-            <StatItem label="followers" count={otherUser?.following || 0} onClick={handleFollowersClick} />
-            <StatItem label="following" count={otherUser?.followers || 0} onClick={handleFollowingClick} />
-          </Box>
+            <Box sx={{ display: 'flex', gap: 4, mb: 4 }}>
+              <StatItem label="followers" count={otherUser?.following || 0} onClick={handleFollowersClick} />
+              <StatItem label="following" count={otherUser?.followers || 0} onClick={handleFollowingClick} />
+            </Box>
 
-          <Box
-            sx={{
-              width: '100%',
-              display: 'flex',
-              justifyContent: { xs: 'center', md: 'flex-end' },
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              mt: 2,
-              gap: 1,
-            }}
-          >
-            {user?.username === otherUser?.username ? (
-              <Button
-                onClick={() => router.push('/settings/account/')}
-                variant="outlined"
-                startIcon={<Icon icon="mdi:account-edit-outline" />}
-              >
-                Edit Profile
-              </Button>
-            ) : (
-              <LoadingButton
-                sx={{ mt: { xs: 1, md: 0 } }}
-                onClick={() => { handleFollowOrUnFollow(otherUser?.isFollowing ? 'unfollow' : 'follow') }}
-                variant={otherUser?.isFollowing ? 'outlined' : 'contained'}
-                startIcon={
-                  <Icon
-                    fontSize={20}
-                    icon={
-                      otherUser?.isFollowing
-                        ? 'mdi:account-check-outline'
-                        : 'mdi:account-plus-outline'
-                    }
-                  />
-                }
-              >
-                {otherUser?.isFollowing ? 'Following' : 'Follow'}
-              </LoadingButton>
-            )}
-            <Button
-              variant="contained"
-              startIcon={<Icon icon="mdi:package-variant-closed" />}
-            onClick={() => setPackagesDialogOpen(true)}
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: { xs: 'center', md: 'flex-end' },
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                mt: 2,
+                gap: 1,
+              }}
             >
-              Packages
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
+              {user?.username === otherUser?.username ? (
+                <Button
+                  onClick={() => router.push('/settings/account/')}
+                  variant="outlined"
+                  startIcon={<Icon icon="mdi:account-edit-outline" />}
+                >
+                  Edit Profile
+                </Button>
+              ) : (
+                <LoadingButton
+                  loading={followUser.status === "pending" || unFollowUser.status === "pending"}
+                  sx={{ mt: { xs: 1, md: 0 } }}
+                  onClick={() => { handleFollowOrUnFollow(otherUser?.isFollowing ? 'unfollow' : 'follow') }}
+                  variant={otherUser?.isFollowing ? 'outlined' : 'contained'}
+                  startIcon={
+                    <Icon
+                      fontSize={20}
+                      icon={
+                        otherUser?.isFollowing
+                          ? 'mdi:account-check-outline'
+                          : 'mdi:account-plus-outline'
+                      }
+                    />
+                  }
+                >
+                  {otherUser?.isFollowing ? 'Following' : 'Follow'}
+                </LoadingButton>
+              )}
+              <Button
+                variant="contained"
+                startIcon={<Icon icon="mdi:package-variant-closed" />}
+                onClick={() => setPackagesDialogOpen(true)}
+              >
+                Packages
+              </Button>
+            </Box>
+          </>
+        )}
+      </CardContent>
+    </Card>
 
       <Dialog maxWidth="md" fullWidth open={followersDialogOpen} onClose={handleCloseDialog}>
         <DialogTitle>Followers</DialogTitle>
