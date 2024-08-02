@@ -55,11 +55,15 @@ const FormBuilderComponent = ({param}) => {
 
   useEffect(() => {
     if (form && form.form_data) {
-      setFormConfig(JSON.parse(form.form_data) || []);
+      try {
+        setFormConfig(JSON.parse(form.form_data));
+      } catch (error) {
+        setFormConfig([]);
+      }
+    } else {
+      setFormConfig([]);
     }
-
   }, [form]);
-
 
   const handleSaveForm = () => {
     const updatedFormData = {
