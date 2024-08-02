@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Button,
   TextField,
@@ -35,12 +35,44 @@ import {
   Save as SaveIcon,
   FileCopy as FileCopyIcon,
 } from '@mui/icons-material';
+import {useFetchForm, useUpdateForm} from '../hooks/useDynamicForms';
 
-const FormBuilderComponent = () => {
+const FormBuilderComponent = ({param}) => {
+
+
+  const { data: form = {}, refetch } = useFetchForm(param);
+  const updateForm = useUpdateForm();
   const [formConfig, setFormConfig] = useState([]);
   const [selectedField, setSelectedField] = useState(null);
   const [newOption, setNewOption] = useState('');
   const [previewVisible, setPreviewVisible] = useState(false);
+
+  useEffect(()=>{
+    refetch()
+
+  }, [param]);
+
+
+  useEffect(() => {
+    if (form && form.form_data) {
+      setFormConfig(JSON.parse(form.form_data) || []);
+    }
+
+  }, [form]);
+
+
+  const handleSaveForm = () => {
+    const updatedFormData = {
+      id: param,
+      data: {
+        form_data: JSON.stringify([...formConfig]),
+      }
+    };
+    console.log('formConfig', updatedFormData);
+
+    updateForm.mutate(updatedFormData);
+  };
+
 
   const addField = (fieldType) => {
     const newField = {
@@ -60,7 +92,7 @@ const FormBuilderComponent = () => {
 
   const updateField = (key, updatedField) => {
     setFormConfig(
-      formConfig.map((field) =>
+      formConfig?.map((field) =>
         field.key === key ? { ...field, ...updatedField } : field
       )
     );
@@ -70,7 +102,7 @@ const FormBuilderComponent = () => {
   };
 
   const deleteField = (key) => {
-    setFormConfig(formConfig.filter((field) => field.key !== key));
+    setFormConfig(formConfig?.filter((field) => field.key !== key));
     setSelectedField(null);
   };
 
@@ -117,7 +149,7 @@ const FormBuilderComponent = () => {
   };
 
   const renderFormFields = () => {
-    return formConfig.map((field) => (
+    return formConfig?.map((field) => (
       <Card key={field.key} variant="outlined" sx={{ mb: 2 }}>
         <CardContent>
           <Typography variant="h6">{field.label}</Typography>
@@ -308,7 +340,7 @@ const FormBuilderComponent = () => {
               <Button startIcon={<VisibilityIcon />} onClick={handlePreview}>
                 Preview
               </Button>
-              <Button startIcon={<SaveIcon />} onClick={handleSave}>
+              <Button startIcon={<SaveIcon />} onClick={handleSaveForm}>
                 Save
               </Button>
               {/* <Button startIcon={<FileCopyIcon />} onClick={handleCopyJSON}>

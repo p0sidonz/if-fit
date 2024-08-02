@@ -12,7 +12,8 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 
-const AssignDialog = ({ name, open, onClose, onAssign, onUnassign, users, programId, onAssignLoading, onUnassignLoading, assignedUsers = [] }) => {
+const AssignDialougeForm = ({ name, open, onClose, onAssign, onUnassign, users, programId, onAssignLoading, onUnassignLoading, assignedUsers = [] }) => {
+  console.log("AssignDialog -> assignedUsers", assignedUsers)
   const [program_id, setProgram_id] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredUsers, setFilteredUsers] = useState(users);
@@ -41,8 +42,8 @@ const AssignDialog = ({ name, open, onClose, onAssign, onUnassign, users, progra
     onUnassign(assignedId);
   };
 
-  const isAssigned = (userId) =>  assignedUsers.some(assignment => assignment.relationInfo.userInfo.id === userId);
-  const getAssignedUser = (userId) => assignedUsers.find(assignment => assignment.relationInfo.userInfo.id === userId);
+  const isAssigned = (userId) =>  assignedUsers.some(assignment => assignment.id === userId);
+  const getAssignedUser = (userId) => assignedUsers.find(assignment => assignment.id === userId);
 
 
   return (
@@ -154,12 +155,11 @@ const AssignDialog = ({ name, open, onClose, onAssign, onUnassign, users, progra
                       </Box>
                     }
                   />
-
                   <LoadingButton
                     loading={onAssignLoading || onUnassignLoading}
                     variant={assigned ? "outlined" : "contained"}
                     color={assigned ? "error" : "primary"}
-                    onClick={() => assigned ? handleUnassign(assignedUser?.id) : handleAssign(user?.id)}
+                    onClick={() => assigned ? handleUnassign(assignedUser?.AssignedForms[0]?.id) : handleAssign(user?.userInfo?.id)}
                     sx={{ minWidth: 100 }}
                   >
                     {assigned ? "Unassign" : "Assign"}
@@ -178,4 +178,4 @@ const AssignDialog = ({ name, open, onClose, onAssign, onUnassign, users, progra
   );
 };
 
-export default AssignDialog;
+export default AssignDialougeForm;

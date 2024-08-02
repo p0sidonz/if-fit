@@ -1,15 +1,20 @@
 // ** Next Import
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/router';
 
 const useNavigateTo = () => {
-    const router = useRouter()
+    const router = useRouter();
 
     const navigateTo = (url) => {
-        if(!url) return
-        router.push(url)
-    }
-    return navigateTo
+        if (!url) return;
 
-}
+        if (!url.startsWith('/')) {
+            url = '/' + url;
+        }
 
-export default useNavigateTo
+        router.push(url);
+    };
+
+    return navigateTo;
+};
+
+export default useNavigateTo;

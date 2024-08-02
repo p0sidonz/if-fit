@@ -24,6 +24,7 @@ import { useState } from "react";
 import { useUnFollowUser,useFollowUser} from "../hooks/useSocialData";
 
 const UserProfileFollowsListItem = ({ item }) => {
+  const currentUser = JSON.parse(localStorage.getItem("userData"));
   const navigateTo = useNavigateTo();
   const { mutate: unFollowUser } = useUnFollowUser();
   const { mutate: followUser } = useFollowUser();
@@ -48,7 +49,9 @@ const UserProfileFollowsListItem = ({ item }) => {
 
   return (
     <ListItem alignItems="flex-start" >
+      
       <ListItemAvatar>
+
         <Avatar
           src={user.avatar}
           alt={`${user.first_name} ${user.last_name}`}
@@ -81,7 +84,8 @@ const UserProfileFollowsListItem = ({ item }) => {
           </React.Fragment>
         }
       />
-      <Box sx={{ ml: 2, mt: 3, display: 'flex', alignItems: 'center' }}>
+      {/* Follow Button */}
+{ user.userId !== currentUser.id   &&  <Box sx={{ ml: 2, mt: 3, display: 'flex', alignItems: 'center' }}>
         <LoadingButton
           onClick={handleFollowOrUnFollow}
           variant={user.isFollowing ? "outlined" : "contained"}
@@ -99,7 +103,7 @@ const UserProfileFollowsListItem = ({ item }) => {
         >
           {user.isFollowing ? "Following" : "Follow"}
         </LoadingButton>
-      </Box>
+      </Box>}
     </ListItem>
   );
 };
