@@ -7,7 +7,7 @@ import chatSlice from 'src/modules/chat/chatSlice';
 const rootReducer = combineReducers({
   user: userReducer,
   social: socialSlice,
-  chat: chatSlice
+  chat: chatSlice,
 });
 
 export default rootReducer;

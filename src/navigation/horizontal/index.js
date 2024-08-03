@@ -6,6 +6,11 @@ const navigation = () => {
       icon: 'mdi:home-outline',
     },
     {
+      title: 'Calendar',
+      path: '/calendar',
+      icon: 'mdi:email-outline',
+    },
+    {
       title: 'Workout',
       path: '/workout',
       icon: 'mdi:email-outline',
@@ -37,6 +42,7 @@ const navigation = () => {
       path: '/excercises',
       icon: 'mdi:email-outline',
     },
+
 
 
 

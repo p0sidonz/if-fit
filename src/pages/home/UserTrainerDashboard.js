@@ -23,8 +23,12 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   RestaurantMenu as DietIcon,
-  FitnessCenter as ProgramIcon
+  FitnessCenter as ProgramIcon,
+  
+
 } from '@mui/icons-material';
+import NoteAltIcon from '@mui/icons-material/NoteAlt';
+
 import { getAllUserAndTrainerList } from 'src/modules/diet/hooks/useDiet';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import UserAssignmentsChart from './Stats';
@@ -96,6 +100,24 @@ const UserTrainerDashboard = () => {
                 ))
               ) : (
                 <Typography variant="body2" color="text.secondary">No programs assigned</Typography>
+              )}
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Paper elevation={3} sx={{ p: 2 }}>
+              <Typography variant="h6" gutterBottom>Assigned Forms</Typography>
+              {relationship?.userInfo?.AssignedForms?.length > 0 ? (
+                relationship?.userInfo?.AssignedForms?.map((form) => (
+                  <Chip
+                    key={form.id}
+                    icon={<NoteAltIcon />}
+                    label={form.formInfo.form_name}
+                    variant="outlined"
+                    sx={{ m: 0.5 }}
+                  />
+                ))
+              ) : (
+                <Typography variant="body2" color="text.secondary">No Forms assigned</Typography>
               )}
             </Paper>
           </Grid>
