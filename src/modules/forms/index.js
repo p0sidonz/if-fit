@@ -17,7 +17,10 @@ import {
     TextField,
     Snackbar,
     Hidden,
-    Tooltip
+    Tooltip,
+    Box,
+    Avatar,
+    
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -146,28 +149,75 @@ const DynamicFormsList = () => {
 
 
 
-
-                <List>
-                    {forms.map((form) => (
-                        <ListItem key={form.id} divider>
-                            <ListItemText
-                               
-                                sx={{ cursor: 'pointer' }}
-                                onClick={() => navigateTo(`forms/${form.id}`)}
-                                primary={<Typography variant='h6' color='primary' >{form.form_name}</Typography>}
-                                secondary={`Last updated: ${new Date(form.updated_at).toLocaleString()}`}
-                            />
-                            <ListItemSecondaryAction>
-                                <Button size='small' variant="contained"  onClick={() => onAssignClick(form)}>
-                                    <AssignmentIndIcon /> Assign
-                                </Button>
-                                <IconButton edge="end" onClick={(event) => handleMenuOpen(event, form)}>
-                                    <MoreVertIcon />
-                                </IconButton>
-                            </ListItemSecondaryAction>
-                        </ListItem>
-                    ))}
-                </List>
+            <List sx={{ width: '100%' }}>
+  {forms.map((form) => (
+    <ListItem 
+      key={form.id} 
+      divider 
+      sx={{ 
+        flexDirection: { xs: 'column', sm: 'row' },
+        alignItems: { xs: 'flex-start', sm: 'center' },
+        py: { xs: 2, sm: 1 },
+        px: { xs: 1, sm: 2 }
+      }}
+    >
+      <ListItemText
+        sx={{ 
+          cursor: 'pointer',
+          mb: { xs: 1, sm: 0 },
+          width: '100%'
+        }}
+        onClick={() => navigateTo(`forms/${form.id}`)}
+        primary={
+          <Typography 
+            variant='h6' 
+            color='primary'
+            sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}
+          >
+            {form.form_name}
+          </Typography>
+        }
+        secondary={
+          <Typography 
+            variant="body2" 
+            sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+          >
+            Last updated: {new Date(form.updated_at).toLocaleString()}
+          </Typography>
+        }
+      />
+      <Box 
+        sx={{ 
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          width: { xs: '100%', sm: 'auto' },
+          mt: { xs: 1, sm: 0 }
+        }}
+      >
+        <Button 
+          size='small' 
+          variant="contained"  
+          onClick={() => onAssignClick(form)}
+          sx={{ 
+            mr: { xs: 1, sm: 2 },
+            fontSize: { xs: '0.75rem', sm: '0.875rem' }
+          }}
+        >
+          <AssignmentIndIcon sx={{ mr: 0.5, fontSize: { xs: '1rem', sm: '1.25rem' } }} /> 
+          Assign
+        </Button>
+        <IconButton 
+          edge="end" 
+          onClick={(event) => handleMenuOpen(event, form)}
+          sx={{ p: { xs: 0.5, sm: 1 } }}
+        >
+          <MoreVertIcon sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }} />
+        </IconButton>
+      </Box>
+    </ListItem>
+  ))}
+</List>
 
                 <Menu
                     anchorEl={anchorEl}

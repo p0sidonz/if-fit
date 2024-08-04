@@ -87,89 +87,103 @@ const AssignDialougeForm = ({ name, open, onClose, onAssign, onUnassign, users, 
           }}
           sx={{ mb: 3 }}
         />
-        <List sx={{ maxHeight: 400, overflow: 'auto' }}>
-          {filteredUsers?.map((user, index) => {
-            const { userInfo } = user;
-            const assigned = isAssigned(userInfo.id);
-            const assignedUser = getAssignedUser(userInfo.id);
-            return (
-              <React.Fragment key={userInfo.id}>
-                <ListItem
-                  sx={{
-                    borderRadius: 1,
-                    mb: 1,
-                    transition: 'all 0.3s',
-                    '&:hover': {
-                      bgcolor: alpha(theme.palette.primary.main, 0.05),
-                    },
-                  }}
-                >
-                  <ListItemAvatar>
-                    <Avatar 
+<List sx={{ maxHeight: 400, overflow: 'auto' }}>
+  {filteredUsers?.map((user, index) => {
+    const { userInfo } = user;
+    const assigned = isAssigned(userInfo.id);
+    const assignedUser = getAssignedUser(userInfo.id);
+    return (
+      <React.Fragment key={userInfo.id}>
+        <ListItem
+          sx={{
+            borderRadius: 1,
+            mb: 1,
+            transition: 'all 0.3s',
+            '&:hover': {
+              bgcolor: alpha(theme.palette.primary.main, 0.05),
+            },
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            py: { xs: 2, sm: 1 },
+            px: { xs: 1, sm: 2 },
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', mb: { xs: 1, sm: 0 } }}>
+            <ListItemAvatar>
+              <Avatar 
+                sx={{ 
+                  bgcolor: assigned ? theme.palette.success.main : theme.palette.primary.main,
+                  color: '#fff',
+                  width: { xs: 40, sm: 50 },
+                  height: { xs: 40, sm: 50 },
+                }}
+              >
+                {userInfo.first_name[0]}{userInfo.last_name[0]}
+              </Avatar>
+            </ListItemAvatar>
+            <ListItemText
+              primary={
+                <Box display="flex" alignItems="center">
+                  <Typography variant="subtitle1" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                    {userInfo.first_name} {userInfo.last_name}
+                  </Typography>
+                </Box>
+              }
+              secondary={
+                <Box>
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      mt: 0.5,
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                    }}
+                  >
+                    <EmailIcon fontSize="small" sx={{ mr: 0.5 }} />
+                    {userInfo.email}
+                  </Typography>
+                  {userInfo.contact && (
+                    <Typography
+                      component="span"
+                      variant="body2"
+                      color="text.secondary"
                       sx={{ 
-                        bgcolor: assigned ? theme.palette.success.main : theme.palette.primary.main,
-                        color: '#fff',
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        mt: 0.5,
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
                       }}
                     >
-                      {userInfo.first_name[0]}{userInfo.last_name[0]}
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <Box display="flex" alignItems="center">
-                        <Typography variant="subtitle1">
-                          {userInfo.first_name} {userInfo.last_name}
-                        </Typography>
-                        {/* {assigned && (
-                          <Chip
-                            label="Assigned"
-                            color="success"
-                            size="small"
-                            sx={{ ml: 1 }}
-                          />
-                        )} */}
-                      </Box>
-                    }
-                    secondary={
-                      <Box>
-                        <Typography
-                          component="span"
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}
-                        >
-                          <EmailIcon fontSize="small" sx={{ mr: 0.5 }} />
-                          {userInfo.email}
-                        </Typography>
-                        {userInfo.contact && (
-                          <Typography
-                            component="span"
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}
-                          >
-                            <PhoneIcon fontSize="small" sx={{ mr: 0.5 }} />
-                            {userInfo.contact}
-                          </Typography>
-                        )}
-                      </Box>
-                    }
-                  />
-                  <LoadingButton
-                    loading={onAssignLoading || onUnassignLoading}
-                    variant={assigned ? "outlined" : "contained"}
-                    color={assigned ? "error" : "primary"}
-                    onClick={() => assigned ? handleUnassign(assignedUser?.AssignedForms[0]?.id) : handleAssign(user?.userInfo?.id)}
-                    sx={{ minWidth: 100 }}
-                  >
-                    {assigned ? "Unassign" : "Assign"}
-                  </LoadingButton>
-                </ListItem>
-                {index < filteredUsers.length - 1 && <Divider variant="inset" component="li" />}
-              </React.Fragment>
-            );
-          })}
-        </List>
+                      <PhoneIcon fontSize="small" sx={{ mr: 0.5 }} />
+                      {userInfo.contact}
+                    </Typography>
+                  )}
+                </Box>
+              }
+            />
+          </Box>
+          <LoadingButton
+            loading={onAssignLoading || onUnassignLoading}
+            variant={assigned ? "outlined" : "contained"}
+            color={assigned ? "error" : "primary"}
+            onClick={() => assigned ? handleUnassign(assignedUser?.AssignedForms[0]?.id) : handleAssign(user?.userInfo?.id)}
+            sx={{ 
+              minWidth: { xs: '100%', sm: 100 },
+              mt: { xs: 1, sm: 0 },
+              fontSize: { xs: '0.75rem', sm: '0.875rem' }
+            }}
+          >
+            {assigned ? "Unassign" : "Assign"}
+          </LoadingButton>
+        </ListItem>
+        {index < filteredUsers.length - 1 && <Divider variant="inset" component="li" />}
+      </React.Fragment>
+    );
+  })}
+</List>
       </DialogContent>
       <DialogActions sx={{ p: 2,  }}>
         <Button onClick={onClose} variant="contained">Close</Button>

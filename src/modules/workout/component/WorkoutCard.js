@@ -11,10 +11,9 @@ import { ListItem, ListItemText, List } from '@mui/material';
 
 
 const StyledWorkoutCard = styled(Card)(({ theme }) => ({
-    maxWidth: '100%',
     width: '100%',
     height: 350,
-    maxWidth: 300,
+    maxWidth: '100%',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',

@@ -48,63 +48,79 @@ const UserProfileFollowsListItem = ({ item }) => {
   };
 
   return (
-    <ListItem alignItems="flex-start" >
-      
-      <ListItemAvatar>
-
-        <Avatar
-          src={user.avatar}
-          alt={`${user.first_name} ${user.last_name}`}
-          sx={{ width: 50, height: 50 }}
-        />
-      </ListItemAvatar>
-      
-      <ListItemText
-        primary={
-          <Typography variant="subtitle1">
-            {user.first_name} {user.last_name}
-          </Typography>
-        }
-
-        secondary={
-          
-          <React.Fragment>
-            <CustomChip
-              onClick={() => navigateTo(`/${user?.username}/view`)}
-              label={`@${user.username}`}
-            />
-            {" — "}
-            <Typography
-              component="span"
-              variant="body2"
-              color="text.secondary"
-            >
-              {user.followersCount} followers
-            </Typography>
-          </React.Fragment>
-        }
+<ListItem 
+  sx={{
+    flexDirection: { xs: 'column', sm: 'row' },
+    alignItems: { xs: 'flex-start', sm: 'center' },
+    padding: { xs: 1, sm: 2 },
+    gap: { xs: 1, sm: 2 }
+  }}
+>
+  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+    <ListItemAvatar>
+      <Avatar
+        src={user.avatar}
+        alt={`${user.first_name} ${user.last_name}`}
+        sx={{ width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 } }}
       />
-      {/* Follow Button */}
-{ user.userId !== currentUser.id   &&  <Box sx={{ ml: 2, mt: 3, display: 'flex', alignItems: 'center' }}>
-        <LoadingButton
-          onClick={handleFollowOrUnFollow}
-          variant={user.isFollowing ? "outlined" : "contained"}
-          size="small"
-          startIcon={
-            <Icon
-              fontSize={20}
-              icon={
-                user.isFollowing
-                  ? "mdi:account-check-outline"
-                  : "mdi:account-plus-outline"
-              }
-            />
-          }
-        >
-          {user.isFollowing ? "Following" : "Follow"}
-        </LoadingButton>
-      </Box>}
-    </ListItem>
+    </ListItemAvatar>
+    
+    <ListItemText
+      primary={
+        <Typography variant="subtitle2" sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}>
+          {user.first_name} {user.last_name}
+        </Typography>
+      }
+      secondary={
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+          <CustomChip
+            onClick={() => navigateTo(`/${user?.username}/view`)}
+            label={`@${user.username}`}
+            sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, alignSelf: 'flex-start' }}
+          />
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' } }}
+          >
+            {user.followersCount} followers
+          </Typography>
+        </Box>
+      }
+    />
+  </Box>
+  
+  {user.userId !== currentUser.id && (
+    <Box sx={{ 
+      width: '100%',
+      display: 'flex', 
+      justifyContent: { xs: 'flex-start', sm: 'flex-end' },
+      mt: { xs: 1, sm: 0 }
+    }}>
+      <LoadingButton
+        onClick={handleFollowOrUnFollow}
+        variant={user.isFollowing ? "outlined" : "contained"}
+        size="small"
+        sx={{ 
+          fontSize: { xs: '0.7rem', sm: '0.8rem' },
+          minWidth: { xs: '100%', sm: 'auto' }
+        }}
+        startIcon={
+          <Icon
+            fontSize={{ xs: 16, sm: 20 }}
+            icon={
+              user.isFollowing
+                ? "mdi:account-check-outline"
+                : "mdi:account-plus-outline"
+            }
+          />
+        }
+      >
+        {user.isFollowing ? "Following" : "Follow"}
+      </LoadingButton>
+    </Box>
+  )}
+</ListItem>
   );
 };
 
