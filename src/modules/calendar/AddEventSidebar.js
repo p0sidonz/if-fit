@@ -120,7 +120,7 @@ const AddEventSidebar = props => {
         allDay: event.allDay,
         guests: guests || [],
         description: event?.description || '',
-        calendar: event.props || 'Event',
+        calendar: event.extendedProps.props || 'Event',
         endDate: event.end !== null ? event.end : event.start,
         startDate: event.start !== null ? event.start : new Date()
       })
