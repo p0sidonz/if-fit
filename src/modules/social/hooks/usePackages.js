@@ -5,12 +5,12 @@ import axios from "../../../utils/axios";
 
 
 // Get all packages
-export const useGetPackages= (id) => {
+export const useGetPackages= (username) => {
     return useQuery({
       queryKey: ["packages"],
-      queryFn: async (id) => {
+      queryFn: async () => {
         try {
-          const result = await axios.get(`misc/getPackages/1`);
+          const result = await axios.get(`misc/getPackages/${username}`);
           return result.data?.data || [];
         } catch (error) {
           console.error("Error fetching workouts:", error);
@@ -20,5 +20,6 @@ export const useGetPackages= (id) => {
           throw error;
         }
       },
+      enabled: !!username
     });
   };

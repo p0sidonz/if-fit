@@ -1,5 +1,5 @@
 // ** React Import
-import { useEffect, useRef , useState, useMemo} from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 
 // ** Full Calendar & it's Plugins
 import FullCalendar from '@fullcalendar/react'
@@ -10,7 +10,7 @@ import bootstrap5Plugin from '@fullcalendar/bootstrap5'
 import interactionPlugin from '@fullcalendar/interaction'
 
 import { useGetEvents, useAddEvent, useUpdateEvent, useDeleteEvent } from './hooks/useCalendar'
-
+import ShowWorkout from './ShowWorkout'
 
 // ** Third Party Style Import
 import 'bootstrap-icons/font/bootstrap-icons.css'
@@ -32,7 +32,8 @@ const blankEvent = {
 const Calendar = ({ events, direction, calendarsColor, handleSelectEvent, handleLeftSidebarToggle, handleAddEventSidebarToggle }) => {
   const calendarRef = useRef(null)
   const [calendarApi, setCalendarApi] = useState(null)
-  
+  const [showWorkoutDialog, setShowWorkoutDialog] = useState(false)
+  const [selectedWorkout, setSelectedWorkout] = useState(null)
   // const { data: events, isLoading, isError } = useGetEvents()
   const addEventMutation = useAddEvent()
   const updateEventMutation = useUpdateEvent()
@@ -72,6 +73,15 @@ const Calendar = ({ events, direction, calendarsColor, handleSelectEvent, handle
       return [`bg-${colorName}`]
     },
     eventClick({ event: clickedEvent }) {
+      if (clickedEvent.extendedProps.props === "Workout") {
+        event.preventDefault()
+        if(clickedEvent?.extendedProps?.Workout){
+          setSelectedWorkout(clickedEvent?.extendedProps?.Workout)
+          setShowWorkoutDialog(true)
+        }
+
+        return 
+      }
       handleSelectEvent(clickedEvent)
       handleAddEventSidebarToggle()
     },
@@ -103,7 +113,16 @@ const Calendar = ({ events, direction, calendarsColor, handleSelectEvent, handle
     direction
   }
 
-  return <FullCalendar {...calendarOptions} />
+  return (<>
+    <FullCalendar {...calendarOptions} />
+    <ShowWorkout
+      open={showWorkoutDialog}
+      onClose={() => setShowWorkoutDialog(false)}
+      workout_id={1}
+    />
+  </>)
+
+
 }
 
 export default Calendar

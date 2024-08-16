@@ -4,54 +4,41 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { Button } from "@mui/material";
 // ** MUI Components
-import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
-import TabPanel from "@mui/lab/TabPanel";
-import Packages from "./package/Package"
-import TabContext from "@mui/lab/TabContext";
 import Typography from "@mui/material/Typography";
-import { styled } from "@mui/material/styles";
+import { useWhoAmI, useWhoYouAre } from "../../user/hooks/useUserData";
+
 import useMediaQuery from "@mui/material/useMediaQuery";
-import MuiTabList from "@mui/lab/TabList";
 import CircularProgress from "@mui/material/CircularProgress";
 import ShowNewPost from "./profile/ShowNewPostDrawer";
 // ** Icon Imports
 import Icon from "src/@core/components/icon";
-
+import { Hidden } from "@mui/material";
 // ** Demo Components
 import Profile from "./profile";
-import Followers from "./followers";
-import Following from "./following";
+
 import UserProfileHeader from "./UserProfileHeader";
+import { FloatBarAction } from "../../components/FloatBarAction";
 
-
-const UserProfile = ({ data = [], username }) => {
+const UserProfile = ({ data = [] }) => {
   const isSmallScreen = useMediaQuery((theme) => theme.breakpoints.down('sm'));
   // ** State
   const [showNewPostModal, setShowNewPostModal] = useState(false)
-  const [isLoading, setIsLoading] = useState(true);
+  const [isSameUser, setIsSameUser] = useState(false);
 
-  // ** Hooks
   const router = useRouter();
-  const hideText = useMediaQuery((theme) => theme.breakpoints.down("sm"));
+  const { username } = router.query;
+  const { data: user, isLoading } = useWhoAmI();
+  const { data: otherUser, isLoading: otherUserLoading, refetch: refetchWhoAreYou } = useWhoYouAre(username);
+
+  
 
 
   useEffect(() => {
-    if (data) {
-      setIsLoading(false);
-    }
-  }, [data]);
-
-  const currentUser = JSON.parse(localStorage.getItem("userData"));
-
-  const [isCurrentUser, setIsCurrentUser] = useState(false);
-
-  useEffect(() => {
-    if (currentUser && currentUser.username === username) {
-      setIsCurrentUser(true)
-    }
+    refetchWhoAreYou();
   }, [username])
+
 
 
   const handleOpenNewPost = () => {
@@ -62,13 +49,17 @@ const UserProfile = ({ data = [], username }) => {
     setShowNewPostModal(false)
   }
 
+if(isLoading || otherUserLoading) return <CircularProgress />
+
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
         <UserProfileHeader
-          currentUser={currentUser}
-          isSame={isCurrentUser}
-          username={isCurrentUser ? null : username}
+          isSameUser={isSameUser}
+          user={data}
+          otherUser={otherUser}
+          refetchWhoAreYou={refetchWhoAreYou}
+          username={username}
         />
       </Grid>
 
@@ -77,20 +68,24 @@ const UserProfile = ({ data = [], username }) => {
           <Grid item >
           </Grid>
           <Grid>
-            <Box
-              sx={{
-                mt: 6,
-                display: "flex",
-                justifyContent: "end",
-                alignItems: "flex-end",
-              }}
-            >
-              <Button onClick={handleOpenNewPost} variant="contained" color="primary">
-                <Icon icon="mdi:plus" />
-                {isSmallScreen ? null : "New Post"}
-              </Button>
-            </Box>
+            <Hidden mdDown>
+              {<Box
+                sx={{
+                  mt: 6,
+                  display: "flex",
+                  justifyContent: "end",
+                  alignItems: "flex-end",
+                }}
+              >
 
+              {user?.username === otherUser?.username &&  <Button onClick={handleOpenNewPost} variant="contained" color="primary">
+                  <Icon icon="mdi:plus" />
+                  {isSmallScreen ? null : "New Post"}
+                </Button>}
+
+              </Box>}
+
+            </Hidden>
           </Grid>
           <Grid item xs={12}>
             {isLoading ? (
@@ -106,11 +101,7 @@ const UserProfile = ({ data = [], username }) => {
                 <Typography>Loading...</Typography>
               </Box>
             ) : (
-              <Profile
-                currentUser={currentUser}
-                isSame={isCurrentUser}
-                username={username}
-              />
+              <Profile/>
             )}
           </Grid>
         </Grid>
@@ -120,6 +111,11 @@ const UserProfile = ({ data = [], username }) => {
         open={showNewPostModal}
         onClose={handleCloseNewPost}
       />
+
+      <Hidden mdUp>
+      {user?.username === otherUser?.username &&  <FloatBarAction name="Post" handleClick={handleOpenNewPost} />}
+      </Hidden>
+
     </Grid>
   );
 };

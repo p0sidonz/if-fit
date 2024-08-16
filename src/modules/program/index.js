@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ProgramCard from "./components/ProgramCard";
-import { useGetProgramList, useUpdateProgram, addNewProgram, useDeleteProgram, getAllUserAndTrainerList, getAssignedUserList, assignUserToProgram, unassignUserFromProgram} from "./hooks/useProgram";
+import { useGetProgramList, useUpdateProgram, addNewProgram, useDeleteProgram, getAllUserAndTrainerList, getAssignedUserList, assignUserToProgram, unassignUserFromProgram, useSyncProgram } from "./hooks/useProgram";
 import CardHeader, { Hidden } from "@mui/material";
 import AssignDialog from "./AssignDialog";
 import { useRouter } from "next/router";
@@ -38,6 +38,7 @@ const ProgramList = () => {
   const deleteProgram = useDeleteProgram();
   const assignUser = assignUserToProgram();
   const unassignUser = unassignUserFromProgram();
+  const syncProgram = useSyncProgram();
   // const updateProgram = useUpdateProgram();
   const createProgram = addNewProgram();
   const { data, isLoading, isError, error, isFetched } = useGetProgramList();
@@ -53,8 +54,9 @@ const ProgramList = () => {
   const [currentProgram, setCurrentProgram] = useState(null);
   const [openAssignDialog, setOpenAssignDialog] = useState(false);
   const [selectedProgram, setSelectedProgram] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);  
+  const [selectedUser, setSelectedUser] = useState(null);
   const { data: assignedUsers, isLoading: assignedUsersLoading, error: assignedUsersError, isFetched: assignedUsersFetched } = getAssignedUserList(selectedProgram);
+
 
   console.log(users);
   const onAssignClick = (programId) => {
@@ -63,8 +65,8 @@ const ProgramList = () => {
   };
 
   const handleAssignConfirm = async (program_id, assignedId) => {
-    console.log("handleAssignConfirm",program_id, assignedId);
-    assignUser.mutate({program_id, assignedId}, {
+    console.log("handleAssignConfirm", program_id, assignedId);
+    assignUser.mutate({ program_id, assignedId }, {
       onSuccess: (data) => {
         // setOpenAssignDialog(false);
       },
@@ -122,6 +124,10 @@ const ProgramList = () => {
 
   const handleNavigation = (id) => {
     router.push(`/program/${id}`);
+  }
+
+  const handleSyncProgram = (id, sync) => {
+    syncProgram.mutate({ id, sync });
   }
 
   const handleDeleteProgram = () => {
@@ -188,27 +194,27 @@ const ProgramList = () => {
 
   return (
     <>
-    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography variant="h4" gutterBottom>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Typography variant="h4" gutterBottom>
           Program
-          </Typography>
-          <Hidden smDown>
-            <Tooltip title={`Add New Program`} aria-label="add">
+        </Typography>
+        <Hidden smDown>
+          <Tooltip title={`Add New Program`} aria-label="add">
             <Button
-            variant="contained"
-            color="primary"
-            onClick={handleAddProgram}
-            startIcon={<AddIcon />}
-            sx={{ marginTop: 3 }}
-          >
-            Add New Program
-          </Button>
-            </Tooltip>
-          </Hidden>
-        </div>
+              variant="contained"
+              color="primary"
+              onClick={handleAddProgram}
+              startIcon={<AddIcon />}
+              sx={{ marginTop: 3 }}
+            >
+              Add New Program
+            </Button>
+          </Tooltip>
+        </Hidden>
+      </div>
 
 
-      
+
       <Card sx={{ marginTop: 3, padding: 2 }}>
         <CardContent sx={{ display: "flex", gap: 2 }}>
           <TextField
@@ -369,14 +375,14 @@ const ProgramList = () => {
         onClose={() => setOpenAssignDialog(false)}
         users={users}
         assignedUsers={assignedUsers}
-
+        useSync={handleSyncProgram}
       />
 
       <Hidden smUp>
         <FloatBarAction name="Program" handleClick={handleAddProgram} />
       </Hidden>
 
-</> 
+    </>
   );
 };
 

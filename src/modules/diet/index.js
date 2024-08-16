@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Collapse from "@mui/material/Collapse";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { ExpandLess } from "@mui/icons-material";
-import { useGetDietList, useCreatNewDiet, useUpdateDiet, useDeleteDiet, getAssignedUserList,getAllUserAndTrainerList, assignUserToDiet,unassignUserFromDiet } from "./hooks/useDiet";
+import { useSyncDiet, useGetDietList, useCreatNewDiet, useUpdateDiet, useDeleteDiet, getAssignedUserList,getAllUserAndTrainerList, assignUserToDiet,unassignUserFromDiet } from "./hooks/useDiet";
 import {
   Card,
   Box,
@@ -37,6 +37,7 @@ const DietList = () => {
   const deleteDiet = useDeleteDiet();
   const assignUser = assignUserToDiet();
   const unassignUser = unassignUserFromDiet();
+  const syncDiet = useSyncDiet();
   const { data, isLoading, isError, error, isFetched } = useGetDietList();
   const { data: users, isLoading: usersLoading, error: usersError, isFetched: usersFetched } = getAllUserAndTrainerList();
   const createDiet = useCreatNewDiet();
@@ -77,6 +78,11 @@ const DietList = () => {
   }
 
 
+  const handleSyncDiet = (id, sync) => {
+    console.log("handleSyncProgram", id, sync);
+
+    syncDiet.mutate({ id, sync });
+  }
 
 
   const [newDiet, setNewDiet] = useState({
@@ -591,6 +597,7 @@ const DietList = () => {
         onClose={() => setOpenAssignDialog(false)}
         users={users}
         assignedUsers={assignedUsers}
+        useSync={handleSyncDiet}
       />
 
     {/* </Container> */}

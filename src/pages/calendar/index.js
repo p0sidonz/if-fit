@@ -21,7 +21,8 @@ import CalendarWrapper from 'src/@core/styles/libs/fullcalendar'
 const calendarsColor = {
   Personal: 'error',
   Event: 'primary',
-  ETC: 'info'
+  ETC: 'info',
+  Workout: 'success',
 }
 
 const AppCalendar = () => {
@@ -30,7 +31,7 @@ const AppCalendar = () => {
    const [leftSidebarOpen, setLeftSidebarOpen] = useState(false)
    const [addEventSidebarOpen, setAddEventSidebarOpen] = useState(false)
    const [selectedEvent, setSelectedEvent] = useState(null)
-   const [selectedCalendars, setSelectedCalendars] = useState(['Personal', 'Event', 'ETC'])
+   const [selectedCalendars, setSelectedCalendars] = useState(['Personal', 'Event', 'ETC', 'Workout'])
  
    // ** Hooks
    const { settings } = useSettings()
@@ -85,7 +86,15 @@ const AppCalendar = () => {
   // Filter events based on selected calendars
   const filteredEvents = events.filter(event => selectedCalendars.includes(event.props))
 
-  console.log(filteredEvents)
+   //check if the props === "Workout" and if so, get the title from the Workout.title 
+    const filteredEventss = filteredEvents.map(event => { 
+      if (event.props === "Workout") {
+        return {...event, title:  event.Workout?.title ? event.Workout?.title : 'Rest Day'}
+      }
+      return event
+    })
+
+  console.log("filteredEvents", filteredEvents)
 
   return (
     <CalendarWrapper
@@ -120,7 +129,7 @@ const AppCalendar = () => {
         }}
       >
         <Calendar
-          events={filteredEvents}
+          events={filteredEventss}
           direction={direction}
           updateEvent={updateEventMutation.mutate}
           calendarsColor={calendarsColor}

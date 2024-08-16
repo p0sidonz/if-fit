@@ -2,7 +2,7 @@ import { CardContent, Card, Typography } from "@mui/material";
 import { useGetWorkout } from "../.././workout/hooks/useWorkout";
 import WorkoutDetail from "./WorkoutDetail";
 
-const JustWorkout = ({ workout, workout_id }) => {
+const JustWorkout = ({ workout }) => {
     const { data, isLoading } = useGetWorkout(workout.id);
 
     if (isLoading) return <div>Loading...</div>;

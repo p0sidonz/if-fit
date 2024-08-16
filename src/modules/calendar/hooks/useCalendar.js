@@ -18,7 +18,7 @@ export const useGetEvents = () => {
         return result.data || []
       } catch (error) {
         console.error("Error fetching events:", error)
-        toast.error(`Error: ${error.message}. ${error.response?.data?.message || ""}`)
+        // toast.error(`Error: ${error.message}. ${error.response?.data?.message || ""}`)
         throw error
       }
     },

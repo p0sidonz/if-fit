@@ -18,6 +18,7 @@ const aggregateNutritionData = (mealData) => {
 
 const NutritionChart = ({ mealsData }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  if(!mealsData) return null;
 
   const allMealsData = mealsData.flatMap(meal => aggregateNutritionData(meal));
   const totals = allMealsData.reduce((acc, item) => {

@@ -28,7 +28,7 @@ import {
 
 } from '@mui/icons-material';
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
-
+import TrainersStats from './TrainersStats';
 import { getAllUserAndTrainerList } from 'src/modules/diet/hooks/useDiet';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import UserAssignmentsChart from './Stats';
@@ -239,6 +239,8 @@ const UserTrainerDashboard = () => {
         </Grid>
       </Grid>
     {/* </Container> */}
+    {/* <TrainersStats data={relationships} /> */}
+
     </>
   );
 };

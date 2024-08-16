@@ -44,6 +44,56 @@ export const useGetProgram = (programId) => {
 
 }
 
+export const useGetUserProgram = (programId, relationId) => {
+  return useQuery({
+      queryKey: ["program", programId, relationId],
+      queryFn: async () => {
+      try {
+          const result = await axios.get(`/program/${programId}/${relationId}`);
+          return result.data.data || null;
+      } catch (error) {
+          console.error("Error fetching program:", error);
+          toast.error(`Error: ${error.message}. ${error.response?.data?.message || ""}`, {
+          duration: 4000,
+          });
+          throw error;
+      }
+      },
+      enabled: !!programId && !!relationId,
+      retry: 1,
+  });
+
+}
+
+export const useSyncProgram = () => {
+    const queryClient = useQueryClient();
+  
+    return useMutation({
+      mutationFn: async (program) => {
+        const response = await axios.post(`/program/sync/${program.id}`, {shouldSync: program.sync});
+        return response.data;
+      },
+      onSuccess: (data) => {
+        // Success actions
+        queryClient.invalidateQueries ("program");
+        queryClient.invalidateQueries ("assignedUserList");
+
+        return toast.success("Program updated successfully");
+      },
+      onError: (error) => {
+       if(error.response.data.message.length) {
+          error.response.data.message.forEach((msg) => {
+            toast.error(msg, {
+              className: {
+                zIndex: 10000
+              }
+            });
+          });
+       }
+       
+      },
+    });
+}
 
 export const useUpdateProgram = () => {
     const queryClient = useQueryClient();
@@ -322,6 +372,32 @@ export const unassignUserFromProgram = () => {
       queryClient.invalidateQueries('userList');
       
       toast.success('User unassigned successfully');
+    },
+    onError: (error) => {
+      if (error.response?.data?.message?.length) {
+        error.response.data.message.forEach((msg) => {
+          toast.error(msg, {
+            className: {
+              zIndex: 10000,
+            },
+          });
+        });
+      }
+    },
+  });
+}
+
+
+export const useAddProgramToCalendar = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ program_id, start_date, duration }) => {
+      const response = await axios.post(`calender/add/program-to-calendar`, { program_id, start_date, duration });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries('programList');
+      toast.success('Program added to calendar successfully');
     },
     onError: (error) => {
       if (error.response?.data?.message?.length) {

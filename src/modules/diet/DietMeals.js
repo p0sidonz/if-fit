@@ -55,6 +55,8 @@ import FoodChart from "./components/FoodChart";
 import FoodSummaryInfo from "./components/FoodSummaryInfo";
 
 const DietMeals = (props) => {
+  console.log("props.param", props.param)
+
   const [foodId, setFoodId] = useState(null);
   const [meals, setMeals] = useState([]);
   const [newMeal, setNewMeal] = useState({ title: "", description: "" });
@@ -75,7 +77,6 @@ const DietMeals = (props) => {
   const [selectedMealDelete, setSelectedMealDelete] = useState(null);
   const [selectedFoodDelete, setSelectedFoodDelete] = useState(null);
   const { data: mealList, isLoading, error, refetch } = useGetMealList(props.param);
-
   //not surre about this
   const [showOtherData, setShowOtherData] = useState([]);
 
@@ -90,6 +91,9 @@ const DietMeals = (props) => {
   {/* edit meal  */ }
   const [openEditMeal, setOpenEditMeal] = useState(false);
 
+  useEffect(() => { 
+    refetch()
+   }, [props.param]);
 
   const handleEditMealInfo = (meal) => {
     setOpenEditMeal(true);

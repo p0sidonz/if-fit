@@ -227,6 +227,7 @@ const PackageManager = ({ packages }) => {
         ))}
       </Grid>
       <PackageDialog
+        
         open={dialogOpen}
         handleClose={handleDialogClose}
         packageData={selectedPackage}

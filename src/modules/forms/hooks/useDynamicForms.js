@@ -122,12 +122,33 @@ export const getAllUserAndTrainerList = () => {
     });
   }
   
-  export const getAssignedFormList = (form_id) => {
+  // export const getAssignedFormList = (form_id) => {
+  //   return useQuery({
+  //     queryKey: ['assignedUserList', form_id],
+  //     queryFn: async () => {
+  //       try {
+  //         const result = await axios.get(`/forms/assignedForm/${form_id}`);
+  //         return result.data?.data || [];
+  //       } catch (error) {
+  //         console.error('Error fetching assigned user list:', error);
+  //         toast.error(`Error: ${error.message}. ${error.response?.data?.message || ''}`, {
+  //           duration: 4000,
+  //         });
+  //         throw error;
+  //       }
+  //     },
+  //     enabled: !!form_id,
+  //     retry: 1,
+  //     staleTime: 5 * 60 * 1000,
+  //   });
+  // }
+  
+  export const getAssignedFormList = (program_id) => {
     return useQuery({
-      queryKey: ['assignedUserList', form_id],
+      queryKey: ['assignedUserList', program_id],
       queryFn: async () => {
         try {
-          const result = await axios.get(`/forms/assignedForm/${form_id}`);
+          const result = await axios.get(`/userandtrainer/assignedForm/${program_id}`);
           return result.data?.data || [];
         } catch (error) {
           console.error('Error fetching assigned user list:', error);
@@ -137,17 +158,46 @@ export const getAllUserAndTrainerList = () => {
           throw error;
         }
       },
-      enabled: !!form_id,
+      enabled: !!program_id,
       retry: 1,
       staleTime: 5 * 60 * 1000,
     });
   }
+
+
+  // export const assignUserToForms = () => {
+  //   const queryClient = useQueryClient();
+  //   return useMutation({
+  //     mutationFn: async ({ form_id, assignedId }) => {
+  //       const response = await axios.post(`/forms/assignForms/${form_id}/${assignedId}`);
+  //       return response.data;
+  //     },
+  //     onSuccess: (data) => {
+  //       queryClient.invalidateQueries('assignedUserList');
+  //       queryClient.invalidateQueries('userList');
   
+  //       toast.success('User assigned successfully');
+  //     },
+  //     onError: (error) => {
+  //       if (error.response?.data?.message?.length) {
+  //         error.response.data.message.forEach((msg) => {
+  //           toast.error(msg, {
+  //             className: {
+  //               zIndex: 10000,
+  //             },
+  //           });
+  //         });
+  //       }
+  //     },
+  //   });
+  // }
+
   export const assignUserToForms = () => {
     const queryClient = useQueryClient();
+  
     return useMutation({
-      mutationFn: async ({ form_id, assignedId }) => {
-        const response = await axios.post(`/forms/assignForms/${form_id}/${assignedId}`);
+      mutationFn: async ({ program_id, assignedId }) => {
+        const response = await axios.post(`/userandtrainer/assignform/${program_id}/${assignedId}`);
         return response.data;
       },
       onSuccess: (data) => {
@@ -169,6 +219,7 @@ export const getAllUserAndTrainerList = () => {
       },
     });
   }
+
   
   export const unassignUserFromForms = () => {
     const queryClient = useQueryClient();
@@ -176,7 +227,7 @@ export const getAllUserAndTrainerList = () => {
     return useMutation({
       mutationFn: async (assignedId) => {
         console.log(assignedId)
-        const response = await axios.post(`/forms/unassignForm/${assignedId}`);
+        const response = await axios.post(`/userandtrainer/unassignForm/${assignedId}`);
         return response.data;
       },
       onSuccess: (data) => {
@@ -199,3 +250,95 @@ export const getAllUserAndTrainerList = () => {
     });
   }
 
+  export const useCreateFormResponse = () => {
+    const queryClient = useQueryClient();
+  
+    return useMutation({
+      mutationFn: async (data) => {
+        const response = await axios.post(`/misc/createFormResponse`, data);
+        return response.data;
+      },
+      onSuccess: () => {
+        toast.success('Form response created successfully');
+      },
+      onError: (error) => {
+        if (error.response?.data?.message?.length) {
+          error.response.data.message.forEach((msg) => {
+            toast.error(msg, {
+              className: {
+                zIndex: 10000,
+              },
+            });
+          });
+        }
+      },
+    });
+  }
+
+  export const useUpdateFormResponse = () => {
+    const queryClient = useQueryClient();
+  
+    return useMutation({
+      mutationFn: async (data) => {
+        const response = await axios.post(`/misc/updateFormResponse`, data);
+        return response.data;
+      },
+      onSuccess: () => {
+        toast.success('Form response updated successfully');
+      },
+      onError: (error) => {
+        if (error.response?.data?.message?.length) {
+          error.response.data.message.forEach((msg) => {
+            toast.error(msg, {
+              className: {
+                zIndex: 10000,
+              },
+            });
+          });
+        }
+      },
+    });
+  }
+
+  export const useGetResponseById = (id) => {
+    return useQuery({
+      queryKey: ['response', id],
+      queryFn: async () => {
+        try {
+          const result = await axios.get(`/misc/getFormResponse/${id}`);
+          return result.data?.data || [];
+        } catch (error) {
+          console.error('Error fetching response:', error);
+          toast.error(`Error: ${error.message}. ${error.response?.data?.message || ''}`, {
+            duration: 4000,
+          });
+          throw error;
+        }
+      },
+      enabled: !!id,
+      retry: 1,
+      staleTime: 5 * 60 * 1000,
+    });
+
+  }
+
+  export const useGetResponseByFormId = (id) => {
+    return useQuery({
+      queryKey: ['response', id],
+      queryFn: async () => {
+        try {
+          const result = await axios.get(`forms/formResponses/${id}`);
+          return result.data?.data || [];
+        } catch (error) {
+          console.error('Error fetching response:', error);
+          toast.error(`Error: ${error.message}. ${error.response?.data?.message || ''}`, {
+            duration: 4000,
+          });
+          throw error;
+        }
+      },
+      enabled: !!id,
+      retry: 1,
+      staleTime: 5 * 60 * 1000,
+    });
+  }

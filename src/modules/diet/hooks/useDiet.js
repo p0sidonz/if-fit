@@ -100,6 +100,38 @@ export const useCreatNewDiet = () => {
     },
   });
 }
+
+
+export const useSyncDiet = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (diet) => {
+      const response = await axios.post(`/diet/sync/${diet.id}`, {shouldSync: diet.sync});
+      return response.data;
+    },
+    onSuccess: (data) => {
+      // Success actions
+      queryClient.invalidateQueries ("dietList");
+      queryClient.invalidateQueries ("assignedUserList");
+
+      return toast.success("Diet updated successfully");
+    },
+    onError: (error) => {
+     if(error.response.data.message.length) {
+        error.response.data.message.forEach((msg) => {
+          toast.error(msg, {
+            className: {
+              zIndex: 10000
+            }
+          });
+        });
+     }
+     
+    },
+  });
+}
+
 export const useUpdateDiet = () => {
   const queryClient = useQueryClient();
 
@@ -176,6 +208,28 @@ export const useGetMealList = (dietId) => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
+
+export const useGetMealListForUsers = (prm) => {
+  return useQuery({
+    queryKey: ["mealList", prm],
+    queryFn: async () => {
+      try {
+        const result = await axios.get(`/diet/getMeal/${prm.dietId}/${prm.relationId}`);
+        return result.data.data || [];
+      } catch (error) {
+        console.error("Error fetching meal list:", error);
+        toast.error(`Error: ${error.message}. ${error.response?.data?.message || ""}`, {
+          duration: 4000,
+        });
+        throw error;
+      }
+    },
+    enabled: !!prm.dietId,
+    retry: 1, // Retry once before failing
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
 
 export const useCreateNewMeal = () => {
   const queryClient = useQueryClient();
@@ -362,6 +416,26 @@ export const getAllUserAndTrainerList = () => {
         return result.data?.data || [];
       } catch (error) {
         console.error('Error fetching user list:', error);
+        // toast.error(`Error: ${error.message}. ${error.response?.data?.message || ''}`, {
+        //   duration: 4000,
+        // });
+        throw error;
+      }
+    },
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export const getAllTrainers = () => {
+  return useQuery({
+    queryKey: ['trainerList'],
+    queryFn: async () => {
+      try {
+        const result = await axios.get('/userandtrainer/getTrainers');
+        return result.data?.data || [];
+      } catch (error) {
+        console.error('Error fetching user list:', error);
         toast.error(`Error: ${error.message}. ${error.response?.data?.message || ''}`, {
           duration: 4000,
         });
@@ -372,6 +446,8 @@ export const getAllUserAndTrainerList = () => {
     staleTime: 5 * 60 * 1000,
   });
 }
+
+
 
 export const getAssignedUserList = (diet_id) => {
   return useQuery({

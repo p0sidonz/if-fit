@@ -57,14 +57,11 @@ const StatItem = ({ label, count, onClick }) => (
   </Typography>
 );
 
-const UserProfileHeader = () => {
+const UserProfileHeader = ({user, otherUser, refetchWhoAreYou, isSameUser, username}) => {
   
   const followUser = useFollowUser();
   const unFollowUser = useUnFollowUser();
   const router = useRouter();
-  const { username } = router.query;
-  const { data: user, isLoading } = useWhoAmI();
-  const { data: otherUser, isLoading: otherUserLoading, refetch: refetchWhoAreYou } = useWhoYouAre(username);
 
   const [followersDialogOpen, setFollowersDialogOpen] = useState(false);
   const [followingDialogOpen, setFollowingDialogOpen] = useState(false);
@@ -83,7 +80,6 @@ const UserProfileHeader = () => {
     setFollowingDialogOpen(false);
     setPackagesDialogOpen(false);
   };
-
 
   // ** State
   const [data, setData] = useState({
@@ -104,7 +100,6 @@ const UserProfileHeader = () => {
   }
 
   useEffect(() => {
-    refetchWhoAreYou();
     handleCloseDialog();
   }, [username])
 
@@ -179,7 +174,7 @@ const UserProfileHeader = () => {
                 gap: 1,
               }}
             >
-              {user?.username === otherUser?.username ? (
+              {isSameUser ? (
                 <Button
                   onClick={() => router.push('/settings/account/')}
                   variant="outlined"
@@ -207,13 +202,14 @@ const UserProfileHeader = () => {
                   {otherUser?.isFollowing ? 'Following' : 'Follow'}
                 </LoadingButton>
               )}
-              <Button
+
+              {otherUser?.role === "trainer" && (<Button
                 variant="contained"
                 startIcon={<Icon icon="mdi:package-variant-closed" />}
                 onClick={() => setPackagesDialogOpen(true)}
               >
                 Packages
-              </Button>
+              </Button>)}
             </Box>
           </>
         )}
@@ -239,9 +235,9 @@ const UserProfileHeader = () => {
       </Dialog>
 
       <Dialog maxWidth="md" fullWidth open={packagesDialogOpen} onClose={handleCloseDialog}>
-        <DialogTitle>Following</DialogTitle>
+        <DialogTitle>Buy Plans</DialogTitle>
         <DialogContent>
-          <Packages/>
+          <Packages username={username}/>
                     {/* <Following
             username={username}
           /> */}

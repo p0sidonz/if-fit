@@ -7,7 +7,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import PreviewPost from "src/modules/social/components/profile/PreviewPost";
 import { useRouter } from "next/router";
 
-const ProfileTab = ({ tab, isSame }) => {
+const ProfileTab = () => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState(null);

@@ -51,7 +51,7 @@ const AddEventSidebar = props => {
     handleAddEventSidebarToggle,
     setSelectedEvent
   } = props
-
+  const userData = JSON.parse(localStorage.getItem('userData'))
 
   const [values, setValues] = useState(defaultState)
 
@@ -159,10 +159,10 @@ const AddEventSidebar = props => {
       <Button size='large' type='submit' variant='contained' sx={{ mr: 4 }}>
         {selectedEvent ? 'Update' : 'Add'}
       </Button>
-      <Button 
-        size='large' 
-        variant='outlined' 
-        color='secondary' 
+      <Button
+        size='large'
+        variant='outlined'
+        color='secondary'
         onClick={selectedEvent ? resetToStoredValues : resetToEmptyValues}
       >
         Reset
@@ -170,7 +170,7 @@ const AddEventSidebar = props => {
     </Fragment>
   )
 
-  if(usersLoading) return <div>Loading...</div>
+  if (usersLoading) return <div>Loading...</div>
 
   return (
     <Drawer
@@ -284,7 +284,7 @@ const AddEventSidebar = props => {
               value={values.url}
               onChange={e => setValues({ ...values, url: e.target.value })}
             />
-            <FormControl fullWidth sx={{ mb: 6 }}>
+            {userData?.role !== "user" && <FormControl fullWidth sx={{ mb: 6 }}>
               <InputLabel id='event-guests'>Guests</InputLabel>
               <Select
                 multiple
@@ -300,7 +300,7 @@ const AddEventSidebar = props => {
                   </MenuItem>
                 ))}
               </Select>
-            </FormControl>
+            </FormControl>}
             <TextField
               rows={4}
               multiline
