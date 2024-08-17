@@ -56,7 +56,7 @@ if(isError) return <Typography>User not found</Typography>
       <Grid item xs={12}>
         <UserProfileHeader
           isSameUser={isSameUser}
-          user={data}
+          user={user}
           otherUser={otherUser}
           refetchWhoAreYou={refetchWhoAreYou}
           username={username}
