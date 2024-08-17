@@ -24,16 +24,20 @@ import {
   ExpandLess as ExpandLessIcon,
   RestaurantMenu as DietIcon,
   FitnessCenter as ProgramIcon,
-  
+
 
 } from '@mui/icons-material';
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
+import useNavigateTo from "src/modules/components/useRouterPush";
+
 import TrainersStats from './TrainersStats';
 import { getAllUserAndTrainerList } from 'src/modules/diet/hooks/useDiet';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import UserAssignmentsChart from './Stats';
 
 const UserTrainerDashboard = () => {
+  const navigateTo = useNavigateTo();
+
   const { data: relationships, isLoading } = getAllUserAndTrainerList();
   // const [relationships, setRelationships] = useState([]);
   const [expandedRows, setExpandedRows] = useState({});
@@ -47,7 +51,7 @@ const UserTrainerDashboard = () => {
     assignedPrograms: rel?.Assigned_Program?.length,
   }));
 
-  
+
 
   // useEffect(() => {
   //   // Replace this with your actual API call
@@ -73,6 +77,7 @@ const UserTrainerDashboard = () => {
               {relationship.Assigned_Diet.length > 0 ? (
                 relationship.Assigned_Diet.map((diet) => (
                   <Chip
+                    onClick={() => navigateTo(`/diet/${diet.dietInfo.id}`)}
                     key={diet.id}
                     icon={<DietIcon />}
                     label={diet.dietInfo.title}
@@ -91,6 +96,7 @@ const UserTrainerDashboard = () => {
               {relationship.Assigned_Program.length > 0 ? (
                 relationship.Assigned_Program.map((program) => (
                   <Chip
+                  onClick={() => navigateTo(`/program/${program.programInfo.id}`)}
                     key={program.id}
                     icon={<ProgramIcon />}
                     label={program.programInfo.title}
@@ -108,14 +114,14 @@ const UserTrainerDashboard = () => {
               <Typography variant="h6" gutterBottom>Assigned Forms</Typography>
               {relationship?.Assigned_Forms?.length > 0 ? (
                 relationship.Assigned_Forms.map((form) => (
-                    <Chip
-                      onClick={() => navigateTo(`/forms/${form.formInfo.id}`)}
-                      key={form.id}
-                      icon={<ProgramIcon />}
-                      label={form.formInfo.form_name}
-                      variant="outlined"
-                      sx={{ m: 0.5 }}
-                    />
+                  <Chip
+                    onClick={() => navigateTo(`/forms/${form.formInfo.id}`)}
+                    key={form.id}
+                    icon={<ProgramIcon />}
+                    label={form.formInfo.form_name}
+                    variant="outlined"
+                    sx={{ m: 0.5 }}
+                  />
                 ))
               ) : (
                 <Typography variant="body2" color="text.secondary">No Form assigned</Typography>
@@ -129,10 +135,10 @@ const UserTrainerDashboard = () => {
 
 
   return (
-    <> 
-    {/* <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}> */}
+    <>
+      {/* <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}> */}
       <Typography variant="h4" gutterBottom>
-       Dashboard
+        Dashboard
       </Typography>
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
@@ -182,65 +188,65 @@ const UserTrainerDashboard = () => {
           <Bar dataKey="assignedDiets" fill="#8884d8" name="Assigned Diets" />
           <Bar dataKey="assignedPrograms" fill="#82ca9d" name="Assigned Programs" />
         </BarChart> */}
-          {/* <UserAssignmentsChart data={relationships} /> */}
+        {/* <UserAssignmentsChart data={relationships} /> */}
 
         <Grid item xs={12}>
-        <Card>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>User</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Subscription</TableCell>
-                  <TableCell>Assigned Diets</TableCell>
-                  <TableCell>Assigned Programs</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {relationships.map((relationship) => (
-                  <React.Fragment key={relationship.id}>
-                    <TableRow>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Avatar src={relationship.userInfo.avatar} sx={{ mr: 2 }}>
-                            <PersonIcon />
-                          </Avatar>
-                          {`${relationship.userInfo.first_name} ${relationship.userInfo.last_name}`}
-                        </Box>
-                      </TableCell>
-                      <TableCell>{relationship.userInfo.email}</TableCell>
-                      <TableCell>
-                        {relationship.userInfo.UserAndTrainerSubscription.length > 0 ? (
-                          <Chip
-                            label={relationship.userInfo.UserAndTrainerSubscription[0].packageInfo.title}
-                            color="primary"
-                            variant="outlined"
-                          />
-                        ) : (
-                          <Chip label="No Subscription" variant="outlined" />
-                        )}
-                      </TableCell>
-                      <TableCell>{relationship.Assigned_Diet.length}</TableCell>
-                      <TableCell>{relationship.Assigned_Program.length}</TableCell>
-                      <TableCell>
-                        <IconButton onClick={() => toggleRowExpansion(relationship.id)}>
-                          {expandedRows[relationship.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                    {expandedRows[relationship.id] && renderExpandedRow(relationship)}
-                  </React.Fragment>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <Card>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>User</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>Subscription</TableCell>
+                    <TableCell>Assigned Diets</TableCell>
+                    <TableCell>Assigned Programs</TableCell>
+                    <TableCell>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {relationships.map((relationship) => (
+                    <React.Fragment key={relationship.id}>
+                      <TableRow>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Avatar src={relationship.userInfo.avatar} sx={{ mr: 2 }}>
+                              <PersonIcon />
+                            </Avatar>
+                            {`${relationship.userInfo.first_name} ${relationship.userInfo.last_name}`}
+                          </Box>
+                        </TableCell>
+                        <TableCell>{relationship.userInfo.email}</TableCell>
+                        <TableCell>
+                          {relationship.userInfo.UserAndTrainerSubscription.length > 0 ? (
+                            <Chip
+                              label={relationship.userInfo.UserAndTrainerSubscription[0].packageInfo.title}
+                              color="primary"
+                              variant="outlined"
+                            />
+                          ) : (
+                            <Chip label="No Subscription" variant="outlined" />
+                          )}
+                        </TableCell>
+                        <TableCell>{relationship.Assigned_Diet.length}</TableCell>
+                        <TableCell>{relationship.Assigned_Program.length}</TableCell>
+                        <TableCell>
+                          <IconButton onClick={() => toggleRowExpansion(relationship.id)}>
+                            {expandedRows[relationship.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                      {expandedRows[relationship.id] && renderExpandedRow(relationship)}
+                    </React.Fragment>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </Card>
         </Grid>
       </Grid>
-    {/* </Container> */}
-    {/* <TrainersStats data={relationships} /> */}
+      {/* </Container> */}
+      {/* <TrainersStats data={relationships} /> */}
 
     </>
   );

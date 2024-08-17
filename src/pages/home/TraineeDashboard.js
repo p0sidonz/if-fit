@@ -7,6 +7,7 @@ import {
   Typography,
   Table,
   TableBody,
+  Button,
   TableCell,
   TableContainer,
   TableHead,
@@ -111,24 +112,40 @@ const TraineeDashboard = () => {
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>Assigned Forms</Typography>
+            <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ mb: 2, fontWeight: 'bold' }}>
+                Assigned Forms
+              </Typography>
               {relationship.Assigned_Forms.length > 0 ? (
-                relationship.Assigned_Forms.map((form) => (
-                  <div>
-                    <Chip
-                      onClick={() => navigateTo(`/forms/${form.formInfo.id}`)}
-                      key={form.id}
-                      icon={<ProgramIcon />}
-                      label={form.formInfo.form_name}
-                      variant="outlined"
-                      sx={{ m: 0.5 }}
-                    />
-                    <RenderFormTrainee form={form} />
-                  </div>
-                ))
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {relationship.Assigned_Forms.map((form) => (
+                    <Card key={form.id} variant="outlined" sx={{ p: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <ProgramIcon sx={{ mr: 1, color: 'primary.main' }} />
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
+                          {form.formInfo.form_name}
+                        </Typography>
+                      </Box>
+                     <RenderFormTrainee form={form} />
+                      
+                    </Card>
+                  ))}
+                </Box>
               ) : (
-                <Typography variant="body2" color="text.secondary">No Form assigned</Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: 100,
+                    bgcolor: 'grey.100',
+                    borderRadius: 1
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    No forms assigned
+                  </Typography>
+                </Box>
               )}
             </Paper>
           </Grid>
