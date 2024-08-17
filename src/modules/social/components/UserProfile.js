@@ -30,7 +30,7 @@ const UserProfile = ({ data = [] }) => {
   const router = useRouter();
   const { username } = router.query;
   const { data: user, isLoading } = useWhoAmI();
-  const { data: otherUser, isLoading: otherUserLoading, refetch: refetchWhoAreYou } = useWhoYouAre(username);
+  const { data: otherUser, isLoading: otherUserLoading, refetch: refetchWhoAreYou, isError } = useWhoYouAre(username);
 
   
 
@@ -50,7 +50,7 @@ const UserProfile = ({ data = [] }) => {
   }
 
 if(isLoading || otherUserLoading) return <CircularProgress />
-
+if(isError) return <Typography>User not found</Typography>
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
