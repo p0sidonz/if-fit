@@ -106,18 +106,19 @@ const UserTrainerDashboard = () => {
           <Grid item xs={12} md={6}>
             <Paper elevation={3} sx={{ p: 2 }}>
               <Typography variant="h6" gutterBottom>Assigned Forms</Typography>
-              {relationship?.userInfo?.AssignedForms?.length > 0 ? (
-                relationship?.userInfo?.AssignedForms?.map((form) => (
-                  <Chip
-                    key={form.id}
-                    icon={<NoteAltIcon />}
-                    label={form.formInfo.form_name}
-                    variant="outlined"
-                    sx={{ m: 0.5 }}
-                  />
+              {relationship?.Assigned_Forms?.length > 0 ? (
+                relationship.Assigned_Forms.map((form) => (
+                    <Chip
+                      onClick={() => navigateTo(`/forms/${form.formInfo.id}`)}
+                      key={form.id}
+                      icon={<ProgramIcon />}
+                      label={form.formInfo.form_name}
+                      variant="outlined"
+                      sx={{ m: 0.5 }}
+                    />
                 ))
               ) : (
-                <Typography variant="body2" color="text.secondary">No Forms assigned</Typography>
+                <Typography variant="body2" color="text.secondary">No Form assigned</Typography>
               )}
             </Paper>
           </Grid>
