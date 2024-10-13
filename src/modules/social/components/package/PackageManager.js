@@ -1,4 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import useRazorpay from "react-razorpay";
+import { useCreateOrder, useCreateSubscription } from "../../../payments/razorpay/useRazorPay";
+import PackageBilling from './PackageBilling';
+import { useUpdateUser } from '../../../user/hooks/useUserData'
+
 import {
   Box,
   Card,
@@ -11,12 +16,15 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   IconButton,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
+  Stepper,
+  Step,
+  StepLabel,
+  Fade,
   Stack,
 
 } from '@mui/material';
@@ -26,8 +34,8 @@ import {
   Event as EventIcon,
   Close as CloseIcon,
   Watch as WatchIcon,
-
 } from '@mui/icons-material';
+
 
 
 const getCurrencySymbol = (curr) => {
@@ -125,7 +133,18 @@ const PackageCard = ({ packageData, onSelect }) => {
   );
 };
 const PackageDialog = ({ open, handleClose, packageData }) => {
+  const [activeStep, setActiveStep] = useState(0);
+  const [billingData, setBillingData] = useState(null);
+  const [isBillingValid, setIsBillingValid] = useState(false);
+  const [Razorpay] = useRazorpay();
+  const createOrder = useCreateOrder();
+  const updateUser = useUpdateUser();
+  const createSubscription = useCreateSubscription();
+  const billingRef = useRef(null);
   if (!packageData) return null;
+
+
+
 
   const {
     title,
@@ -141,66 +160,210 @@ const PackageDialog = ({ open, handleClose, packageData }) => {
 
   const featureList = features.split('\n').filter(feature => feature.trim() !== '');
 
+  const steps = ['Package Details', 'Billing Address', 'Payment'];
+
+  const handleNext = () => {
+    if (activeStep === 1 && isBillingValid) {
+      if (!billingRef.current) return; // Ensure the ref exists
+      billingRef.current.requestSubmit();
+    } else {
+      setActiveStep((prevStep) => prevStep + 1);
+    }
+  };;
+
+  const handleBack = () => {
+    setActiveStep((prevStep) => prevStep - 1);
+  };
+
+const handleBillingSubmit = (data) => {
+  updateUser.mutate(data, {
+    onSuccess: () => {
+      console.log('User data updated successfully');
+      setBillingData(data);
+      if (activeStep === 1) {
+        // Move to the next step after a successful update
+        setActiveStep((prevStep) => prevStep + 1);
+      }
+    }
+  });
+};
+
+  const handleBillingValidation = (isValid) => {
+    setIsBillingValid(isValid);
+  };
+
+  const handlePurchase = async () => {
+    const userData = JSON.parse(localStorage.getItem('userData'));
+    try {
+      const order = await createOrder.mutateAsync({
+        packageId: packageData.id,
+        amount: amount,
+        currency: currency
+      });
+
+      const options = {
+        key: 'rzp_test_XzVgCoZd6ruTtE',
+        amount: order.amount,
+        currency: order.currency,
+        name: title,
+        description: `Purchase of ${title}`,
+        order_id: order.id,
+        notes: {
+          userId: userData.id,
+          packageId: packageData.id,
+        },
+        prefill: {
+          
+          name: billingData.companyName,
+          email: billingData.billingEmail,
+          contact: billingData.billingPhone,
+        },
+        theme: {
+          color: '#666CFF'
+        }
+      };
+      const rzp = new Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      console.error('Error creating order:', error);
+      // Handle error
+    }
+  };
+
+
+
+
+
+
+  const renderStepContent = (step) => {
+    switch (step) {
+      case 0:
+        return (
+          <Fade in={activeStep === 0}>
+            <Box>
+              <Typography variant="body1" color="text.secondary" paragraph dangerouslySetInnerHTML={{ __html: JSON.parse(description).blocks[0].text }} />
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline', mb: 2 }}>
+                <Typography component="h2" variant="h3" color="text.primary">
+                  {getCurrencySymbol(currency)}{amount}
+                </Typography>
+                <Typography variant="h6" color="text.secondary">
+                  /{validity} days
+                </Typography>
+              </Box>
+              {discount > 0 && (
+                <Typography variant="subtitle1" align="center" color="error" gutterBottom>
+                  {discount}% Discount Applied!
+                </Typography>
+              )}
+              <List dense>
+                <ListItem>
+                  <ListItemIcon>
+                    <AccessTimeIcon color="primary" />
+                  </ListItemIcon>
+                  <ListItemText primary={`Valid for ${validity} days`} />
+                </ListItem>
+                {session_count > 0 && (
+                  <ListItem>
+                    <ListItemIcon>
+                      <EventIcon color="primary" />
+                    </ListItemIcon>
+                    <ListItemText primary={`${session_count} sessions included`} />
+                  </ListItem>
+                )}
+                {featureList.map((feature, index) => (
+                  <ListItem key={index}>
+                    <ListItemIcon>
+                      <CheckIcon color="primary" />
+                    </ListItemIcon>
+                    <ListItemText primary={feature} />
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          </Fade>
+        );
+      case 1:
+        return (
+          <Fade in={activeStep === 1}>
+            <PackageBilling
+              ref={billingRef}
+              onSubmit={handleBillingSubmit}
+              onValidation={handleBillingValidation}
+            />
+          </Fade>
+        );
+      case 2:
+        return (
+          <Fade in={activeStep === 2}>
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Review and Pay
+              </Typography>
+              {/* Add a summary of the package and billing details here */}
+              <Typography variant="body1">Package: {title}</Typography>
+              <Typography variant="body1">Price: {getCurrencySymbol(currency)}{amount}</Typography>
+              <Typography variant="body1">Billing Name: {billingData?.companyName}</Typography>
+              <Typography variant="body1">Billing Email: {billingData?.billingEmail}</Typography>
+              {/* Add more billing details as needed */}
+            </Box>
+          </Fade>
+        );
+      default:
+        return null;
+    }
+  };
+
+
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle>
-        {title}
-        <IconButton
-          aria-label="close"
-          onClick={handleClose}
-          sx={{ position: 'absolute', right: 8, top: 8 }}
-        >
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent dividers>
-        <Chip label={category} color="primary" size="small" sx={{ mb: 2 }} />
-        <Typography variant="body1" color="text.secondary" paragraph dangerouslySetInnerHTML={{ __html: JSON.parse(description).blocks[0].text }} />
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline', mb: 2 }}>
-          <Typography component="h2" variant="h3" color="text.primary">
-            {getCurrencySymbol(currency)}{amount}
-          </Typography>
-          <Typography variant="h6" color="text.secondary">
-            /{validity} days
-          </Typography>
-        </Box>
-        {discount > 0 && (
-          <Typography variant="subtitle1" align="center" color="error" gutterBottom>
-            {discount}% Discount Applied!
-          </Typography>
-        )}
-        <List dense>
-          <ListItem>
-            <ListItemIcon>
-              <AccessTimeIcon color="primary" />
-            </ListItemIcon>
-            <ListItemText primary={`Valid for ${validity} days`} />
-          </ListItem>
-          {session_count > 0 && (
-            <ListItem>
-              <ListItemIcon>
-                <EventIcon color="primary" />
-              </ListItemIcon>
-              <ListItemText primary={`${session_count} sessions included`} />
-            </ListItem>
+    <>
+      {/* {openBilling && <BillingAddressCard />} */}
+      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+        <DialogTitle>
+          {title}
+          <IconButton
+            aria-label="close"
+            onClick={handleClose}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+          {renderStepContent(activeStep)}
+        </DialogContent>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
+          {activeStep > 0 && (
+            <Button onClick={handleBack} sx={{ mr: 1 }}>
+              Back
+            </Button>
           )}
-          {featureList.map((feature, index) => (
-            <ListItem key={index}>
-              <ListItemIcon>
-                <CheckIcon color="primary" />
-              </ListItemIcon>
-              <ListItemText primary={feature} />
-            </ListItem>
-          ))}
-        </List>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose}>Cancel</Button>
-        <Button variant="contained" color="primary">
-          Purchase Package
-        </Button>
-      </DialogActions>
-    </Dialog>
+          {activeStep < steps.length - 1 ? (
+            <Button
+              variant="contained"
+              onClick={handleNext}
+              disabled={activeStep === 1 && !isBillingValid}
+            >
+              Next
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              onClick={handlePurchase}
+            >
+              Purchase
+            </Button>
+          )}
+        </Box>
+      </Dialog>
+    </>
+
   );
 };
 
@@ -227,7 +390,7 @@ const PackageManager = ({ packages }) => {
         ))}
       </Grid>
       <PackageDialog
-        
+
         open={dialogOpen}
         handleClose={handleDialogClose}
         packageData={selectedPackage}

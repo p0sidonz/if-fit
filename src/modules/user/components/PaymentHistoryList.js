@@ -28,8 +28,8 @@ const PaymentHistoryList = ({ payments }) => {
     <Card>
 
     <TableContainer component={Paper}>
-      <CardHeader title=" Payment History" />
-      <Table sx={{ minWidth: 650 }} aria-label="payment history table">
+      <CardHeader title="Upgrade Package History" />
+      <Table sx={{ minWidth: 650 }} aria-label="Upgrade Package History">
         <TableHead>
           <TableRow>
             <TableCell>Order ID</TableCell>

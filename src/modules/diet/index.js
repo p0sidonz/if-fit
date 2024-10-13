@@ -589,6 +589,7 @@ const DietList = () => {
       <AssignDialog
         name={"Diet"}
         programId={selectedDiet}
+        isLoading={assignUser.status === "pending" || unassignUser.status === "pending"}
         open={openAssignDialog}
         onAssign={handleAssignConfirm}
         onAssignLoading={assignUser?.isLoading}

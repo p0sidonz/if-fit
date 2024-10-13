@@ -19,7 +19,7 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 
 
-const AssignDialog = ({ name, open, onClose, onAssign, onUnassign, users, programId, onAssignLoading, onUnassignLoading, assignedUsers = [], useSync }) => {
+const AssignDialog = ({ name, open, onClose, onAssign, onUnassign, users, programId, onAssignLoading, onUnassignLoading,isLoading, assignedUsers = [], useSync }) => {
   const [program_id, setProgram_id] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredUsers, setFilteredUsers] = useState(users);
@@ -197,7 +197,7 @@ const AssignDialog = ({ name, open, onClose, onAssign, onUnassign, users, progra
                           control={
                             <Switch
                               size="small"
-                              disabled={onAssignLoading || onUnassignLoading}
+                              disabled={isLoading}
                               checked={assignedUser?.shoudsync}
                               onChange={(e) => useSync(assignedUser?.id, e.target.checked)}
                             />
@@ -209,7 +209,7 @@ const AssignDialog = ({ name, open, onClose, onAssign, onUnassign, users, progra
                     )}
                     <LoadingButton
                       size='small'
-                      loading={onAssignLoading || onUnassignLoading}
+                      loading={isLoading}
                       variant={assigned ? "outlined" : "contained"}
                       color={assigned ? "error" : "primary"}
                       onClick={() => assigned ? handleUnassign(assignedUser?.id) : handleAssign(user?.id)}

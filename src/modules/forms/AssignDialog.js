@@ -12,7 +12,7 @@ import {
     Close as CloseIcon
 } from '@mui/icons-material';
 
-const AssignDialog = ({ name, open, onClose, onAssign, onUnassign, users, programId, onAssignLoading, onUnassignLoading, assignedUsers = [] }) => {
+const AssignDialog = ({ name, open, onClose, onAssign, onUnassign, users, programId, onAssignLoading, onUnassignLoading, assignedUsers = [], isLoading }) => {
     console.log("Assigned Users: ", assignedUsers);
     const [program_id, setProgram_id] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -168,7 +168,7 @@ const AssignDialog = ({ name, open, onClose, onAssign, onUnassign, users, progra
                                     </Box>
                                     {/* {JSON.stringify(user)} */}
                                     <LoadingButton
-                                        loading={onAssignLoading || onUnassignLoading}
+                                        loading={isLoading}
                                         variant={assigned ? "outlined" : "contained"}
                                         color={assigned ? "error" : "primary"}
                                         onClick={() => assigned ? handleUnassign(assignedUser?.id) : handleAssign(user?.id)}

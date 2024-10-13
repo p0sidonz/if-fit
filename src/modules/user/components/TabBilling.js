@@ -5,6 +5,7 @@ import Grid from '@mui/material/Grid'
 import CurrentPlanCard from './CurrentPlanCard'
 import { useGetUpgradePackages, useCurrentUserPackages } from '../hooks/usePackages'
 import PaymentHistoryList from './PaymentHistoryList'
+import BillingAddressCard from './BillingAddressCard'
 import UserBoughtPackageHistory from './UserBoughtPackageHistory'
 const TabBilling = () => {
     const { data } = useGetUpgradePackages()
@@ -22,19 +23,26 @@ const TabBilling = () => {
       </Grid> 
 
       <Grid item xs={12}>
-        <UserBoughtPackageHistory userHistory={currentUserPackages?.userHistory}  />
+        <UserBoughtPackageHistory title="User Subscription History" userHistory={currentUserPackages?.userHistory}  />
       </Grid> 
+
+      <Grid item xs={12}>
+        <UserBoughtPackageHistory title="Trainer Subscription History" userHistory={currentUserPackages?.userBoughtPackages}  />
+      </Grid> 
+      
 
 
       {/* <Grid item xs={12}>
         <PaymentMethodCard />
       </Grid>
 
-      <Grid item xs={12}>
+     
+
+    */}
+     <Grid item xs={12}>
         <BillingAddressCard />
       </Grid>
 
-    */}
     </Grid>
   )
 }

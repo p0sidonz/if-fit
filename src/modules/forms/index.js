@@ -345,6 +345,7 @@ const DynamicFormsList = () => {
 
             {selectedProgram?.id && <AssignDialog
                 name={"Form New"}
+                isLoading={assignUser.status === "pending" || unassignUser.status === "pending"}
                 programId={selectedProgram?.id}
                 open={openAssignDialog}
                 onAssign={handleAssignConfirm}

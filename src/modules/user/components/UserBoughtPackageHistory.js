@@ -16,7 +16,7 @@ import {
 import DownloadIcon from '@mui/icons-material/Download';
 import { format } from 'date-fns';
 
-const UserBoughtPackageHistory = ({ userHistory }) => {
+const UserBoughtPackageHistory = ({ userHistory, title }) => {
   if(!userHistory) return <p>No payment history found</p>;
 
   const handleDownloadInvoice = (orderId) => {
@@ -27,7 +27,7 @@ const UserBoughtPackageHistory = ({ userHistory }) => {
   return (
 <Card>
   <TableContainer component={Paper}>
-    <CardHeader title="User Subscription History" />
+    <CardHeader title={title} />
     <Table sx={{ minWidth: 650 }} aria-label="user subscription history table">
       <TableHead>
         <TableRow>
@@ -46,7 +46,7 @@ const UserBoughtPackageHistory = ({ userHistory }) => {
           <TableRow key={history.id}>
             <TableCell component="th" scope="row">
               <Typography variant="body2" color="primary">
-                #{history.id}
+              #{history.order_id}
               </Typography>
             </TableCell>
             <TableCell>{history.packageInfo.title}</TableCell>

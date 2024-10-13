@@ -64,9 +64,9 @@ const CurrentPlanCard = ({ subscription }) => {
         progressPercentage,
         alertInfo
     } = useMemo(() => {
-        const startDate = new Date(subscription.created_at);
+        const startDate = new Date(subscription?.created_at);
         const currentDate = new Date();
-        const endDate = new Date(subscription.expiration_date);
+        const endDate = new Date(subscription?.expiration_date);
     
         const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
         const elapsedDays = Math.floor((currentDate - startDate) / (1000 * 60 * 60 * 24));
@@ -95,7 +95,7 @@ const CurrentPlanCard = ({ subscription }) => {
         }
     
         return { daysRemaining, totalDays, progressPercentage, alertInfo };
-    }, [subscription.created_at, subscription.expiration_date]);
+    }, [subscription?.created_at, subscription?.expiration_date]);
 
 
     return (
@@ -108,13 +108,13 @@ const CurrentPlanCard = ({ subscription }) => {
                         <Grid item xs={12} md={6}>
                             <Box sx={{ mb: 6 }}>
                                 <Typography sx={{ mb: 2, fontWeight: 500 }}>
-                                    Your Current Plan is {subscription.packageInfo.title}
+                                    Your Current Plan is {subscription?.packageInfo.title}
                                 </Typography>
-                                <Typography sx={{ color: 'text.secondary' }}>{subscription.packageInfo.subtitle}</Typography>
+                                <Typography sx={{ color: 'text.secondary' }}>{subscription?.packageInfo.subtitle}</Typography>
                             </Box>
                             <Box sx={{ mb: 6 }}>
                                 <Typography sx={{ mb: 2, fontWeight: 500 }}>
-                                    Active since {formatDate(subscription.created_at)}
+                                    Active since {formatDate(subscription?.created_at)}
                                 </Typography>
                                 <Typography sx={{ color: 'text.secondary' }}>
                                     We will send you a notification upon Subscription expiration
@@ -123,14 +123,14 @@ const CurrentPlanCard = ({ subscription }) => {
                             <div>
                                 <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
                                     <Typography sx={{ mr: 2, fontWeight: 500 }}>
-                                        ${subscription.packageInfo.monthly_price} Per Month
+                                        ${subscription?.packageInfo.monthly_price} Per Month
                                     </Typography>
-                                    {subscription.packageInfo.popular && (
+                                    {subscription?.packageInfo.popular && (
                                         <CustomChip label='Popular' size='small' color='primary' skin='light' />
                                     )}
                                 </Box>
                                 <Typography sx={{ color: 'text.secondary' }}>
-                                    {subscription.packageInfo.subtitle}
+                                    {subscription?.packageInfo.subtitle}
                                 </Typography>
                             </div>
                         </Grid>
@@ -175,7 +175,7 @@ const CurrentPlanCard = ({ subscription }) => {
                         </Grid> */}
                     </Grid>
                 </CardContent>
-            </Card></> : <Alert severity='warning' sx={{ mb: 5 }}> <AlertTitle>Warning</AlertTitle> You are not subscribed to any plan. </Alert>}
+            </Card></> : <Alert severity='warning' sx={{ mb: 5 }}> You are not subscribed to any plan. </Alert>}
 
 
             <Dialog fullWidth maxWidth='xs' open={open} onClose={handleClose}>

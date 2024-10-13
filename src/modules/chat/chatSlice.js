@@ -181,22 +181,6 @@ export const appChatSlice = createSlice({
         };
       }
 
-      // Update the last message in the chats array if the chatId matches
-      // let idk = currentState.chats.map((chat) =>
-      //   chat.chat.id === chatId
-      //     ? {
-      //         ...chat,
-      //         chat: {
-      //           ...chat.chat,
-      //           lastMessage: {
-      //             ...chat.chat.lastMessage,
-      //             isSeen: true,
-      //           },
-      //         },
-      //       }
-      //     : chat
-      // );
-      // state.chats = idk;
     },
   },
   extraReducers: (builder) => {

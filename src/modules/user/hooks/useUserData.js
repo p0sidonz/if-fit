@@ -48,7 +48,7 @@ export const useUpdateUser = () => {
   return useMutation({
     mutationFn: (data) => updateUser(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['userData']);
+      // queryClient.invalidateQueries(['userData']);
       toast.success('User Profile Updated Successully!', {
         duration: 2000
       })
