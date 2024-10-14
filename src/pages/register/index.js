@@ -22,6 +22,7 @@ import MuiFormControlLabel from '@mui/material/FormControlLabel'
 import { useAuth } from 'src/hooks/useAuth'
 import FormHelperText from '@mui/material/FormHelperText'
 import Grid from '@mui/material/Grid'
+import { useRouter } from 'next/router'
 
 
 // ** Third Party Imports
@@ -102,6 +103,7 @@ const LinkStyled = styled(Link)(({ theme }) => ({
 }))
 
 const Register = () => {
+  const router = useRouter()
   // ** States
   const [showPassword, setShowPassword] = useState(false)
   // Add state for confirm password
@@ -152,6 +154,8 @@ const Register = () => {
     const { username, email, password, firstName, lastName } = data
     console.log(username, email, password, firstName, lastName)
     auth.register({ username, email, password, firstName, lastName }, () => {
+      //redirect to login page
+      router.push('/login')
       setError('email', {
         type: 'manual',
         message: 'Email or Password is invalid'
