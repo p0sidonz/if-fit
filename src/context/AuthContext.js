@@ -116,12 +116,10 @@ const AuthProvider = ({ children }) => {
 
   const handleRegister = (params, errorCallback) => {
     axios
-      .post(authConfig.registerEndpoint, params)
+      .post(BASE_URL + '/auth/signup', params)
       .then((res) => {
         if (res.data.error) {
           if (errorCallback) errorCallback(res.data.error);
-        } else {
-          handleLogin({ email: params.email, password: params.password });
         }
       })
       .catch((err) => (errorCallback ? errorCallback(err) : null));

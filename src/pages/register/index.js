@@ -19,6 +19,16 @@ import { styled, useTheme } from '@mui/material/styles'
 import InputAdornment from '@mui/material/InputAdornment'
 import Typography from '@mui/material/Typography'
 import MuiFormControlLabel from '@mui/material/FormControlLabel'
+import { useAuth } from 'src/hooks/useAuth'
+import FormHelperText from '@mui/material/FormHelperText'
+import Grid from '@mui/material/Grid'
+
+
+// ** Third Party Imports
+import * as yup from 'yup'
+import { useForm, Controller } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -94,12 +104,63 @@ const LinkStyled = styled(Link)(({ theme }) => ({
 const Register = () => {
   // ** States
   const [showPassword, setShowPassword] = useState(false)
+  // Add state for confirm password
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordMatch, setPasswordMatch] = useState(true)
+  const [agreeToTerms, setAgreeToTerms] = useState(false)
 
   // ** Hooks
   const theme = useTheme()
   const { settings } = useSettings()
   const hidden = useMediaQuery(theme.breakpoints.down('md'))
+  const auth = useAuth()
 
+  const schema = yup.object().shape({
+    firstName: yup.string().required('First name is required'),
+    lastName: yup.string().required('Last name is required'),
+    username: yup.string().required(),
+    email: yup.string().email().required(),
+    password: yup.string().min(5).required(),
+    confirmPassword: yup.string().oneOf([yup.ref('password'), null], 'Passwords must match')
+  })
+
+
+
+  const {
+    control,
+    setError,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    // defaultValues,
+    mode: 'onBlur',
+    resolver: yupResolver(schema)
+  })
+
+  const onSubmit = data => {
+    if (!agreeToTerms) {
+      setError('terms', {
+        type: 'manual',
+        message: 'You must agree to the privacy policy and terms'
+      })
+      return
+    }
+    if (data.password !== confirmPassword) {
+      setPasswordMatch(false)
+      return
+    }
+    const { username, email, password, firstName, lastName } = data
+    console.log(username, email, password, firstName, lastName)
+    auth.register({ username, email, password, firstName, lastName }, () => {
+      setError('email', {
+        type: 'manual',
+        message: 'Email or Password is invalid'
+      })
+    })
+  }
+
+
+  
   // ** Vars
   const { skin } = settings
   const imageSource = skin === 'bordered' ? 'auth-v2-register-illustration-bordered' : 'auth-v2-register-illustration'
@@ -209,6 +270,10 @@ const Register = () => {
                   </linearGradient>
                 </defs>
               </svg>
+
+             
+
+
               <Typography variant='h6' sx={{ ml: 2, lineHeight: 1, fontWeight: 700, fontSize: '1.5rem !important' }}>
                 {themeConfig.templateName}
               </Typography>
@@ -217,31 +282,155 @@ const Register = () => {
               <TypographyStyled variant='h5'>Adventure starts here 🚀</TypographyStyled>
               <Typography variant='body2'>Make your app management easy and fun!</Typography>
             </Box>
-            <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()}>
-              <TextField autoFocus fullWidth sx={{ mb: 4 }} label='Username' placeholder='johndoe' />
-              <TextField fullWidth label='Email' sx={{ mb: 4 }} placeholder='user@email.com' />
-              <FormControl fullWidth>
-                <InputLabel htmlFor='auth-login-v2-password'>Password</InputLabel>
-                <OutlinedInput
-                  label='Password'
-                  id='auth-login-v2-password'
-                  type={showPassword ? 'text' : 'password'}
-                  endAdornment={
-                    <InputAdornment position='end'>
-                      <IconButton
-                        edge='end'
-                        onMouseDown={e => e.preventDefault()}
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        <Icon icon={showPassword ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} />
-                      </IconButton>
-                    </InputAdornment>
-                  }
+            <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        <Grid item xs={6}>
+          <FormControl fullWidth>
+            <Controller
+              name='firstName'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange, onBlur } }) => (
+                <TextField
+                  label='First Name'
+                  value={value}
+                  onBlur={onBlur}
+                  onChange={onChange}
+                  error={Boolean(errors.firstName)}
+                  placeholder='John'
                 />
+              )}
+            />
+            {errors.firstName && <FormHelperText sx={{ color: 'error.main' }}>{errors.firstName.message}</FormHelperText>}
+          </FormControl>
+        </Grid>
+        <Grid item xs={6}>
+          <FormControl fullWidth>
+            <Controller
+              name='lastName'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { value, onChange, onBlur } }) => (
+                <TextField
+                  label='Last Name'
+                  value={value}
+                  onBlur={onBlur}
+                  onChange={onChange}
+                  error={Boolean(errors.lastName)}
+                  placeholder='Doe'
+                />
+              )}
+            />
+            {errors.lastName && <FormHelperText sx={{ color: 'error.main' }}>{errors.lastName.message}</FormHelperText>}
+          </FormControl>
+        </Grid>
+      </Grid>
+
+      <FormControl fullWidth sx={{ mb: 4 }}>
+        <Controller
+          name='username'
+          control={control}
+          rules={{ required: true }}
+          render={({ field: { value, onChange, onBlur } }) => (
+            <TextField
+              autoFocus
+              label='Username'
+              value={value}
+              onBlur={onBlur}
+              onChange={onChange}
+              error={Boolean(errors.username)}
+              placeholder='johndoe'
+            />
+          )}
+        />
+        {errors.username && <FormHelperText sx={{ color: 'error.main' }}>{errors.username.message}</FormHelperText>}
+      </FormControl>
+
+      <FormControl fullWidth sx={{ mb: 4 }}>
+        <Controller
+          name='email'
+          control={control}
+          rules={{ required: true }}
+          render={({ field: { value, onChange, onBlur } }) => (
+            <TextField
+              label='Email'
+              value={value}
+              onBlur={onBlur}
+              onChange={onChange}
+              error={Boolean(errors.email)}
+              placeholder='user@email.com'
+            />
+          )}
+        />
+        {errors.email && <FormHelperText sx={{ color: 'error.main' }}>{errors.email.message}</FormHelperText>}
+      </FormControl>
+
+      <FormControl fullWidth sx={{ mb: 4 }}>
+        <InputLabel htmlFor='auth-register-v2-password'>Password</InputLabel>
+        <Controller
+          name='password'
+          control={control}
+          rules={{ required: true }}
+          render={({ field: { value, onChange, onBlur } }) => (
+            <OutlinedInput
+              value={value}
+              onBlur={onBlur}
+              label='Password'
+              onChange={onChange}
+              id='auth-register-v2-password'
+              error={Boolean(errors.password)}
+              type={showPassword ? 'text' : 'password'}
+              endAdornment={
+                <InputAdornment position='end'>
+                  <IconButton
+                    edge='end'
+                    onMouseDown={e => e.preventDefault()}
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    <Icon icon={showPassword ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} />
+                  </IconButton>
+                </InputAdornment>
+              }
+            />
+          )}
+        />
+        {errors.password && <FormHelperText sx={{ color: 'error.main' }}>{errors.password.message}</FormHelperText>}
+      </FormControl>
+
+      <FormControl fullWidth sx={{ mb: 4 }}>
+        <InputLabel htmlFor='auth-register-v2-confirm-password'>Confirm Password</InputLabel>
+        <OutlinedInput
+          value={confirmPassword}
+          label='Confirm Password'
+          onChange={(e) => {
+            setConfirmPassword(e.target.value)
+            setPasswordMatch(true)
+          }}
+          id='auth-register-v2-confirm-password'
+          error={!passwordMatch}
+          type={showPassword ? 'text' : 'password'}
+          endAdornment={
+            <InputAdornment position='end'>
+              <IconButton
+                edge='end'
+                onMouseDown={e => e.preventDefault()}
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                <Icon icon={showPassword ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} />
+              </IconButton>
+            </InputAdornment>
+          }
+        />
+                {!passwordMatch && <FormHelperText sx={{ color: 'error.main' }}>Passwords do not match</FormHelperText>}
               </FormControl>
 
               <FormControlLabel
-                control={<Checkbox />}
+                control={
+                  <Checkbox
+                    checked={agreeToTerms}
+                    onChange={(e) => setAgreeToTerms(e.target.checked)}
+                  />
+                }
                 sx={{ mb: 4, mt: 1.5, '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }}
                 label={
                   <>
@@ -254,6 +443,8 @@ const Register = () => {
                   </>
                 }
               />
+              {errors.terms && <FormHelperText sx={{ color: 'error.main', mb: 4 }}>{errors.terms.message}</FormHelperText>}
+
               <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 7 }}>
                 Sign up
               </Button>
