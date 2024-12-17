@@ -11,7 +11,7 @@ const Home = () => {
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
-        {user.role === 'user' ? <TraineeDashboard /> : <UserTrainerDashboard />}
+        {user?.role === 'user' ? <TraineeDashboard /> : <UserTrainerDashboard />}
       </Grid>
     </Grid>
   )

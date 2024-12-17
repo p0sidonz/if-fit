@@ -89,12 +89,12 @@ const StyledWorkoutCard = styled(Card)(({ theme }) => ({
               <WorkoutText primary={`Total Exercises: ${workout.totalExercises}`} />
             </WorkoutItem>
           </List>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-            <Chip
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mt: 2 }}>
+            {/* <Chip
               label={workout.type}
               color="primary"
               size="small"
-            />
+            /> */}
             <Box sx={{ display: 'flex', alignItems: 'center', typography: 'caption', color: 'text.secondary' }}>
               <AccessTimeIcon fontSize="small" sx={{ mr: 0.5 }} />
               {new Date(workout.updated_at).toLocaleDateString()}

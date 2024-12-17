@@ -527,3 +527,37 @@ export const unassignUserFromDiet = () => {
   });
 }
 
+export const useCreateCustomFood = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (foodData) => {
+      const response = await axios.post('/diet/createCustomFood', {
+        food_name: foodData.name,
+        serving: foodData.serving
+      });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries("mealList");
+      toast.success("Custom food created successfully");
+      return data;
+    },
+    onError: (error) => {
+      console.error('Create custom food error:', error);
+      toast.error(error.response?.data?.message || "Failed to create custom food");
+      throw error;
+    },
+  });
+};
+
+export const useGetCustomFoods = () => {
+  return useQuery({
+    queryKey: ['customFoods'],
+    queryFn: async () => {
+      const result = await axios.get('/diet/getCustomFoods');
+      console.log("getCustomFoods result", result);
+      return result.data?.data || [];
+    },
+  });
+}

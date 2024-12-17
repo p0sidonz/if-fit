@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { useSearchExercises, useGetWorkout, useAddExerciseToWorkout, useDeleteExerciseFromWorkout, useAddSet, useDeleteSet, useUpdateWorkout, useUpdateExcercise } from './hooks/useWorkout';
+import { useUpdateWorkoutNew,useSearchExercises, useGetWorkout, useAddExerciseToWorkout, useDeleteExerciseFromWorkout, useAddSet, useDeleteSet, useUpdateWorkout, useUpdateExcercise } from './hooks/useWorkout';
 import {
   FormControl, InputLabel, Select, MenuItem,
   Grid, Card, CardContent,
@@ -106,27 +106,32 @@ const InputPropsForType = {
 
 }
 
-const WorkoutSets = ({ weight, reps, tempo, rest, id, typesOfSet, excerciseId }) => {
+const WorkoutSets = ({ weight, reps, tempo, rest, id, typesOfSet, excerciseId, updateWorkout }) => {
   const addSetMutation = useAddSet();
   const deleteSetMutation = useDeleteSet();
 
-  const [localSet, setLocalSet] = useState({ weight, reps, tempo, rest });
+  const [localSet, setLocalSet] = useState({
+    weight: String(weight || ''),
+    reps: String(reps || ''),
+    tempo: String(tempo || ''),
+    rest: String(rest || '')
+  });
   const [hasChanges, setHasChanges] = useState(false);
 
   const handleEditSet = (e) => {
     const { name, value } = e.target;
     setLocalSet((old) => ({
       ...old,
-      [name]: value
+      [name]: String(value)
     }));
   };
 
   useEffect(() => {
     setHasChanges(
-      localSet.weight !== weight ||
-      localSet.reps !== reps ||
-      localSet.tempo !== tempo ||
-      localSet.rest !== rest
+      localSet.weight !== String(weight) ||
+      localSet.reps !== String(reps) ||
+      localSet.tempo !== String(tempo) ||
+      localSet.rest !== String(rest)
     );
   }, [localSet, weight, reps, tempo, rest]);
 
@@ -161,7 +166,6 @@ const WorkoutSets = ({ weight, reps, tempo, rest, id, typesOfSet, excerciseId })
           <TextField
             disabled={typesOfSet.weight === 'bodyweight'}
             defaultValue={typesOfSet.weight === 'bodyweight' && 'Bodyweight'}
-            type={typesOfSet.weight === 'bodyweight' ? 'text' : 'number'}
             name="weight"
             label="Weight"
             value={typesOfSet.weight === 'bodyweight' ? 'Bodyweight' : localSet.weight}
@@ -231,16 +235,37 @@ const WorkoutSets = ({ weight, reps, tempo, rest, id, typesOfSet, excerciseId })
             }}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={2}>
-          <Button disabled={!hasChanges} type="submit" variant="contained" fullWidth>
+        <Grid item xs={12} sm={12} md={2} >
+          <Button disabled={!hasChanges} 
+            onClick={() => updateWorkout({
+              workout_set_id: id,
+              ...localSet
+            })}
+            type="submit" variant="contained" fullWidth>
             Update Set
           </Button>
         </Grid>
-        <Grid item xs={12} sm={6} md={1}>
-          <LoadingButton loading={addSetMutation.status === "pending"} color="primary" variant='outlined' onClick={handleCopySet} >Copy</LoadingButton>
+        <Grid item xs={12} sm={12} md={1}>
+          <LoadingButton 
+            loading={addSetMutation.status === "pending"} 
+            color="primary" 
+            variant='outlined' 
+            onClick={handleCopySet}
+            fullWidth
+          >
+            Copy
+          </LoadingButton>
         </Grid>
-        <Grid item xs={12} sm={6} md={1}>
-          <LoadingButton loading={deleteSetMutation.status === "pending"} variant='outlined' onClick={() => handleDeleteSet(id)} color="error">Delete</LoadingButton>
+        <Grid item xs={12} sm={12} md={1}>
+          <LoadingButton 
+            loading={deleteSetMutation.status === "pending"} 
+            variant='outlined' 
+            onClick={() => handleDeleteSet(id)} 
+            color="error"
+            fullWidth
+          >
+            Delete
+          </LoadingButton>
         </Grid> </>
 
       }
@@ -262,6 +287,7 @@ const WorkoutDetail = (props) => {
   const addSetMutation = useAddSet();
   const [newExercise, setNewExercise] = useState('');
   const [openSearchDialog, setOpenSearchDialog] = useState(false);
+  const updateWorkoutNew = useUpdateWorkoutNew();
 
   const { data: searchResults, refetch: refetchExcercises, isFetched: isExcerceriseFetched, isLoading: excerciseSearchLoading } = useSearchExercises(searchQuery || '');
 
@@ -346,25 +372,122 @@ const WorkoutDetail = (props) => {
     const handleChangeTypesOfSet = (e) => {
       const { name, value } = e.target;
 
-      setTypesOfSet((prevTypesOfSet) => {
-        const updatedTypesOfSet = {
-          ...prevTypesOfSet,
-          [name]: value
-        };
+      // Optimistically update the local state first
+      setTypesOfSet(prevTypesOfSet => ({
+        ...prevTypesOfSet,
+        [name]: value
+      }));
 
-        // Call updateWorkout with the updated state
-        updateExerciseMutation.mutate({
-          ...updatedTypesOfSet,
+      // Debounce the API call to prevent rapid consecutive updates
+      const debouncedUpdate = debounce(() => {
+        updateWorkoutNew.mutate({
+          [name]: value,
           excercise_id: exercise.id
+        }, {
+          // Add optimistic update configuration
+          onError: () => {
+            // Revert to previous state if the update fails
+            setTypesOfSet(prevTypesOfSet => ({
+              ...prevTypesOfSet,
+              [name]: exercise[name] || ''
+            }));
+          }
         });
+      }, 500);
 
-        return updatedTypesOfSet;
-      });
+      debouncedUpdate();
     };
+
+    // Memoize the select components to prevent unnecessary re-renders
+    const SelectComponents = React.useMemo(() => (
+      <Grid sx={{ px: 4 }} container spacing={2} alignItems="center">
+        <Grid item xs={12} sm={6} md={2}>
+          <FormControl fullWidth size="small">
+            <InputLabel>Type</InputLabel>
+            <Select
+              onChange={handleChangeTypesOfSet}
+              id='weight'
+              name='weight'
+              label="Type"
+              value={typesOfSet.weight}
+            >
+              <MenuItem value="kg">Weight - kg</MenuItem>
+              <MenuItem value="lbs">Weight - lbs</MenuItem>
+              <MenuItem value="bodyweight">Bodyweight</MenuItem>
+
+
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6} md={2}>
+
+          <FormControl fullWidth size="small">
+            <InputLabel>Reps</InputLabel>
+            <Select
+              onChange={handleChangeTypesOfSet}
+              id='reps'
+              name='reps'
+              label="Type"
+              value={typesOfSet.reps}
+            >
+              <MenuItem value="range">Range</MenuItem>
+              <MenuItem value="rpe">RPE</MenuItem>
+              <MenuItem value="rm">1RM%</MenuItem>
+              <MenuItem value="time">Time</MenuItem>
+
+
+            </Select>
+          </FormControl>
+
+        </Grid>
+        <Grid item xs={12} sm={6} md={2}>
+
+          <FormControl fullWidth size="small">
+            <InputLabel>Rest</InputLabel>
+            <Select
+
+              onChange={handleChangeTypesOfSet}
+              id='rest'
+              name='rest'
+              label="Rest"
+
+              value={typesOfSet.rest}
+            >
+              <MenuItem value="seconds">Seconds</MenuItem>
+              <MenuItem value="minute">Minutes</MenuItem>
+
+
+            </Select>
+          </FormControl>
+
+        </Grid>
+        <Grid item xs={12} sm={6} md={2}>
+          <FormControl fullWidth size="small">
+            <InputLabel>Tempo</InputLabel>
+
+            <Select
+              onChange={handleChangeTypesOfSet}
+              name='tempo'
+              id='tempo'
+              label="tempo"
+              value={typesOfSet.tempo}
+            >
+              <MenuItem value="epcp">EPCP</MenuItem>
+              <MenuItem value="normal">Normal</MenuItem>
+              <MenuItem value="fast">Fast</MenuItem>
+
+            </Select>
+          </FormControl>
+        </Grid>
+      </Grid>
+    ), [typesOfSet, handleChangeTypesOfSet]);
 
     // Update workout mutation handler
     const updateWorkout = (data) => {
-      updateExerciseMutation.mutate(data);
+      updateExerciseMutation.mutate({
+        ...data,
+        excercise_id: exercise.id
+      });
       console.log('Updating workout with data:', data);
     };
 
@@ -388,9 +511,9 @@ const WorkoutDetail = (props) => {
     const handleNoteBlur = () => {
       setIsEditing(false);
       if (exercise.notes === note) return;
-      updateExerciseMutation.mutate({
+      updateWorkoutNew.mutate({
         excercise_id: exercise.id,
-        notes: event.target.value,
+        notes: note,
       })
     };
 
@@ -403,8 +526,11 @@ const WorkoutDetail = (props) => {
             <DialogContent style={{ width: '100%', height: '100%' }}>
 
             <ExerciseDetail exercise={exercise} />
+            </DialogContent>
+            <DialogActions sx={{justifyContent: 'center', mt: 2}}>
             <Button variant='contained' fullWidth onClick={() => setShowExcercise(false)}>Close</Button>
-              </DialogContent>
+            </DialogActions>
+
 
           </Dialog>
           
@@ -462,94 +588,13 @@ const WorkoutDetail = (props) => {
         <AccordionDetails>
           <Typography variant="h6">Sets </Typography>
           <List>
-            <Grid sx={{ px: 4 }} container spacing={2} alignItems="center">
-              <Grid item xs={12} sm={6} md={2}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>Type</InputLabel>
-                  <Select
-
-                    onChange={handleChangeTypesOfSet}
-                    id='weight'
-                    name='weight'
-                    label="Type"
-                    value={typesOfSet.weight}
-                  >
-                    <MenuItem value="kg">Weight - kg</MenuItem>
-                    <MenuItem value="lbs">Weight - lbs</MenuItem>
-                    <MenuItem value="bodyweight">Bodyweight</MenuItem>
-
-
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6} md={2}>
-
-                <FormControl fullWidth size="small">
-                  <InputLabel>Reps</InputLabel>
-                  <Select
-                    onChange={handleChangeTypesOfSet}
-                    id='reps'
-                    name='reps'
-                    label="Type"
-                    value={typesOfSet.reps}
-                  >
-                    <MenuItem value="range">Range</MenuItem>
-                    <MenuItem value="rpe">RPE</MenuItem>
-                    <MenuItem value="rm">1RM%</MenuItem>
-                    <MenuItem value="time">Time</MenuItem>
-
-
-                  </Select>
-                </FormControl>
-
-              </Grid>
-              <Grid item xs={12} sm={6} md={2}>
-
-                <FormControl fullWidth size="small">
-                  <InputLabel>Rest</InputLabel>
-                  <Select
-
-                    onChange={handleChangeTypesOfSet}
-                    id='rest'
-                    name='rest'
-                    label="Rest"
-
-                    value={typesOfSet.rest}
-                  >
-                    <MenuItem value="seconds">Seconds</MenuItem>
-                    <MenuItem value="minute">Minutes</MenuItem>
-
-
-                  </Select>
-                </FormControl>
-
-              </Grid>
-              <Grid item xs={12} sm={6} md={2}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>Tempo</InputLabel>
-
-                  <Select
-                    onChange={handleChangeTypesOfSet}
-                    name='tempo'
-                    id='tempo'
-                    label="tempo"
-                    value={typesOfSet.tempo}
-                  >
-                    <MenuItem value="epcp">EPCP</MenuItem>
-                    <MenuItem value="normal">Normal</MenuItem>
-                    <MenuItem value="fast">Fast</MenuItem>
-
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-
-
+            {SelectComponents}
             {
               exercise.Workout_Set.length > 0 ? (
                 exercise.Workout_Set.map((set) => (
                   <ListItem key={set.id}>
                     <WorkoutSets
+                      updateWorkout={updateWorkout}
                       weight={set.weight}
                       reps={set.reps}
                       tempo={set.tempo}
@@ -620,7 +665,11 @@ const WorkoutDetail = (props) => {
                   variant="contained"
                   fullWidth
                   onClick={(e) => { e.preventDefault(); handleAddSet(exercise.id); }}
-                  sx={{ mb: { xs: 2, md: 0 } }}
+                  sx={{ 
+                    mb: { xs: 1, md: 0 },
+                    height: '36px',  // Fixed height
+                    fontSize: { xs: '0.8rem', sm: '0.875rem' }  // Smaller font on mobile
+                  }}
                 > 
                   Add Set
                 </Button>
@@ -631,8 +680,12 @@ const WorkoutDetail = (props) => {
                   onClick={() => handleDeleteExercise(exercise.id)}
                   color="error"
                   fullWidth
+                  sx={{ 
+                    height: '36px',  // Fixed height
+                    fontSize: { xs: '0.8rem', sm: '0.875rem' }  // Smaller font on mobile
+                  }}
                 >
-                  Remove Exercise
+                  Remove 
                 </Button>
               </Grid>
             </Grid>

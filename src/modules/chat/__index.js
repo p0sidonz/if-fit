@@ -1,5 +1,5 @@
 // ** React Imports
-import { useEffect, useState } from 'react'
+import { useEffect, useState , useContext} from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -20,9 +20,11 @@ import { formatDateToMonthShort } from 'src/@core/utils/format'
 // ** Chat App Components Imports
 import SidebarLeft from './components/SidebarLeft'
 import ChatContent from './components/ChatContent'
-import Socket from  'src/utils/socket'
+import { AuthContext } from 'src/context/AuthContext';
 
 const AppChat = () => {
+  const { socket } = useContext(AuthContext);
+
   // ** States
   const [userStatus, setUserStatus] = useState('online')
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false)
@@ -57,7 +59,7 @@ const AppChat = () => {
   const handleUserProfileRightSidebarToggle = () => setUserProfileRightOpen(!userProfileRightOpen)
 
   useEffect(()=>{
-    Socket.on('message', (message) => {
+    socket.on('message', (message) => {
       dispatch(addMessage(message))
     })
   }, [dispatch])

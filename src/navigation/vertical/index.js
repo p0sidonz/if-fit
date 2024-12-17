@@ -8,39 +8,49 @@ const navigation = () => {
     {
       title: 'Calendar',
       path: '/calendar',
-      icon: 'mdi:email-outline',
+      icon: 'mdi:calendar-outline',
     },
     {
       title: 'Workout',
       path: '/workout',
-      icon: 'mdi:email-outline',
+      icon: 'mdi:dumbbell',
 
     },
     {
       title: 'Program',
       path: '/program',
-      icon: 'mdi:email-outline',
+      icon: 'mdi:list-box-outline',
     },
     {
       title: 'Diet',
       path: '/diet',
-      icon: 'mdi:email-outline',
+      icon: 'mdi:food-apple-outline',
     },
     {
       title: 'Packages',
       path: '/packages',
-      icon: 'mdi:email-outline',
+      icon: 'mdi:package-variant-closed',
     },
     
     {
       title: 'Forms',
       path: '/forms',
-      icon: 'mdi:email-outline',
+      icon: 'mdi:form-select',
     },
     {
       title: 'Excercise',
       path: '/excercises',
-      icon: 'mdi:email-outline',
+      icon: 'mdi:yoga',
+    },
+    {
+      title: 'Stats',
+      path: '/stats',
+      icon: 'mdi:chart-line',
+    },
+    {
+      title: 'Tools',
+      path: '/tools',
+      icon: 'mdi:tools',
     },
 
 

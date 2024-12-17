@@ -48,9 +48,14 @@ const ChatLog = props => {
     if (data.chat) {
       chatLog = data.chat.chat
     }
-    const formattedChatLog = []
-    let chatMessageSenderId = chatLog[0] ? chatLog[0].senderId : 11
+    
+    // Return empty array if no messages
+    if (!chatLog.length) {
+      return []
+    }
 
+    const formattedChatLog = []
+    let chatMessageSenderId = chatLog[0].senderId
     let msgGroup = {
       senderId: chatMessageSenderId,
       messages: []
@@ -78,10 +83,9 @@ const ChatLog = props => {
       }
       if (index === chatLog.length - 1) formattedChatLog.push(msgGroup)
     })
-
+    console.log("formattedChatLog", formattedChatLog)
     return formattedChatLog
   }
-
   const renderMsgFeedback = (isSender, feedback) => {
     if (isSender) {
       if (feedback.isSent && !feedback.isDelivered) {
@@ -117,7 +121,11 @@ const ChatLog = props => {
   // ** Renders user chat
   const renderChats = () => {
     return formattedChatData().map((item, index) => {
-      const isSender = item.senderId === data.userContact.id
+      console.log("item contact", data.userContact)
+      console.log("item sender", item)
+
+
+      const isSender = item.senderId == data.userContact.id
 
       return (
         <Box

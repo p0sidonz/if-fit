@@ -100,7 +100,7 @@ const TraineeProgramView = ({ param, relationId }) => {
                     ))}
                 </Grid>
             </Box>
-            <AddProgramToCalendar programId={program?.id} open={addCalendarOpen} onClose={() => setAddCalendarOpen(false)} />
+            <AddProgramToCalendar data={program} programId={program?.program_id} open={addCalendarOpen} onClose={() => setAddCalendarOpen(false)} />
 
         </Box>
     );

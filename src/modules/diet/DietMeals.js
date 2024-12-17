@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
-import { useSearchForFood, useGetFoodById, useGetMealList, useCreateNewMeal, useAddFoodToMeal, useUpdateMealFood, useDeleteMeal, useDeleteFood, useUpdateMeal } from "./hooks/useDiet";
+import { useSearchForFood, useGetFoodById, useGetMealList, useCreateNewMeal, useAddFoodToMeal, useUpdateMealFood, useDeleteMeal, useDeleteFood, useUpdateMeal, useCreateCustomFood } from "./hooks/useDiet";
 import EditFoodDialog from "./EditFoodDialog";
 import Tooltip from '@mui/material/Tooltip';
 import axios from "../../utils/axios";
@@ -90,6 +90,19 @@ const DietMeals = (props) => {
 
   {/* edit meal  */ }
   const [openEditMeal, setOpenEditMeal] = useState(false);
+
+  const [isCustomFood, setIsCustomFood] = useState(false);
+  const [customFood, setCustomFood] = useState({
+    name: '',
+    protein: '',
+    carbs: '',
+    fat: '',
+    fiber: '',
+    calories: '',
+    serving_description: ''
+  });
+
+  const createCustomFood = useCreateCustomFood();
 
   useEffect(() => { 
     refetch()
@@ -414,6 +427,64 @@ const DietMeals = (props) => {
     )
   }
 
+  const handleAddCustomFood = async () => {
+    try {
+      const customServing = {
+        fat: customFood.fat|| "0.00",
+        sugar: "0.00",
+        sodium: "0",
+        protein: customFood.protein || "0.00",
+        calories: customFood.calories || "0",
+        serving_id: `custom-${Date.now()}`,
+        cholesterol: "0",
+        carbohydrate: customFood.carbs || "0.00",
+        saturated_fat: "0.000",
+        number_of_units: "1.000",
+        metric_serving_unit: "g",
+        serving_description: customFood.serving_description || "100g serving",
+        metric_serving_amount: "100.000",
+        measurement_description: "serving",
+        fiber: customFood.fiber|| "0.00"
+      };
+
+      // Create the food data
+      const customFoodData = {
+        name: customFood.name,
+        serving: customServing
+      };
+
+      // Call the mutation to create the custom food
+      const result = await createCustomFood.mutateAsync(customFoodData);
+      
+      // Set the food data with the returned data from the server
+      setFoodId(result.food_id);
+      setServingData({
+        food_id: result.food_id,
+        food_name: customFood.name,
+        food_description: 'Custom food',
+        servings: {
+          serving: [result.serving]
+        }
+      });
+      setSelectedServing(result.serving);
+      
+      // Reset the form
+      setCustomFood({
+        name: '',
+        protein: '',
+        carbs: '',
+        fat: '',
+        fiber: '',
+        calories: '',
+        serving_description: ''
+      });
+      setIsCustomFood(false);
+    } catch (error) {
+      console.error('Error adding custom food:', error);
+      // Error handling is managed by the mutation
+    }
+  };
+
   return (
     <>
       <Container>
@@ -447,24 +518,112 @@ const DietMeals = (props) => {
         >
           {!foodId ? (
             <div style={{ marginLeft: 4, padding: 4 }}>
-              <TextField
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }}
-                placeholder="May be chicken...?"
-                helperText="Search for food to add to the meal"
-                variant="outlined"
-                sx={{ pr: 4 }}
-                label="Search Food"
-                value={foodSearch}
-                onChange={(e) => handleSearchFood(e.target.value)}
-                fullWidth
-                margin="normal"
-              />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Button 
+                  variant="outlined" 
+                  onClick={() => setIsCustomFood(prev => !prev)}
+                >
+                  {isCustomFood ? 'Search Food' : 'Add Custom Food'}
+                </Button>
+              </Box>
+              
+              {isCustomFood ? (
+                <Box component="form">
+                  <TextField
+                    label="Food Name"
+                    value={customFood.name}
+                    onChange={(e) => setCustomFood(prev => ({...prev, name: e.target.value}))}
+                    fullWidth
+                    margin="normal"
+                  />
+                  <TextField
+                    label="Serving Description (e.g., '1 cup' or '100g serving')"
+                    value={customFood.serving_description}
+                    onChange={(e) => setCustomFood(prev => ({...prev, serving_description: e.target.value}))}
+                    fullWidth
+                    margin="normal"
+                  />
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Calories"
+                        type="number"
+                        value={customFood.calories}
+                        onChange={(e) => setCustomFood(prev => ({...prev, calories: e.target.value}))}
+                        fullWidth
+                        margin="normal"
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Protein (g)"
+                        type="number"
+                        value={customFood.protein}
+                        onChange={(e) => setCustomFood(prev => ({...prev, protein: e.target.value}))}
+                        fullWidth
+                        margin="normal"
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Carbs (g)"
+                        type="number"
+                        value={customFood.carbs}
+                        onChange={(e) => setCustomFood(prev => ({...prev, carbs: e.target.value}))}
+                        fullWidth
+                        margin="normal"
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Fat (g)"
+                        type="number"
+                        value={customFood.fat}
+                        onChange={(e) => setCustomFood(prev => ({...prev, fat: e.target.value}))}
+                        fullWidth
+                        margin="normal"
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Fiber (g)"
+                        type="number"
+                        value={customFood.fiber}
+                        onChange={(e) => setCustomFood(prev => ({...prev, fiber: e.target.value}))}
+                        fullWidth
+                        margin="normal"
+                      />
+                    </Grid>
+                  </Grid>
+                  <Button 
+                    variant="contained" 
+                    fullWidth 
+                    sx={{ mt: 2 }}
+                    onClick={handleAddCustomFood}
+                  >
+                    Add Custom Food
+                  </Button>
+                </Box>
+              ) : (
+                <TextField
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                  }}
+                  placeholder="May be chicken...?"
+                  helperText="Search for food to add to the meal"
+                  variant="outlined"
+                  sx={{ pr: 4 }}
+                  label="Search Food"
+                  value={foodSearch}
+                  onChange={(e) => handleSearchFood(e.target.value)}
+                  fullWidth
+                  margin="normal"
+                />
+              )}
             </div>
           ) : (
             <Button

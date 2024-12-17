@@ -1,5 +1,8 @@
 import { createSlice, createAsyncThunk, current } from "@reduxjs/toolkit";
-import { sendMessage, seenMessage } from "../../utils/socket";
+import { useContext } from "react";
+// import { sendMessage, seenMessage } from "../../utils/socket";
+import { AuthContext } from 'src/context/AuthContext';
+
 import axios from "../../utils/axios";
 import { useDispatch } from "react-redux";
 
@@ -10,9 +13,17 @@ export const createChat = createAsyncThunk(
       const response = await axios.post(`/chat/createchat`, {
         user_id: id,
       });
-      return await dispatch(selectChat(response.data.result.id));
+      
+      // Wait for selectChat to complete and pass the required parameters
+      return await dispatch(selectChat({
+        id: response.data.result.id,
+        skip: 0,
+        take: 10  // or whatever your default page size is
+      })).unwrap();  // unwrap() to properly handle the promise
+      
     } catch (error) {
       console.log("error", error);
+      throw error;  // Re-throw the error for proper error handling
     }
   }
 );
@@ -56,14 +67,35 @@ export const selectChat = createAsyncThunk(
 );
 export const sendMsg = createAsyncThunk(
   "appChat/sendMsg",
-  async (obj, { dispatch }) => {
+  async (obj, { dispatch, getState }) => {
     const userId = JSON.parse(localStorage.getItem("userData")).id;
+    const { sendMessage } = useContext(AuthContext);
+    // Create message object with all necessary fields
+    const messageObj = {
+      message: obj.message,
+      chatId: obj.chat.id,
+      recipientId: obj.contact.id,
+      senderId: userId,
+      time: new Date().toISOString(),
+      feedback: {
+        isSent: true,
+        isDelivered: false,
+        isSeen: false
+      }
+    };
+    // console.log("messageObj", messageObj )
+    // // Dispatch addMessage action immediately for sender's UI
+    // dispatch(addMessage(messageObj));
+
+    // Send message through socket
     sendMessage({
       message: obj.message,
       chatId: obj.chat.id,
-      recipientId: userId,
-      otherUser: obj.contact.id,
+      recipientId: obj.contact.id,
+      senderId: userId,
     });
+
+    return messageObj;
   }
 );
 
@@ -80,80 +112,45 @@ export const appChatSlice = createSlice({
       state.selectedChat = null;
     },
     addMessage: (state, action) => {
-      console.log("payload ", action.payload);
+      const currentState = current(state);
+      
+      const messageData = action.payload;
+      const chatId = messageData.chatId;
 
-      const { chatId, message } = action.payload;
+      // Check if message already exists to prevent duplicates
+      const messageExists = currentState.selectedChat?.chat?.chat?.some(
+        msg => msg.time === messageData.time && msg.senderId === messageData.senderId
+      );
 
-      const hm = current(state);
-      const currentState = hm.selectedChat;
-      const selectedChat = { ...currentState };
+      if (messageExists) {
+        return;
+      }
 
-      // if (currentState?.chat?.id === message.chatId) {
-
-      // }
-
-      if (currentState?.chat?.id === action?.payload?.chatId) {
-        const selectedChat = { ...currentState };
-        // console.log(selectedChat.chat.chat.push(message));
+      // Update selectedChat if it's the current chat
+      if (currentState.selectedChat?.chat?.id === chatId) {
         state.selectedChat = {
-          ...selectedChat,
+          ...currentState.selectedChat,
           chat: {
-            ...selectedChat.chat,
-            chat: [...selectedChat.chat.chat, action.payload],
+            ...currentState.selectedChat.chat,
+            chat: [...currentState.selectedChat.chat.chat, messageData],
           },
         };
-        // If the recipient has the chat open, emit the 'isSeen' event
-        seenMessage({
-          recipientId: hm.selectedChat.contact.id,
-          chatId: chatId,
-          senderId: action.payload.senderId,
-          isTrue: true,
-        });
+      }
 
-        let updatedChats = hm.chats.map((chat) => {
+      // Update chats list
+      if (currentState.chats) {
+        state.chats = currentState.chats.map((chat) => {
           if (chat.chat.id === chatId) {
             return {
               ...chat,
               chat: {
                 ...chat.chat,
-                lastMessage: action.payload,
-              },
+                lastMessage: messageData
+              }
             };
           }
           return chat;
         });
-
-        state.chats = updatedChats;
-
-
-      } else {
-
-        let updatedChats = hm.chats.map((chat) => {
-          if (chat.chat.id === chatId) {
-            return {
-              ...chat,
-              chat: {
-                ...chat.chat,
-                lastMessage: action.payload,
-              },
-            };
-          }
-          return chat;
-        });
-        state.chats = updatedChats;
-        //make this chat at the top
-        // let updatedContacts = hm.contacts.map((contact) => {
-        //   if (contact.id === action.payload.contact.id) {
-        //     return {
-        //       ...contact,
-        //       chat: {
-        //         ...contact.chat,
-        //         lastMessage: action.payload,
-        //       }
-        //     };
-        //   }
-        //   return contact;
-        // });
       }
     },
     makeMessagesSeen: (state, action) => {

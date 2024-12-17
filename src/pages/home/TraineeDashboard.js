@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
-  Container,
   Grid,
   Paper,
   Typography,
   Table,
   TableBody,
-  Button,
   TableCell,
   TableContainer,
   TableHead,
@@ -18,8 +16,10 @@ import {
   Avatar,
   IconButton,
   Collapse,
-  Link,
-  Tooltip
+  ToggleButton,
+  ToggleButtonGroup,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -27,146 +27,456 @@ import {
   ExpandLess as ExpandLessIcon,
   RestaurantMenu as DietIcon,
   FitnessCenter as ProgramIcon,
-
-
+  ViewList as ListIcon,
+  ViewModule as GridIcon,
 } from '@mui/icons-material';
-import useNavigateTo from "src/modules/components/useRouterPush";
-import RenderFormTrainee from './RenderFormTrainee';
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
-
+import useNavigateTo from "src/modules/components/useRouterPush";
 import { getAllTrainers } from 'src/modules/diet/hooks/useDiet';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
-// import TrainersStats from './TrainersStats';
 
 const TraineeDashboard = () => {
   const navigateTo = useNavigateTo();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [viewMode, setViewMode] = useState(isMobile ? 'card' : 'table');
   const { data: relationships, isLoading } = getAllTrainers();
-  // const [relationships, setRelationships] = useState([]);
   const [expandedRows, setExpandedRows] = useState({});
 
-  if (isLoading) return <p>Loading...</p>
+  if (isLoading) return <p>Loading...</p>;
 
-  // Sample data preparation
-  const data = relationships.map((rel) => ({
-    username: rel?.trainerInfo?.username,
-    assignedDiets: rel?.Assigned_Diet?.length,
-    assignedPrograms: rel?.Assigned_Program?.length,
-  }));
-
-
-
-  // useEffect(() => {
-  //   // Replace this with your actual API call
-  //   const fetchData = async () => {
-  //     const response = await fetch('/api/user-trainer-relationships');
-  //     const data = await response.json();
-  //     setRelationships(data);
-  //   };
-  //   fetchData();
-  // }, []);
+  const handleViewChange = (event, newView) => {
+    if (newView !== null) {
+      setViewMode(newView);
+    }
+  };
 
   const toggleRowExpansion = (id) => {
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
+  // Render functions from UserTrainerDashboard (same structure, different data paths)
   const renderExpandedRow = (relationship) => (
     <TableRow>
-      <TableCell colSpan={6}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>Assigned Diets</Typography>
-              {relationship.Assigned_Diet.length > 0 ? (
-                relationship.Assigned_Diet.map((diet) => (
-                  <Chip
-                    onClick={() => navigateTo(`/diet/${diet.dietInfo.id}/${relationship.id}`)}
-                    key={diet.id}
-                    icon={<DietIcon />}
-                    label={diet.dietInfo.title}
-                    variant="outlined"
-                    sx={{ m: 0.5 }}
-                  />
-                ))
-              ) : (
-                <Typography variant="body2" color="text.secondary">No diets assigned</Typography>
-              )}
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>Assigned Programs</Typography>
-              {relationship.Assigned_Program.length > 0 ? (
-                relationship.Assigned_Program.map((program) => (
-                  <Chip
-                    onClick={() => navigateTo(`/program/${program.programInfo.id}/${relationship.id}`)}
-                    key={program.id}
-                    icon={<ProgramIcon />}
-                    label={program.programInfo.title}
-                    variant="outlined"
-                    sx={{ m: 0.5 }}
-                  />
-                ))
-              ) : (
-                <Typography variant="body2" color="text.secondary">No programs assigned</Typography>
-              )}
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
-              <Typography variant="h6" gutterBottom sx={{ mb: 2, fontWeight: 'bold' }}>
-                Assigned Forms
-              </Typography>
-              {relationship.Assigned_Forms.length > 0 ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {relationship.Assigned_Forms.map((form) => (
-                    <Card key={form.id} variant="outlined" sx={{ p: 2 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <ProgramIcon sx={{ mr: 1, color: 'primary.main' }} />
-                        <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
-                          {form.formInfo.form_name}
-                        </Typography>
-                      </Box>
-                     <RenderFormTrainee form={form} />
-                      
-                    </Card>
-                  ))}
-                </Box>
-              ) : (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: 100,
-                    bgcolor: 'grey.100',
+      <TableCell colSpan={7} sx={{ py: 0 }}>
+        <Collapse in={expandedRows[relationship.id]} timeout="auto" unmountOnExit>
+          <Box sx={{ py: 3, px: 1 }}>
+            <Grid container spacing={3}>
+              {/* Diets Section */}
+              <Grid item xs={12} md={4}>
+                <Paper 
+                  elevation={0} 
+                  variant="outlined"
+                  sx={{ 
+                    p: 2,
+                    height: '100%',
+                    backgroundColor: 'background.default',
                     borderRadius: 1
                   }}
                 >
-                  <Typography variant="body2" color="text.secondary">
-                    No forms assigned
+                  <Typography 
+                    variant="subtitle2" 
+                    sx={{ 
+                      mb: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1
+                    }}
+                  >
+                    <DietIcon fontSize="small" color="primary" />
+                    Assigned Diets
                   </Typography>
-                </Box>
-              )}
-            </Paper>
-          </Grid>
-        </Grid>
+                  
+                  {relationship.Assigned_Diet.length > 0 ? (
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexWrap: 'wrap', 
+                      gap: 1 
+                    }}>
+                      {relationship.Assigned_Diet.map((diet) => (
+                        <Chip
+                          key={diet.id}
+                          label={diet.dietInfo.title}
+                          onClick={() => navigateTo(`/diet/${diet.dietInfo.id}/${relationship.id}`)}
+                          size="small"
+                          variant="outlined"
+                          sx={{ 
+                            '&:hover': { 
+                              backgroundColor: 'primary.light',
+                              cursor: 'pointer'
+                            }
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No diets assigned
+                    </Typography>
+                  )}
+                </Paper>
+              </Grid>
+
+              {/* Programs Section */}
+              <Grid item xs={12} md={4}>
+                <Paper 
+                  elevation={0} 
+                  variant="outlined"
+                  sx={{ 
+                    p: 2,
+                    height: '100%',
+                    backgroundColor: 'background.default',
+                    borderRadius: 1
+                  }}
+                >
+                  <Typography 
+                    variant="subtitle2" 
+                    sx={{ 
+                      mb: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1
+                    }}
+                  >
+                    <ProgramIcon fontSize="small" color="primary" />
+                    Assigned Programs
+                  </Typography>
+                  
+                  {relationship.Assigned_Program.length > 0 ? (
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexWrap: 'wrap', 
+                      gap: 1 
+                    }}>
+                      {relationship.Assigned_Program.map((program) => (
+                        <Chip
+                          key={program.id}
+                          label={program.programInfo.title}
+                          onClick={() => navigateTo(`/program/${program.programInfo.id}/${relationship.id}`)}
+                          size="small"
+                          variant="outlined"
+                          sx={{ 
+                            '&:hover': { 
+                              backgroundColor: 'primary.light',
+                              cursor: 'pointer'
+                            }
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No programs assigned
+                    </Typography>
+                  )}
+                </Paper>
+              </Grid>
+
+              {/* Forms Section */}
+              <Grid item xs={12} md={4}>
+                <Paper 
+                  elevation={0} 
+                  variant="outlined"
+                  sx={{ 
+                    p: 2,
+                    height: '100%',
+                    backgroundColor: 'background.default',
+                    borderRadius: 1
+                  }}
+                >
+                  <Typography 
+                    variant="subtitle2" 
+                    sx={{ 
+                      mb: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1
+                    }}
+                  >
+                    <NoteAltIcon fontSize="small" color="primary" />
+                    Assigned Forms
+                  </Typography>
+                  
+                  {relationship?.Assigned_Forms?.length > 0 ? (
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexWrap: 'wrap', 
+                      gap: 1 
+                    }}>
+                      {relationship.Assigned_Forms.map((form) => (
+                        <Chip
+                          key={form.id}
+                          label={form.formInfo.form_name}
+                          onClick={() => navigateTo(`/forms/${form.formInfo.id}`)}
+                          size="small"
+                          variant="outlined"
+                          sx={{ 
+                            '&:hover': { 
+                              backgroundColor: 'primary.light',
+                              cursor: 'pointer'
+                            }
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No forms assigned
+                    </Typography>
+                  )}
+                </Paper>
+              </Grid>
+            </Grid>
+          </Box>
+        </Collapse>
       </TableCell>
     </TableRow>
   );
 
+  const renderCardExpandedContent = (relationship) => (
+    <Box sx={{ mt: 2 }}>
+      {/* Diets Section */}
+      <Paper 
+        elevation={0} 
+        variant="outlined"
+        sx={{ 
+          p: 2,
+          mb: 2,
+          backgroundColor: 'background.default',
+          borderRadius: 1
+        }}
+      >
+        <Typography 
+          variant="subtitle2" 
+          sx={{ 
+            mb: 1.5,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}
+        >
+          <DietIcon fontSize="small" color="primary" />
+          Assigned Diets
+        </Typography>
+        
+        {relationship.Assigned_Diet.length > 0 ? (
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: 1 
+          }}>
+            {relationship.Assigned_Diet.map((diet) => (
+              <Chip
+                key={diet.id}
+                label={diet.dietInfo.title}
+                onClick={() => navigateTo(`/diet/${diet.dietInfo.id}`)}
+                size="small"
+                variant="outlined"
+                sx={{ 
+                  '&:hover': { 
+                    backgroundColor: 'primary.light',
+                    cursor: 'pointer'
+                  }
+                }}
+              />
+            ))}
+          </Box>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            No diets assigned
+          </Typography>
+        )}
+      </Paper>
+
+      {/* Programs Section */}
+      <Paper 
+        elevation={0} 
+        variant="outlined"
+        sx={{ 
+          p: 2,
+          mb: 2,
+          backgroundColor: 'background.default',
+          borderRadius: 1
+        }}
+      >
+        <Typography 
+          variant="subtitle2" 
+          sx={{ 
+            mb: 1.5,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}
+        >
+          <ProgramIcon fontSize="small" color="primary" />
+          Assigned Programs
+        </Typography>
+        
+        {relationship.Assigned_Program.length > 0 ? (
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: 1 
+          }}>
+            {relationship.Assigned_Program.map((program) => (
+              <Chip
+                key={program.id}
+                label={program.programInfo.title}
+                onClick={() => navigateTo(`/program/${program.programInfo.id}`)}
+                size="small"
+                variant="outlined"
+                sx={{ 
+                  '&:hover': { 
+                    backgroundColor: 'primary.light',
+                    cursor: 'pointer'
+                  }
+                }}
+              />
+            ))}
+          </Box>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            No programs assigned
+          </Typography>
+        )}
+      </Paper>
+
+      {/* Forms Section */}
+      <Paper 
+        elevation={0} 
+        variant="outlined"
+        sx={{ 
+          p: 2,
+          backgroundColor: 'background.default',
+          borderRadius: 1
+        }}
+      >
+        <Typography 
+          variant="subtitle2" 
+          sx={{ 
+            mb: 1.5,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}
+        >
+          <NoteAltIcon fontSize="small" color="primary" />
+          Assigned Forms
+        </Typography>
+        
+        {relationship?.Assigned_Forms?.length > 0 ? (
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: 1 
+          }}>
+            {relationship.Assigned_Forms.map((form) => (
+              <Chip
+                key={form.id}
+                label={form.formInfo.form_name}
+                onClick={() => navigateTo(`/forms/${form.formInfo.id}`)}
+                size="small"
+                variant="outlined"
+                sx={{ 
+                  '&:hover': { 
+                    backgroundColor: 'primary.light',
+                    cursor: 'pointer'
+                  }
+                }}
+              />
+            ))}
+          </Box>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            No forms assigned
+          </Typography>
+        )}
+      </Paper>
+    </Box>
+  );
+
+  const renderCardView = (relationship) => (
+    <Grid item xs={12} sm={6} md={4} key={relationship.id}>
+      <Card>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <Avatar src={relationship.trainerInfo.avatar} sx={{ mr: 2 }}>
+              <PersonIcon />
+            </Avatar>
+            <Box>
+              <Typography variant="h6">
+                {`${relationship.trainerInfo.first_name} ${relationship.trainerInfo.last_name}`}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                {relationship.trainerInfo.email}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box sx={{ mb: 2 }}>
+            {relationship.trainerInfo.UserAndTrainerSubscription.length > 0 ? (
+              <>
+                <Chip
+                  label={relationship.trainerInfo.UserAndTrainerSubscription[0].packageInfo.title}
+                  color="primary"
+                  variant="outlined"
+                  sx={{ width: '100%', mb: 1 }}
+                />
+                <Typography 
+                  variant="body2" 
+                  align="center"
+                  sx={{ 
+                    mt: 1,
+                    color: new Date(relationship.trainerInfo.UserAndTrainerSubscription[0].end_date) < new Date() 
+                      ? 'error.main' 
+                      : 'success.main'
+                  }}
+                >
+                  Expires: {new Date(relationship.trainerInfo.UserAndTrainerSubscription[0].end_date).toLocaleDateString()}
+                </Typography>
+              </>
+            ) : (
+              <Chip label="No Subscription" variant="outlined" sx={{ width: '100%' }} />
+            )}
+          </Box>
+
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <Typography variant="body2" color="textSecondary">Assigned Diets</Typography>
+              <Typography variant="h6">{relationship.Assigned_Diet.length}</Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <Typography variant="body2" color="textSecondary">Assigned Programs</Typography>
+              <Typography variant="h6">{relationship.Assigned_Program.length}</Typography>
+            </Grid>
+          </Grid>
+
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+            <IconButton onClick={() => toggleRowExpansion(relationship.id)}>
+              {expandedRows[relationship.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            </IconButton>
+          </Box>
+
+          <Collapse in={expandedRows[relationship.id]}>
+            {expandedRows[relationship.id] && renderCardExpandedContent(relationship)}
+          </Collapse>
+        </CardContent>
+      </Card>
+    </Grid>
+  );
 
   return (
     <>
-      {/* <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}> */}
       <Typography variant="h4" gutterBottom>
         Training Dashboard
       </Typography>
-      <Grid container spacing={3}>
+
+      {/* Stats Cards */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} md={4}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Trainers
+                Total Trainers
               </Typography>
               <Typography variant="h5">
                 {relationships.length}
@@ -178,7 +488,7 @@ const TraineeDashboard = () => {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Assigned Diets
+                Active Diets
               </Typography>
               <Typography variant="h5">
                 {relationships.filter(r => r.Assigned_Diet.length > 0).length}
@@ -186,12 +496,11 @@ const TraineeDashboard = () => {
             </CardContent>
           </Card>
         </Grid>
-
         <Grid item xs={12} md={4}>
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Assigned Programs
+                Active Programs
               </Typography>
               <Typography variant="h5">
                 {relationships.filter(r => r.Assigned_Program.length > 0).length}
@@ -199,68 +508,98 @@ const TraineeDashboard = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12}>
-          <Card>
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Trainer</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Subscription</TableCell>
-                    <TableCell>Assigned Diets</TableCell>
-                    <TableCell>Assigned Programs</TableCell>
-                    <TableCell>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {relationships.map((relationship) => (
-                    <React.Fragment key={relationship.id}>
-                      <TableRow>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Avatar src={relationship.trainerInfo.avatar} sx={{ mr: 2 }}>
-                              <PersonIcon />
-                            </Avatar>
-                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                              <div>{`${relationship.trainerInfo.first_name} ${relationship.trainerInfo.last_name}`}</div>
-                              <Tooltip title="View Profile">
-                                <Chip onClick={() => navigateTo(`/${relationship.trainerInfo?.username}/view`)} size='small' label={`@${relationship.trainerInfo.username}`} color="secondary" variant="outlined" />
-                              </Tooltip>
-                            </Box>
-                          </Box>
-                        </TableCell>
-                        <TableCell>{relationship.trainerInfo.email}</TableCell>
-                        <TableCell>
-                          {relationship.trainerInfo.UserAndTrainerSubscription.length > 0 ? (
-                            <Chip
-                              label={relationship.trainerInfo.UserAndTrainerSubscription[0].packageInfo.title}
-                              color="primary"
-                              variant="outlined"
-                            />
-                          ) : (
-                            <Chip label="No Subscription" variant="outlined" />
-                          )}
-                        </TableCell>
-                        <TableCell>{relationship.Assigned_Diet.length}</TableCell>
-                        <TableCell>{relationship.Assigned_Program.length}</TableCell>
-                        <TableCell>
-                          <IconButton onClick={() => toggleRowExpansion(relationship.id)}>
-                            {expandedRows[relationship.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                      {expandedRows[relationship.id] && renderExpandedRow(relationship)}
-                    </React.Fragment>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
-        </Grid>
       </Grid>
-      {/* <TrainersStats data={relationships} /> */}
-      {/* </Container> */}
+
+      {/* View Toggle */}
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+        <ToggleButtonGroup
+          value={viewMode}
+          exclusive
+          onChange={handleViewChange}
+          aria-label="view mode"
+        >
+          <ToggleButton value="table" aria-label="table view">
+            <ListIcon />
+          </ToggleButton>
+          <ToggleButton value="card" aria-label="card view">
+            <GridIcon />
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
+
+      {/* Table/Card View */}
+      {viewMode === 'table' ? (
+        <Card>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Trainer</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Subscription</TableCell>
+                  <TableCell>Expiry</TableCell>
+                  <TableCell>Assigned Diets</TableCell>
+                  <TableCell>Assigned Programs</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {relationships.map((relationship) => (
+                  <React.Fragment key={relationship.id}>
+                    <TableRow>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Avatar src={relationship.trainerInfo.avatar} sx={{ mr: 2 }}>
+                            <PersonIcon />
+                          </Avatar>
+                          {`${relationship.trainerInfo.first_name} ${relationship.trainerInfo.last_name}`}
+                        </Box>
+                      </TableCell>
+                      <TableCell>{relationship.trainerInfo.email}</TableCell>
+                      <TableCell>
+                        {relationship.trainerInfo.UserAndTrainerSubscription.length > 0 ? (
+                          <Chip
+                            label={relationship.trainerInfo.UserAndTrainerSubscription[0].packageInfo.title}
+                            color="primary"
+                            variant="outlined"
+                          />
+                        ) : (
+                          <Chip label="No Subscription" variant="outlined" />
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {relationship.trainerInfo.UserAndTrainerSubscription.length > 0 ? (
+                          <Typography sx={{ 
+                            color: new Date(relationship.trainerInfo.UserAndTrainerSubscription[0].end_date) < new Date() 
+                              ? 'error.main' 
+                              : 'success.main'
+                          }}>
+                            {new Date(relationship.trainerInfo.UserAndTrainerSubscription[0].end_date).toLocaleDateString()}
+                          </Typography>
+                        ) : (
+                          <Typography color="text.secondary">-</Typography>
+                        )}
+                      </TableCell>
+                      <TableCell>{relationship.Assigned_Diet.length}</TableCell>
+                      <TableCell>{relationship.Assigned_Program.length}</TableCell>
+                      <TableCell>
+                        <IconButton onClick={() => toggleRowExpansion(relationship.id)}>
+                          {expandedRows[relationship.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                    {expandedRows[relationship.id] && renderExpandedRow(relationship)}
+                  </React.Fragment>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+      ) : (
+        <Grid container spacing={3}>
+          {relationships.map(relationship => renderCardView(relationship))}
+        </Grid>
+      )}
     </>
   );
 };

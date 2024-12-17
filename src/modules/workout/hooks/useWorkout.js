@@ -302,3 +302,49 @@ export const useUpdateExcercise = () => {
     },
   });
 }
+
+export const useUpdateSet = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (setData) => {
+      const response = await axios.post('/workout/updateSet', setData);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries("workouts");
+      return toast.success("Exercise updated successfully");
+    },
+    onError: (error) => {
+      if(error.response?.data?.message?.length) {
+        error.response.data.message.forEach((msg) => {
+          toast.error(msg, {
+            className: {
+              zIndex: 10000
+            }
+          });
+        });
+      } else {
+        toast.error("An error occurred while updating exercise");
+      }
+    },
+  });
+}
+
+export const useUpdateWorkoutNew = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (workoutData) => {
+      const response = await axios.post('/workout/updateExerciseNew', workoutData);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries("workouts");
+      return toast.success("Exercise updated successfully");
+    },
+    onError: (error) => {
+      toast.error("An error occurred while updating exercise");
+    },
+  });
+}

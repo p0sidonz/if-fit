@@ -7,7 +7,7 @@ import Layout from 'src/@core/layouts/Layout'
 // ** Navigation Imports
 import VerticalNavItems from 'src/navigation/vertical'
 import HorizontalNavItems from 'src/navigation/horizontal'
-
+import userNavigation from 'src/navigation/vertical/userNavigation'
 // ** Component Import
 // Uncomment the below line (according to the layout type) when using server-side menu
 // import ServerSideVerticalNavItems from './components/vertical/ServerSideNavItems'
@@ -38,7 +38,14 @@ const UserLayout = ({ children, contentHeightFixed }) => {
   if (hidden && settings.layout === 'horizontal') {
     settings.layout = 'vertical'
   }
+  
+  const userData = JSON.parse(localStorage.getItem("userData"))
 
+  const navItems = userData?.role === "user" ? userNavigation() : VerticalNavItems()
+
+  // if(userData?.role === "user"){
+  //   return <></>
+  // }
   return (
     <Layout
       hidden={hidden}
@@ -47,7 +54,7 @@ const UserLayout = ({ children, contentHeightFixed }) => {
       contentHeightFixed={contentHeightFixed}
       verticalLayoutProps={{
         navMenu: {
-          navItems: VerticalNavItems()
+          navItems: navItems
 
           // Uncomment the below line when using server-side menu in vertical layout and comment the above line
           // navItems: verticalMenuItems

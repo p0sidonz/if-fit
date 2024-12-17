@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 
 // ** Next Import
 import { useRouter } from "next/router";
@@ -19,7 +19,8 @@ import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemButton from "@mui/material/ListItemButton";
 import InputAdornment from "@mui/material/InputAdornment";
-import {seenMessage} from 'src/utils/socket'
+// import {seenMessage} from 'src/utils/socket'
+import { AuthContext } from 'src/context/AuthContext';
 // ** Third Party Components
 import PerfectScrollbar from "react-perfect-scrollbar";
 
@@ -45,6 +46,7 @@ const ScrollWrapper = ({ children, hidden }) => {
 };
 
 const SidebarLeft = (props) => {
+  const { seenMessage } = useContext(AuthContext);
   // ** Props
   const {
     store,
@@ -103,7 +105,8 @@ const SidebarLeft = (props) => {
         dispatch(createChat(contact.id)).then((action) => {
           console.log("create chat actions", action)
           if (action.meta.requestStatus === "fulfilled") {
-            const newChatId = action.payload.payload.chat.id;
+            console.log("create chat fulfilled", action.payload)
+            const newChatId = action.payload.chat.id;
             setActive({ type: "chat", id: newChatId });
           }
         });

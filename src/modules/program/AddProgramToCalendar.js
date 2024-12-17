@@ -10,8 +10,8 @@ import DatePicker from "react-datepicker";
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker';
 import { useAddProgramToCalendar } from 'src/modules/program/hooks/useProgram';
 
-const AddProgramToCalendar = ({ open, onClose, programId }) => {
-
+const AddProgramToCalendar = ({ open, onClose, data, programId }) => {
+    console.log('programId', data);
     const addProgramToCalendar = useAddProgramToCalendar();
 
     const PickersComponent = forwardRef(({ ...props }, ref) => (
@@ -33,7 +33,7 @@ const AddProgramToCalendar = ({ open, onClose, programId }) => {
 
 
     const handleAddProgram = () => {
-        addProgramToCalendar.mutate({ program_id: programId, start_date: startDate, duration: workoutDuration }, {
+        addProgramToCalendar.mutate({ program_id: programId, start_date: startDate, duration: parseInt(workoutDuration) }, {
             onSuccess: () => {
                 onClose();
             }

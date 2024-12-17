@@ -36,7 +36,7 @@ const SendMsgForm = props => {
   const handleSendMsg = e => {
     e.preventDefault()
     if (store && store.selectedChat && msg.trim().length) {
-      dispatch(sendMsg({ ...store.selectedChat, message: msg }))
+      sendMsg({ ...store.selectedChat, message: msg })
     }
     setMsg('')
   }
