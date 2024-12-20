@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { useGetWorkouts, useDeleteWorkout, useCreateWorkout } from './hooks/useWorkout';
+import { useGetWorkouts, useDeleteWorkout, useCreateWorkout, useUpdateWorkout } from './hooks/useWorkout';
 import {
   List, ListItem, ListItemText, Button, Typography, Box, Link
   , Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid, Card, CardContent, CardActions, Tooltip,
@@ -26,7 +26,9 @@ const WorkoutsList = () => {
   const { mutateAsync: createNewWorkout, isLoading: newWorkoutLoading, error: newWorkoutError, } = useCreateWorkout();
   const { mutateAsync: deleteWorkout, isLoading: deleteWorkoutLoading, error: deleteWorkoutError, } = useDeleteWorkout();
   const [searchQuery, setSearchQuery] = useState("");
-
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [editWorkout, setEditWorkout] = useState({ title: '', description: '' });
+  const { mutateAsync: updateWorkout, isLoading: updateWorkoutLoading } = useUpdateWorkout();
 
   if (isLoading) return <Typography>Loading...</Typography>;
   if (error) return <Typography>An error occurred: {error.message}</Typography>;
@@ -88,7 +90,28 @@ const WorkoutsList = () => {
     return matchesSearchQuery
   });
 
+  const handleEditWorkout = (workout) => {
+    setEditWorkout({
+      id: workout.id,
+      title: workout.title,
+      description: workout.description
+    });
+    setOpenEditDialog(true);
+  };
 
+  const handleUpdateWorkout = async () => {
+    try {
+      await updateWorkout({
+        workout_id: editWorkout.id,
+        title: editWorkout.title,
+        description: editWorkout.description,
+      });
+      setOpenEditDialog(false);
+    } catch (error) {
+      console.error('Error updating workout:', error);
+      setOpenEditDialog(false);
+    }
+  };
 
   return (
     <>
@@ -132,7 +155,7 @@ const WorkoutsList = () => {
         {filteredWorkouts?.map((workout) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={workout.id}>
 
-            <WorkoutCard workout={workout} handleDelete={handleOpenDelete} handleNavigation={handleNavigation} />
+            <WorkoutCard workout={workout} handleDelete={handleOpenDelete} handleNavigation={handleNavigation} handleEdit={handleEditWorkout} />
           </Grid>
         ))}
       </Grid>
@@ -177,6 +200,43 @@ const WorkoutsList = () => {
           <LoadingButton disabled={deleteWorkoutLoading} onClick={handleDeleteWorkout}>Delete</LoadingButton>
         </DialogActions>
       </Dialog>
+
+      {/* Add Edit Workout Dialog */}
+      <Dialog open={openEditDialog} onClose={() => setOpenEditDialog(false)}>
+        <DialogTitle>Edit Workout</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Title"
+            fullWidth
+            value={editWorkout.title}
+            onChange={(e) => setEditWorkout({ ...editWorkout, title: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Description"
+            fullWidth
+            multiline
+            rows={4}
+            value={editWorkout.description}
+            onChange={(e) => setEditWorkout({ ...editWorkout, description: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button disabled={updateWorkoutLoading} onClick={() => setOpenEditDialog(false)}>
+            Cancel
+          </Button>
+          <LoadingButton 
+            loading={updateWorkoutLoading} 
+            onClick={handleUpdateWorkout}
+            variant="contained"
+          >
+            Update
+          </LoadingButton>
+        </DialogActions>
+      </Dialog>
+
       <Hidden smUp>
         <FloatBarAction name="Workout" handleClick={handleNewWorkout} />
       </Hidden>

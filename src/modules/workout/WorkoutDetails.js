@@ -538,6 +538,11 @@ const WorkoutDetail = (props) => {
       );
     }
 
+    // Sort the sets by ID or creation date
+    const sortedSets = React.useMemo(() => {
+      return [...exercise.Workout_Set].sort((a, b) => a.id - b.id);
+    }, [exercise.Workout_Set]);
+
     return (
       <Accordion
         // onChange={() => setIsExpanded(!isExpanded)}
@@ -590,8 +595,8 @@ const WorkoutDetail = (props) => {
           <List>
             {SelectComponents}
             {
-              exercise.Workout_Set.length > 0 ? (
-                exercise.Workout_Set.map((set) => (
+              sortedSets.length > 0 ? (
+                sortedSets.map((set) => (
                   <ListItem key={set.id}>
                     <WorkoutSets
                       updateWorkout={updateWorkout}

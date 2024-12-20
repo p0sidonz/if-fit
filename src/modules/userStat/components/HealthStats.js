@@ -41,7 +41,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 // Water Stats Component
 const WaterStats = ({ timeRange }) => {
-  const baseDate = new Date('2024-12-15');
+  const baseDate = new Date();
   const startDate = format(subDays(baseDate, timeRange), 'yyyy-MM-dd');
   const endDate = format(baseDate, 'yyyy-MM-dd');
 
@@ -126,7 +126,7 @@ const WaterStats = ({ timeRange }) => {
 
 // Weight Stats Component
 const WeightStats = ({ timeRange }) => {
-  const baseDate = new Date('2024-12-15');
+  const baseDate = new Date();
   const startDate = format(subDays(baseDate, timeRange), 'yyyy-MM-dd');
   const endDate = format(baseDate, 'yyyy-MM-dd');
 
@@ -203,7 +203,7 @@ const WeightStats = ({ timeRange }) => {
 
 // Food Stats Component
 const FoodStats = ({ timeRange }) => {
-  const baseDate = new Date('2024-12-15');
+  const baseDate = new Date();
   const startDate = format(subDays(baseDate, timeRange), 'yyyy-MM-dd');
   const endDate = format(baseDate, 'yyyy-MM-dd');
 

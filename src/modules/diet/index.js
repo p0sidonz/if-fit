@@ -337,6 +337,21 @@ const DietList = () => {
               <MenuItem value="non-veg">Non-Veg</MenuItem>
             </Select>
           </FormControl>
+          <FormControl fullWidth margin="dense">
+              <InputLabel>Macro Type</InputLabel>
+              <Select
+                value={newDiet.macro_type}
+                onChange={(e) =>
+                  setNewDiet({ ...newDiet, macro_type: e.target.value })
+                }
+              >
+                <MenuItem value="">
+                  <em>None</em>
+                </MenuItem>
+                <MenuItem value="percentage">Percentage</MenuItem>
+                <MenuItem value="gram">Gram</MenuItem>
+              </Select>
+            </FormControl>
           <IconButton
             onClick={() => setViewMore(!viewMore)}
             aria-expanded={viewMore}
@@ -353,21 +368,7 @@ const DietList = () => {
             </span>
           </IconButton>
           <Collapse in={viewMore} timeout="auto" unmountOnExit>
-            <FormControl fullWidth margin="dense">
-              <InputLabel>Macro Type</InputLabel>
-              <Select
-                value={newDiet.macro_type}
-                onChange={(e) =>
-                  setNewDiet({ ...newDiet, macro_type: e.target.value })
-                }
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                <MenuItem value="percentage">Percentage</MenuItem>
-                <MenuItem value="gram">Gram</MenuItem>
-              </Select>
-            </FormControl>
+
             <TextField
               margin="dense"
               label="Target Calories"
@@ -498,15 +499,7 @@ const DietList = () => {
               <MenuItem value="non-veg">Non-Veg</MenuItem>
             </Select>
           </FormControl>
-          <IconButton
-            onClick={() => setViewMore(!viewMore)}
-            aria-expanded={viewMore}
-            aria-label="show more"
-          >
-            <ExpandMoreIcon />
-          </IconButton>
-          <Collapse in={viewMore} timeout="auto" unmountOnExit>
-            <FormControl fullWidth margin="dense">
+          <FormControl fullWidth margin="dense">
               <InputLabel>Macro Type</InputLabel>
               <Select
                 value={newDiet.macro_type}
@@ -521,6 +514,15 @@ const DietList = () => {
                 <MenuItem value="gram">Gram</MenuItem>
               </Select>
             </FormControl>
+          <IconButton
+            onClick={() => setViewMore(!viewMore)}
+            aria-expanded={viewMore}
+            aria-label="show more"
+          >
+            <ExpandMoreIcon />
+          </IconButton>
+          <Collapse in={viewMore} timeout="auto" unmountOnExit>
+           
             <TextField
               margin="dense"
               label="Target Calories"

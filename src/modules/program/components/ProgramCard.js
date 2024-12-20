@@ -55,6 +55,15 @@ const ProgramCard = ({ program, onEdit, onDelete, handleNavigation, onAssignClic
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
 
+  // Calculate totals from program data
+  const totalWeeks = program.Program_Week?.length || 0;
+  const totalDays = program.Program_Week?.reduce((acc, week) => {
+    return acc + week.Program_Days.filter(day => !day.rest_day).length;
+  }, 0) || 0;
+  const totalWorkouts = program.Program_Week?.reduce((acc, week) => {
+    return acc + week.Program_Days.filter(day => day.workout_id !== null).length;
+  }, 0) || 0;
+
   const handleMenuClick = (event) => {
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
@@ -88,15 +97,15 @@ const ProgramCard = ({ program, onEdit, onDelete, handleNavigation, onAssignClic
           <List sx={{ width: '100%', mt: 'auto' }}>
             <ProgramItem>
               <ProgramIcon color="primary"><CalendarTodayIcon fontSize="small" /></ProgramIcon>
-              <ProgramText primary={`Weeks: ${program.total_weeks || 0}`} />
+              <ProgramText primary={`Weeks: ${totalWeeks}`} />
             </ProgramItem>
-            <ProgramItem>
+            {/* <ProgramItem>
               <ProgramIcon color="secondary"><FitnessCenterIcon fontSize="small" /></ProgramIcon>
-              <ProgramText primary={`Exercises: ${program.total_days || 0}`} />
-            </ProgramItem>
+              <ProgramText primary={`Days: ${totalDays}`} />
+            </ProgramItem> */}
             <ProgramItem>
               <ProgramIcon color="success"><DirectionsRunIcon fontSize="small" /></ProgramIcon>
-              <ProgramText primary={`Workouts: ${program.total_workouts || 0}`} />
+              <ProgramText primary={`Workouts: ${totalWorkouts}`} />
             </ProgramItem>
           </List>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>

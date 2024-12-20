@@ -6,6 +6,7 @@ import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import EditIcon from '@mui/icons-material/Edit';
 import { ListItem, ListItemText, List } from '@mui/material';
 
 
@@ -46,7 +47,7 @@ const StyledWorkoutCard = styled(Card)(({ theme }) => ({
     },
   }));
   
-  const WorkoutCard = ({ workout, handleNavigation, handleDelete }) => {
+  const WorkoutCard = ({ workout, handleNavigation, handleDelete, handleEdit }) => {
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
   
@@ -70,6 +71,7 @@ const StyledWorkoutCard = styled(Card)(({ theme }) => ({
         </IconButton>
         <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose}>
           <MenuItem onClick={() => handleNavigation(workout.id)}>View</MenuItem>
+          <MenuItem onClick={() => handleEdit(workout)}>Edit</MenuItem>
           <MenuItem onClick={() => handleDelete(workout)}>Delete</MenuItem>
         </Menu>
         <CardContent onClick={() => handleNavigation(workout.id)} sx={{ cursor: 'pointer', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -101,7 +103,7 @@ const StyledWorkoutCard = styled(Card)(({ theme }) => ({
             </Box>
           </Box>
         </CardContent>
-        <CardActions sx={{ padding: 2, borderTop: 1, borderColor: 'divider' }}>
+        <CardActions sx={{ padding: 2, borderTop: 1, borderColor: 'divider', gap: 1 }}>
           <Button
             onClick={(e) => {
               e.stopPropagation();
@@ -111,9 +113,9 @@ const StyledWorkoutCard = styled(Card)(({ theme }) => ({
             color="error"
             variant="contained"
             size="small"
-            fullWidth
+            sx={{ flex: 1 }}
           >
-            Delete Workout
+            Delete
           </Button>
         </CardActions>
       </StyledWorkoutCard>

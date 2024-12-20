@@ -21,14 +21,26 @@ import {
   Container,
   Card,
   CardContent,
-  Divider
+  Divider,
+  Table,
+  TableHead,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  Collapse,
+  CardHeader,
+  Stack
 } from '@mui/material';
 import { 
   Add as AddIcon, 
   LocalDrink as WaterIcon,
   Monitor as WeightIcon,
   Restaurant as FoodIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  ShowChart as StatsIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon,
+  KeyboardArrowUp as KeyboardArrowUpIcon
 } from '@mui/icons-material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -39,10 +51,347 @@ import {
   fetchFoodById,
   useCreateUserStat,
   useUserStats,
-  useUserStatsByType
+  useUserStatsByType,
+  useDeleteUserStat
 } from "./hooks/useUserStat";
 import { debounce } from 'lodash';
 import HealthStats from './components/HealthStats.js';
+import { format, startOfDay, endOfDay } from 'date-fns';
+import TableSortLabel from '@mui/material/TableSortLabel';
+
+const getComparator = (order, orderBy) => {
+  return order === 'desc'
+    ? (a, b) => descendingComparator(a, b, orderBy)
+    : (a, b) => -descendingComparator(a, b, orderBy);
+};
+
+const descendingComparator = (a, b, property) => {
+  if (property === 'date') {
+    return new Date(b.date) - new Date(a.date);
+  }
+  
+  // Handle nested JSON properties
+  if (property.includes('.')) {
+    const [jsonField, nestedProp] = property.split('.');
+    const aValue = JSON.parse(a[jsonField])[nestedProp];
+    const bValue = JSON.parse(b[jsonField])[nestedProp];
+    if (bValue < aValue) return -1;
+    if (bValue > aValue) return 1;
+    return 0;
+  }
+
+  if (b[property] < a[property]) return -1;
+  if (b[property] > a[property]) return 1;
+  return 0;
+};
+
+// Add this new component for the data table
+const DataTable = ({ type, data, onDelete }) => {
+  const { mutate: deleteStat } = useDeleteUserStat();
+  const [expandedRows, setExpandedRows] = useState({});
+  const [order, setOrder] = useState('desc');
+  const [orderBy, setOrderBy] = useState('date');
+
+  const handleRequestSort = (property) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this entry?')) {
+      deleteStat(id);
+    }
+  };
+
+  const toggleRow = (id) => {
+    setExpandedRows(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  const getTableTitle = () => {
+    switch(type) {
+      case 'water':
+        return 'Water Intake History';
+      case 'weight':
+        return 'Weight Tracking History';
+      case 'food':
+        return 'Food Log History';
+      default:
+        return 'History';
+    }
+  };
+
+  const getSortableHeaders = () => {
+    switch(type) {
+      case 'water':
+        return [
+          { id: 'date', label: 'Date' },
+          { id: 'waterJson.glasses', label: 'Glasses' },
+          { id: 'waterJson.glassSize', label: 'Size (oz)' },
+        ];
+      case 'weight':
+        return [
+          { id: 'date', label: 'Date' },
+          { id: 'weightJson.weight', label: 'Weight' },
+          { id: 'weightJson.bodyFatPercentage', label: 'Body Fat %' },
+        ];
+      case 'food':
+        return [
+          { id: 'date', label: 'Date' },
+          { id: 'dietJson.title', label: 'Food' },
+          { id: 'dietJson.calories', label: 'Calories' },
+        ];
+      default:
+        return [];
+    }
+  };
+
+  const sortedData = React.useMemo(() => {
+    return [...data].sort(getComparator(order, orderBy));
+  }, [data, order, orderBy]);
+
+  const renderTableContent = () => {
+    switch(type) {
+      case 'water':
+        return (
+          <>
+            <TableHead>
+              <TableRow>
+                <TableCell />
+                {getSortableHeaders().map((header) => (
+                  <TableCell key={header.id}>
+                    <TableSortLabel
+                      active={orderBy === header.id}
+                      direction={orderBy === header.id ? order : 'asc'}
+                      onClick={() => handleRequestSort(header.id)}
+                    >
+                      {header.label}
+                    </TableSortLabel>
+                  </TableCell>
+                ))}
+                <TableCell>Total (oz)</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sortedData.map((entry) => {
+                const waterData = JSON.parse(entry.waterJson);
+                return (
+                  <React.Fragment key={entry.id}>
+                    <TableRow>
+                      <TableCell>
+                        <IconButton
+                          size="small"
+                          onClick={() => toggleRow(entry.id)}
+                        >
+                          {expandedRows[entry.id] ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                        </IconButton>
+                      </TableCell>
+                      <TableCell>{format(new Date(entry.date), 'MMM d, yyyy h:mm a')}</TableCell>
+                      <TableCell>{waterData.glasses}</TableCell>
+                      <TableCell>{waterData.glassSize}</TableCell>
+                      <TableCell>{waterData.glasses * waterData.glassSize}</TableCell>
+                      <TableCell>
+                        <IconButton 
+                          size="small" 
+                          color="error"
+                          onClick={() => handleDelete(entry.id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+                        <Collapse in={expandedRows[entry.id]} timeout="auto" unmountOnExit>
+                          <Box sx={{ margin: 1 }}>
+                            <Typography variant="h6" gutterBottom component="div">
+                              Additional Details
+                            </Typography>
+                            <Table size="small">
+                              <TableBody>
+                                <TableRow>
+                                  <TableCell component="th" scope="row">Location</TableCell>
+                                  <TableCell>{waterData.location || 'Not specified'}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                  <TableCell component="th" scope="row">Notes</TableCell>
+                                  <TableCell>{waterData.notes || 'No notes'}</TableCell>
+                                </TableRow>
+                              </TableBody>
+                            </Table>
+                          </Box>
+                        </Collapse>
+                      </TableCell>
+                    </TableRow>
+                  </React.Fragment>
+                );
+              })}
+            </TableBody>
+          </>
+        );
+
+      case 'weight':
+        return (
+          <>
+            <TableHead>
+              <TableRow>
+                <TableCell />
+                {getSortableHeaders().map((header) => (
+                  <TableCell key={header.id}>
+                    <TableSortLabel
+                      active={orderBy === header.id}
+                      direction={orderBy === header.id ? order : 'asc'}
+                      onClick={() => handleRequestSort(header.id)}
+                    >
+                      {header.label}
+                    </TableSortLabel>
+                  </TableCell>
+                ))}
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sortedData.map((entry) => {
+                const weightData = JSON.parse(entry.weightJson);
+                return (
+                  <React.Fragment key={entry.id}>
+                    <TableRow>
+                      <TableCell>
+                        <IconButton
+                          size="small"
+                          onClick={() => toggleRow(entry.id)}
+                        >
+                          {expandedRows[entry.id] ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                        </IconButton>
+                      </TableCell>
+                      <TableCell>{format(new Date(entry.date), 'MMM d, yyyy h:mm a')}</TableCell>
+                      <TableCell>{weightData.weight} {weightData.unit}</TableCell>
+                      <TableCell>{weightData.bodyFatPercentage}%</TableCell>
+                      <TableCell>
+                        <IconButton 
+                          size="small" 
+                          color="error"
+                          onClick={() => handleDelete(entry.id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
+                        <Collapse in={expandedRows[entry.id]} timeout="auto" unmountOnExit>
+                          <Box sx={{ margin: 1 }}>
+                            <Typography variant="h6" gutterBottom component="div">
+                              Additional Details
+                            </Typography>
+                            <Grid container spacing={2}>
+                              <Grid item xs={12}>
+                                <Typography variant="subtitle2">Location: {weightData.measurementLocation || 'Not specified'}</Typography>
+                                <Typography variant="subtitle2">Notes: {weightData.notes || 'No notes'}</Typography>
+                              </Grid>
+                              {weightData.measurements && (
+                                <Grid item xs={12}>
+                                  <Typography variant="h6" gutterBottom>Body Measurements</Typography>
+                                  <Table size="small">
+                                    <TableBody>
+                                      {Object.entries(weightData.measurements).map(([key, value]) => (
+                                        value && (
+                                          <TableRow key={key}>
+                                            <TableCell component="th" scope="row">
+                                              {key.replace(/([A-Z])/g, ' $1').trim()}
+                                            </TableCell>
+                                            <TableCell>
+                                              {value} {weightData.unit === 'lbs' ? 'in' : 'cm'}
+                                            </TableCell>
+                                          </TableRow>
+                                        )
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                </Grid>
+                              )}
+                            </Grid>
+                          </Box>
+                        </Collapse>
+                      </TableCell>
+                    </TableRow>
+                  </React.Fragment>
+                );
+              })}
+            </TableBody>
+          </>
+        );
+
+      case 'food':
+        return (
+          <>
+            <TableHead>
+              <TableRow>
+                <TableCell>Date</TableCell>
+                <TableCell>Food</TableCell>
+                <TableCell>Calories</TableCell>
+                <TableCell>Protein</TableCell>
+                <TableCell>Carbs</TableCell>
+                <TableCell>Fat</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sortedData.map((entry) => {
+                const dietData = JSON.parse(entry.dietJson);
+                return (
+                  <TableRow key={entry.id}>
+                    <TableCell>{format(new Date(entry.date), 'MMM d, yyyy h:mm a')}</TableCell>
+                    <TableCell>{dietData.title}</TableCell>
+                    <TableCell>{dietData.calories} kcal</TableCell>
+                    <TableCell>{dietData.protein}{dietData.unit}</TableCell>
+                    <TableCell>{dietData.carbs}{dietData.unit}</TableCell>
+                    <TableCell>{dietData.fat}{dietData.unit}</TableCell>
+                    <TableCell>
+                      <IconButton 
+                        size="small" 
+                        color="error"
+                        onClick={() => handleDelete(entry.id)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </>
+        );
+    }
+  };
+
+  return (
+    <Card sx={{ mt: 3 }}>
+      <CardHeader 
+        title={getTableTitle()}
+        sx={{
+          backgroundColor: (theme) => theme.palette.grey[100],
+          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+          '& .MuiCardHeader-title': {
+            fontSize: '1.2rem',
+            fontWeight: 500,
+          },
+        }}
+      />
+      <CardContent>
+        <TableContainer>
+          <Table size="small">
+            {renderTableContent()}
+          </Table>
+        </TableContainer>
+      </CardContent>
+    </Card>
+  );
+};
 
 // Water Intake Component
 const WaterIntakeForm = () => {
@@ -58,6 +407,13 @@ const WaterIntakeForm = () => {
       }
     }
   });
+
+  const [dateRange, setDateRange] = useState([startOfDay(new Date()), endOfDay(new Date())]);
+  const { data: waterStats } = useUserStatsByType(
+    dateRange[0].toISOString(),
+    dateRange[1].toISOString(),
+    'water'
+  );
 
   const onSubmit = (data) => {
     createStat({
@@ -187,6 +543,67 @@ const WaterIntakeForm = () => {
       </CardContent>
       
     </Card>
+
+    <Divider sx={{ my: 4 }} />
+    <Box 
+  sx={{ 
+    mb: 2, 
+    p: 2,
+    display: 'flex', 
+    flexDirection: { xs: 'column', sm: 'row' },
+    alignItems: 'center', 
+    gap: 2,
+    backgroundColor: 'background.paper',
+    borderRadius: 1,
+    boxShadow: 1
+  }}
+>
+  <Typography variant="subtitle1" sx={{ mr: 2 }}>Date Range:</Typography>
+  <LocalizationProvider dateAdapter={AdapterDateFns}>
+    <Stack 
+      direction={{ xs: 'column', sm: 'row' }} 
+      spacing={2} 
+      sx={{ flex: 1 }}
+    >
+      <DateTimePicker
+        label="From"
+        value={dateRange[0]}
+        onChange={(newValue) => setDateRange([newValue || startOfDay(new Date()), dateRange[1]])}
+        renderInput={(params) => (
+          <TextField 
+            {...params} 
+            size="small"
+            fullWidth
+            sx={{ minWidth: 240 }}
+          />
+        )}
+      />
+      <DateTimePicker
+        label="To"
+        value={dateRange[1]}
+        onChange={(newValue) => setDateRange([dateRange[0], newValue || endOfDay(new Date())])}
+        renderInput={(params) => (
+          <TextField 
+            {...params} 
+            size="small"
+            fullWidth
+            sx={{ minWidth: 240 }}
+          />
+        )}
+      />
+    </Stack>
+  </LocalizationProvider>
+  <Button
+    variant="outlined"
+    size="small"
+    onClick={() => setDateRange([startOfDay(new Date()), endOfDay(new Date())])}
+  >
+    Today
+  </Button>
+</Box>
+
+    <DataTable type="water" data={waterStats || []} />
+
     <Box sx={{ mb: 3, p: 2, bgcolor: 'warning', borderRadius: 1 }}>
           <Typography variant="subtitle1" gutterBottom fontWeight="bold">
             Daily Water Intake Guidelines
@@ -208,6 +625,13 @@ const WaterIntakeForm = () => {
 // Weight Tracking Component
 const WeightTrackingForm = () => {
   const { mutate: createStat } = useCreateUserStat();
+  const [dateRange, setDateRange] = useState([startOfDay(new Date()), endOfDay(new Date())]);
+  const { data: weightStats } = useUserStatsByType(
+    dateRange[0].toISOString(),
+    dateRange[1].toISOString(),
+    'weight'
+  );
+
   const { control, handleSubmit, reset, watch } = useForm({
     defaultValues: {
       date: new Date(),
@@ -425,6 +849,66 @@ const WeightTrackingForm = () => {
         </form>
       </CardContent>
     </Card>
+    <Divider sx={{ my: 4 }} />
+    <Box 
+  sx={{ 
+    mb: 2, 
+    p: 2,
+    display: 'flex', 
+    flexDirection: { xs: 'column', sm: 'row' },
+    alignItems: 'center', 
+    gap: 2,
+    backgroundColor: 'background.paper',
+    borderRadius: 1,
+    boxShadow: 1
+  }}
+>
+  <Typography variant="subtitle1" sx={{ mr: 2 }}>Date Range:</Typography>
+  <LocalizationProvider dateAdapter={AdapterDateFns}>
+    <Stack 
+      direction={{ xs: 'column', sm: 'row' }} 
+      spacing={2} 
+      sx={{ flex: 1 }}
+    >
+      <DateTimePicker
+        label="From"
+        value={dateRange[0]}
+        onChange={(newValue) => setDateRange([newValue || startOfDay(new Date()), dateRange[1]])}
+        renderInput={(params) => (
+          <TextField 
+            {...params} 
+            size="small"
+            fullWidth
+            sx={{ minWidth: 240 }}
+          />
+        )}
+      />
+      <DateTimePicker
+        label="To"
+        value={dateRange[1]}
+        onChange={(newValue) => setDateRange([dateRange[0], newValue || endOfDay(new Date())])}
+        renderInput={(params) => (
+          <TextField 
+            {...params} 
+            size="small"
+            fullWidth
+            sx={{ minWidth: 240 }}
+          />
+        )}
+      />
+    </Stack>
+  </LocalizationProvider>
+  <Button
+    variant="outlined"
+    size="small"
+    onClick={() => setDateRange([startOfDay(new Date()), endOfDay(new Date())])}
+  >
+    Today
+  </Button>
+</Box>
+
+
+    <DataTable type="weight" data={weightStats || []} />
     {/* <Box sx={{ mb: 3, p: 2,  borderRadius: 1 }}>
           <Typography variant="subtitle1" gutterBottom fontWeight="bold">
             Weight Tracking Guidelines
@@ -449,6 +933,13 @@ const WeightTrackingForm = () => {
 // Food Logging Component
 const FoodLoggingForm = () => {
   const { mutate: createStat, isLoading } = useCreateUserStat();
+  const [dateRange, setDateRange] = useState([startOfDay(new Date()), endOfDay(new Date())]);
+  const { data: foodStats } = useUserStatsByType(
+    dateRange[0].toISOString(),
+    dateRange[1].toISOString(),
+    'food'
+  );
+
   const [searchMode, setSearchMode] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -595,273 +1086,322 @@ const FoodLoggingForm = () => {
   };
 
   return (
-    <Card sx={{ mb: 2 }}>
-      <CardContent>
-        {/* <Box sx={{ mb: 3, p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
-          <Typography variant="subtitle1" gutterBottom fontWeight="bold">
-            Nutrition Guidelines
-          </Typography>
-          <Typography variant="body2" paragraph>
-            • General macro distribution:
-              - Protein: 10-35% of daily calories (0.8-2.2g/kg body weight)
-              - Carbohydrates: 45-65% of daily calories
-              - Fats: 20-35% of daily calories
-            • Fiber: 25-30g daily for adults
-            • Daily calorie needs vary based on age, gender, activity level, and goals
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            ⚠️ These are general guidelines only. Individual nutritional needs vary significantly. Consult with a registered dietitian or healthcare provider for personalized nutrition advice, especially if you have specific health conditions or fitness goals.
-          </Typography>
-        </Box> */}
+    <>
+      <Card sx={{ mb: 2 }}>
+        <CardContent>
+          {/* <Box sx={{ mb: 3, p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
+            <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+              Nutrition Guidelines
+            </Typography>
+            <Typography variant="body2" paragraph>
+              • General macro distribution:
+                - Protein: 10-35% of daily calories (0.8-2.2g/kg body weight)
+                - Carbohydrates: 45-65% of daily calories
+                - Fats: 20-35% of daily calories
+              • Fiber: 25-30g daily for adults
+              • Daily calorie needs vary based on age, gender, activity level, and goals
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              ⚠️ These are general guidelines only. Individual nutritional needs vary significantly. Consult with a registered dietitian or healthcare provider for personalized nutrition advice, especially if you have specific health conditions or fitness goals.
+            </Typography>
+          </Box> */}
 
-        <Typography 
-          variant="h6" 
-          color="primary" 
-          sx={{ display: 'flex', alignItems: 'center', mb: 2 }}
-        >
-          <FoodIcon sx={{ mr: 1 }} /> Food Logging
-        </Typography>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Tabs 
-                value={searchMode ? 1 : 0} 
-                onChange={(_, newValue) => setSearchMode(newValue === 1)}
-                variant="fullWidth"
-              >
-                <Tab label="Manual Entry" />
-                <Tab label="Search Food" />
-              </Tabs>
-            </Grid>
+          <Typography 
+            variant="h6" 
+            color="primary" 
+            sx={{ display: 'flex', alignItems: 'center', mb: 2 }}
+          >
+            <FoodIcon sx={{ mr: 1 }} /> Food Logging
+          </Typography>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <Tabs 
+                  value={searchMode ? 1 : 0} 
+                  onChange={(_, newValue) => setSearchMode(newValue === 1)}
+                  variant="fullWidth"
+                >
+                  <Tab label="Manual Entry" />
+                  <Tab label="Search Food" />
+                </Tabs>
+              </Grid>
 
-            <Grid item xs={12}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <Grid item xs={12}>
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <Controller
+                    name="date"
+                    control={control}
+                    render={({ field }) => (
+                      <DateTimePicker
+                        label="Date and Time"
+                        {...field}
+                        renderInput={(params) => (
+                          <TextField 
+                            {...params} 
+                            fullWidth 
+                            variant="outlined" 
+                          />
+                        )}
+                      />
+                    )}
+                  />
+                </LocalizationProvider>
+              </Grid>
+
+              {searchMode ? (
+                <Grid item xs={12}>
+                  <Autocomplete
+                    options={searchResults}
+                    getOptionLabel={(option) => option.food_name}
+                    onChange={handleFoodSelect}
+                    loading={searchLoading}
+                    renderInput={(params) => (
+                      <TextField 
+                        {...params} 
+                        label="Search Food" 
+                        variant="outlined" 
+                        fullWidth 
+                        onChange={(e) => debouncedSearch(e.target.value)}
+                      />
+                    )}
+                    renderOption={(props, option) => (
+                      <li {...props}>
+                        <Box>
+                          <Typography variant="body1">{option.food_name}</Typography>
+                          <Typography variant="caption" color="textSecondary">
+                            {option.food_description}
+                          </Typography>
+                        </Box>
+                      </li>
+                    )}
+                  />
+                </Grid>
+              ) : null}
+
+              <Grid item xs={12}>
                 <Controller
-                  name="date"
+                  name="dietJson.title"
                   control={control}
                   render={({ field }) => (
-                    <DateTimePicker
-                      label="Date and Time"
+                    <TextField
                       {...field}
-                      renderInput={(params) => (
-                        <TextField 
-                          {...params} 
-                          fullWidth 
-                          variant="outlined" 
-                        />
-                      )}
+                      fullWidth
+                      label="Food Name"
+                      variant="outlined"
+                      placeholder="Enter food name"
                     />
-                  )}
-                />
-              </LocalizationProvider>
-            </Grid>
-
-            {searchMode ? (
-              <Grid item xs={12}>
-                <Autocomplete
-                  options={searchResults}
-                  getOptionLabel={(option) => option.food_name}
-                  onChange={handleFoodSelect}
-                  loading={searchLoading}
-                  renderInput={(params) => (
-                    <TextField 
-                      {...params} 
-                      label="Search Food" 
-                      variant="outlined" 
-                      fullWidth 
-                      onChange={(e) => debouncedSearch(e.target.value)}
-                    />
-                  )}
-                  renderOption={(props, option) => (
-                    <li {...props}>
-                      <Box>
-                        <Typography variant="body1">{option.food_name}</Typography>
-                        <Typography variant="caption" color="textSecondary">
-                          {option.food_description}
-                        </Typography>
-                      </Box>
-                    </li>
                   )}
                 />
               </Grid>
-            ) : null}
 
-            <Grid item xs={12}>
-              <Controller
-                name="dietJson.title"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Food Name"
-                    variant="outlined"
-                    placeholder="Enter food name"
-                  />
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Controller
-                name="dietJson.description"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label="Meal Description"
-                    variant="outlined"
-                    multiline
-                    rows={2}
-                    placeholder="Additional details about the meal"
-                  />
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <Controller
-                name="dietJson.unit"
-                control={control}
-                render={({ field }) => (
-                  <FormControl fullWidth variant="outlined">
-                    <InputLabel>Unit</InputLabel>
-                    <Select {...field} label="Unit">
-                      <MenuItem value="g">Grams (g)</MenuItem>
-                      <MenuItem value="oz">Ounces (oz)</MenuItem>
-                    </Select>
-                  </FormControl>
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <Controller
-                name="dietJson.servingSize"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    type="number"
-                    label="Serving Size"
-                    variant="outlined"
-                    InputProps={{
-                      inputProps: { min: 0.1, step: 0.1 }
-                    }}
-                  />
-                )}
-              />
-            </Grid>
-
-            {/* Nutrition Details with units */}
-            {['protein', 'carbs', 'fat', 'fiber'].map((nutrient) => (
-              <Grid item xs={12} md={4} key={nutrient}>
+              <Grid item xs={12}>
                 <Controller
-                  name={`dietJson.${nutrient}`}
+                  name="dietJson.description"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      fullWidth
+                      label="Meal Description"
+                      variant="outlined"
+                      multiline
+                      rows={2}
+                      placeholder="Additional details about the meal"
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="dietJson.unit"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControl fullWidth variant="outlined">
+                      <InputLabel>Unit</InputLabel>
+                      <Select {...field} label="Unit">
+                        <MenuItem value="g">Grams (g)</MenuItem>
+                        <MenuItem value="oz">Ounces (oz)</MenuItem>
+                      </Select>
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="dietJson.servingSize"
                   control={control}
                   render={({ field }) => (
                     <TextField
                       {...field}
                       fullWidth
                       type="number"
-                      label={nutrient.charAt(0).toUpperCase() + nutrient.slice(1)}
+                      label="Serving Size"
                       variant="outlined"
                       InputProps={{
-                        inputProps: { min: 0, step: 0.1 },
-                        endAdornment: (
-                          <Typography variant="body2">
-                            {currentUnit}
-                          </Typography>
-                        )
+                        inputProps: { min: 0.1, step: 0.1 }
                       }}
                     />
                   )}
                 />
               </Grid>
-            ))}
 
-            <Grid item xs={12} md={4}>
-              <Controller
-                name="dietJson.calories"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    type="number"
-                    label="Calories"
-                    variant="outlined"
-                    InputProps={{
-                      readOnly: true,
-                      endAdornment: <Typography variant="body2">kcal</Typography>
-                    }}
+              {/* Nutrition Details with units */}
+              {['protein', 'carbs', 'fat', 'fiber'].map((nutrient) => (
+                <Grid item xs={12} md={4} key={nutrient}>
+                  <Controller
+                    name={`dietJson.${nutrient}`}
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        type="number"
+                        label={nutrient.charAt(0).toUpperCase() + nutrient.slice(1)}
+                        variant="outlined"
+                        InputProps={{
+                          inputProps: { min: 0, step: 0.1 },
+                          endAdornment: (
+                            <Typography variant="body2">
+                              {currentUnit}
+                            </Typography>
+                          )
+                        }}
+                      />
+                    )}
                   />
-                )}
-              />
-            </Grid>
+                </Grid>
+              ))}
 
-            <Grid item xs={12}>
-              <Button 
-                type="submit" 
-                variant="contained" 
-                color="primary" 
-                fullWidth
-                startIcon={<AddIcon />}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Saving...' : 'Log Food'}
-              </Button>
+              <Grid item xs={12} md={4}>
+                <Controller
+                  name="dietJson.calories"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      fullWidth
+                      type="number"
+                      label="Calories"
+                      variant="outlined"
+                      InputProps={{
+                        readOnly: true,
+                        endAdornment: <Typography variant="body2">kcal</Typography>
+                      }}
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Button 
+                  type="submit" 
+                  variant="contained" 
+                  color="primary" 
+                  fullWidth
+                  startIcon={<AddIcon />}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Saving...' : 'Log Food'}
+                </Button>
+              </Grid>
             </Grid>
-          </Grid>
-        </form>
-      </CardContent>
-    </Card>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Add date range selection */}
+      <Divider sx={{ my: 4 }} />
+      <Box 
+  sx={{ 
+    mb: 2, 
+    p: 2,
+    display: 'flex', 
+    flexDirection: { xs: 'column', sm: 'row' },
+    alignItems: 'center', 
+    gap: 2,
+    backgroundColor: 'background.paper',
+    borderRadius: 1,
+    boxShadow: 1
+  }}
+>
+  <Typography variant="subtitle1" sx={{ mr: 2 }}>Date Range:</Typography>
+  <LocalizationProvider dateAdapter={AdapterDateFns}>
+    <Stack 
+      direction={{ xs: 'column', sm: 'row' }} 
+      spacing={2} 
+      sx={{ flex: 1 }}
+    >
+      <DateTimePicker
+        label="From"
+        value={dateRange[0]}
+        onChange={(newValue) => setDateRange([newValue || startOfDay(new Date()), dateRange[1]])}
+        renderInput={(params) => (
+          <TextField 
+            {...params} 
+            size="small"
+            fullWidth
+            sx={{ minWidth: 240 }}
+          />
+        )}
+      />
+      <DateTimePicker
+        label="To"
+        value={dateRange[1]}
+        onChange={(newValue) => setDateRange([dateRange[0], newValue || endOfDay(new Date())])}
+        renderInput={(params) => (
+          <TextField 
+            {...params} 
+            size="small"
+            fullWidth
+            sx={{ minWidth: 240 }}
+          />
+        )}
+      />
+    </Stack>
+  </LocalizationProvider>
+  <Button
+    variant="outlined"
+    size="small"
+    onClick={() => setDateRange([startOfDay(new Date()), endOfDay(new Date())])}
+  >
+    Today
+  </Button>
+</Box>
+
+      <DataTable type="food" data={foodStats || []} />
+    </>
   );
 };
 
 // Main Health Tracking Page
 const HealthTrackingPage = () => {
   const [activeTab, setActiveTab] = useState(0);
-
-  const renderActiveForm = () => {
-    switch(activeTab) {
-      case 0:
-        return <WaterIntakeForm />;
-      case 1:
-        return <WeightTrackingForm />;
-      case 2:
-        return <FoodLoggingForm />;
-      default:
-        return <WaterIntakeForm />;
-    }
-  };
+  
+  const tabs = [
+    { icon: <WaterIcon />, label: "Water", component: WaterIntakeForm },
+    { icon: <WeightIcon />, label: "Weight", component: WeightTrackingForm },
+    { icon: <FoodIcon />, label: "Food", component: FoodLoggingForm },
+    { icon: <StatsIcon />, label: "Statistics", component: HealthStats }
+  ];
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
-      {/* <Typography variant="h4" gutterBottom>
-        Health Tracking
-      </Typography> */}
       <Tabs 
         value={activeTab} 
         onChange={(_, newValue) => setActiveTab(newValue)}
         variant="fullWidth"
         sx={{ mb: 3 }}
       >
-        <Tab icon={<WaterIcon />} label="Water" />
-        <Tab icon={<WeightIcon />} label="Weight" />
-        <Tab icon={<FoodIcon />} label="Food" />
-        <Tab label="Statistics" />
+        {tabs.map(({ icon, label }) => (
+          <Tab key={label} icon={icon} label={label} />
+        ))}
       </Tabs>
 
-      {activeTab === 3 ? (
-        <HealthStats />
-      ) : (
-        renderActiveForm()
-      )}
+      {React.createElement(tabs[activeTab].component)}
     </Container>
   );
 };
 
-export default HealthTrackingPage
+export default HealthTrackingPage;

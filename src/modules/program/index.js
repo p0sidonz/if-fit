@@ -31,7 +31,7 @@ import {
 import { Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
 import EditIcon from "@mui/icons-material/Edit";
 import { FloatBarAction } from "../components/FloatBarAction";
-
+import LoadingButton from "@mui/lab/LoadingButton";
 
 const ProgramList = () => {
   const router = useRouter();
@@ -39,7 +39,7 @@ const ProgramList = () => {
   const assignUser = assignUserToProgram();
   const unassignUser = unassignUserFromProgram();
   const syncProgram = useSyncProgram();
-  // const updateProgram = useUpdateProgram();
+  const updateProgram = useUpdateProgram();
   const createProgram = addNewProgram();
   const { data, isLoading, isError, error, isFetched } = useGetProgramList();
   const { data: users, isLoading: usersLoading, error: usersError, isFetched: usersFetched } = getAllUserAndTrainerList();
@@ -112,13 +112,12 @@ const ProgramList = () => {
   };
 
   const handleUpdateProgram = () => {
-    //   updateProgram.mutate({
-    //     ...newProgram,
-    //     program_id: currentProgram.id,
-    //     total_weeks: parseInt(newProgram.total_weeks) || 0,
-    //     total_days: parseInt(newProgram.total_days) || 0,
-    //     total_workouts: parseInt(newProgram.total_workouts) || 0,
-    //   });
+    updateProgram.mutate({
+      program_id: currentProgram.id,
+      title: newProgram.title,
+      description: newProgram.description,
+      type: newProgram.type,
+      });
     setEditDialogOpen(false);
   };
 
@@ -289,9 +288,13 @@ const ProgramList = () => {
           <Button onClick={() => setEditDialogOpen(false)} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleUpdateProgram} color="primary">
+          <LoadingButton 
+            loading={updateProgram.isLoading} 
+            onClick={handleUpdateProgram}
+            variant="contained"
+          >
             Save
-          </Button>
+          </LoadingButton>
         </DialogActions>
       </Dialog>
 
