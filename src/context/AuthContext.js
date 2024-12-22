@@ -97,14 +97,21 @@ const AuthProvider = ({ children }) => {
       extraHeaders: {
         Authorization: `Bearer ${token}`,
       },
+      transports: ['websocket'],
       reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
+      timeout: 10000
     });
 
     newSocket.on('connect_error', (error) => {
       console.error('Socket connection error:', error.message);
       console.error('Full error:', error);
+      const currentToken = window.localStorage.getItem(authConfig.storageTokenKeyName);
+      if (currentToken && currentToken !== token) {
+        newSocket.io.opts.extraHeaders.Authorization = `Bearer ${currentToken}`;
+        newSocket.connect();
+      }
     });
 
     newSocket.on('connect_timeout', () => {
@@ -122,6 +129,23 @@ const AuthProvider = ({ children }) => {
     newSocket.on("isSeen", (payload) => {
       console.log("isSeen event received:", payload);
       store.dispatch(makeMessagesSeen(payload));
+    });
+
+    let heartbeatInterval;
+    newSocket.on('connect', () => {
+      console.log("Connected to WebSocket server");
+      heartbeatInterval = setInterval(() => {
+        if (newSocket.connected) {
+          newSocket.emit('ping');
+        }
+      }, 30000);
+    });
+
+    newSocket.on('disconnect', (reason) => {
+      console.warn("Disconnected from WebSocket server:", reason);
+      if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+      }
     });
 
     setSocket(newSocket);

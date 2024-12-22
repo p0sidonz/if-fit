@@ -9,7 +9,8 @@ export const useGetUpgradePackages = () => {
       queryFn: async () => {
         try {
           const result = await axios.get(`misc/upgradePackages`);
-          return result.data?.data || [];
+          console.log("result",result)
+          return result.data || [];
         } catch (error) {
           console.error("Error fetching upgrade packages:", error);
           toast.error(`Error: ${error.message}. ${error.response?.data?.message || ""}`, {
