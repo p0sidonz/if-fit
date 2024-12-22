@@ -374,7 +374,7 @@ const DataTable = ({ type, data, onDelete }) => {
       <CardHeader 
         title={getTableTitle()}
         sx={{
-          backgroundColor: (theme) => theme.palette.grey[100],
+          backgroundColor: (theme) => theme.palette.background.default,
           borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
           '& .MuiCardHeader-title': {
             fontSize: '1.2rem',

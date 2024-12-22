@@ -15,13 +15,27 @@ const userNavigation = () => {
         path: '/chat',
         icon: 'mdi:chat-outline',
       },
+     
       {
-        title: 'Account Settings',
-        path: '/settings/account',
-        icon: 'mdi:account-outline',
+        title: 'Excercise',
+        path: '/excercises',
+        icon: 'mdi:yoga',
       },
-      
-  
+      {
+        title: 'Logs & Stats',
+        path: '/logs-stats',
+        icon: 'mdi:notebook-plus',
+      },
+      {
+        title: 'Tools',
+        path: '/tools',
+        icon: 'mdi:tools',
+      },
+      // {
+      //   title: 'Account Settings',
+      //   path: '/settings/account',
+      //   icon: 'mdi:account-outline',
+      // },
     ]
   }
   

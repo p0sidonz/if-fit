@@ -33,7 +33,7 @@ const Layout = props => {
     return <HorizontalLayout {...props}>{children}</HorizontalLayout>
   }
 
-  return <VerticalLayout {...props}>{children}</VerticalLayout>
+  return <VerticalLayout  {...props}>{children}</VerticalLayout>
 }
 
 export default Layout

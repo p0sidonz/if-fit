@@ -59,8 +59,6 @@ const StatItem = ({ label, count, onClick }) => (
 
 const UserProfileHeader = ({user, otherUser, refetchWhoAreYou, isSameUser, username}) => {
   const sameUser = user?.username === otherUser?.username;
-  console.log("sameUser 1 ", user)
-  console.log("sameUser 2", otherUser)
   const followUser = useFollowUser();
   const unFollowUser = useUnFollowUser();
   const router = useRouter();

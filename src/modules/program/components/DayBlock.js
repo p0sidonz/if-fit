@@ -55,7 +55,7 @@ const DayBlock = ({ day, onUpdate, index, weekNumber, workouts }) => {
   const WorkoutDay = ({ day, onRemoveWorkout }) => {
     return (
       <Box display="flex" alignItems="center" justifyContent="center">
-        <Typography variant="h6">
+        <Typography sx={{fontSize: '1rem'}}>
           {day.rest_day ? (
             <Chip label="Rest Day" color="secondary" />
           ) : day.workout_id ? (

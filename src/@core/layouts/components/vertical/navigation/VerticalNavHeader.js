@@ -236,6 +236,7 @@ const VerticalNavHeader = props => {
           )}
         </IconButton>
       )}
+      
     </MenuHeaderWrapper>
   )
 }

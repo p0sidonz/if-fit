@@ -157,6 +157,44 @@ const Navigation = props => {
         {afterNavMenuContent && afterVerticalNavMenuContentPosition === 'fixed'
           ? afterNavMenuContent(navMenuContentProps)
           : null}
+        
+        {/* Add footer links */}
+        {/* <Box sx={{ 
+          p: 2, 
+          textAlign: 'center', 
+          borderTop: '1px solid rgba(255, 255, 255, 0.12)',
+          mt: 'auto',  // This pushes the box to the bottom
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1 // Adds space between links
+        }}>
+          
+          <a 
+            href="#" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{ 
+              color: 'inherit', 
+              textDecoration: 'none',
+              fontSize: '0.875rem'
+            }}
+          >
+            FAQ
+          </a>
+          <a 
+            href="#" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{ 
+              color: 'inherit', 
+              textDecoration: 'none',
+              fontSize: '0.875rem'
+            }}
+          >
+            Help Form
+          </a>
+        </Box> */}
+          
       </Drawer>
     </ThemeProvider>
   )

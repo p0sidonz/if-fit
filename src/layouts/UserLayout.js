@@ -54,11 +54,13 @@ const UserLayout = ({ children, contentHeightFixed }) => {
       contentHeightFixed={contentHeightFixed}
       verticalLayoutProps={{
         navMenu: {
-          navItems: navItems
+          navItems: navItems,
+          
 
           // Uncomment the below line when using server-side menu in vertical layout and comment the above line
           // navItems: verticalMenuItems
         },
+     
         appBar: {
           content: props => (
             <VerticalAppBarContent

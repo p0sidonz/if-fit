@@ -43,9 +43,9 @@ const navigation = () => {
       icon: 'mdi:yoga',
     },
     {
-      title: 'Stats',
-      path: '/stats',
-      icon: 'mdi:chart-line',
+      title: 'Logs & Stats',
+      path: '/logs-stats',
+      icon: 'mdi:notebook-plus',
     },
     {
       title: 'Tools',

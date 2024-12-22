@@ -50,7 +50,9 @@ const AuthProvider = ({ children }) => {
       );
       if (storedToken) {
         setLoading(true);
-        initializeSocket(storedToken);
+        if (!socket) {
+          initializeSocket(storedToken);
+        }
         await axios
           .get(BASE_URL + authConfig.meEndpoint, {
             headers: {
@@ -74,10 +76,20 @@ const AuthProvider = ({ children }) => {
       }
     };
     initAuth();
-  }, []);
+    
+    return () => {
+      if (socket) {
+        socket.disconnect();
+      }
+    };
+  }, [socket]);
 
   const initializeSocket = (token) => {
     if (typeof window === "undefined" || !token) return;
+    
+    if (socket) {
+      socket.disconnect();
+    }
 
     console.log('Attempting to connect to socket at:', BASE_URL);
     
@@ -85,6 +97,9 @@ const AuthProvider = ({ children }) => {
       extraHeaders: {
         Authorization: `Bearer ${token}`,
       },
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000
     });
 
     newSocket.on('connect_error', (error) => {
@@ -192,6 +207,12 @@ const AuthProvider = ({ children }) => {
       .then((res) => {
         if (res.data.error) {
           if (errorCallback) errorCallback(res.data.error);
+        } else {
+          // After successful registration, automatically log in the user
+          handleLogin({
+            email: params.email,
+            password: params.password
+          });
         }
       })
       .catch((err) => (errorCallback ? errorCallback(err) : null));
