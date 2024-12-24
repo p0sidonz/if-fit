@@ -18,7 +18,7 @@ import CardContent from '@mui/material/CardContent'
 import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
 import LinearProgress from '@mui/material/LinearProgress'
-
+import CheckoutStepper from '../../../pages/pricing'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
@@ -36,7 +36,9 @@ const CurrentPlanCard = ({ subscription }) => {
     const [plan, setPlan] = useState('annually')
     const [secondDialogOpen, setSecondDialogOpen] = useState(false)
     const [openPricingDialog, setOpenPricingDialog] = useState(false)
-
+    const [openCheckoutStepper, setOpenCheckoutStepper] = useState(false)
+    const userData = JSON.parse(localStorage.getItem('userData'))
+    const token = localStorage.getItem('accessToken')
     const handleChange = e => {
         if (e.target.checked) {
             setPlan('annually')
@@ -175,9 +177,22 @@ const CurrentPlanCard = ({ subscription }) => {
                         </Grid> */}
                     </Grid>
                 </CardContent>
-            </Card></> : <Alert severity='warning' sx={{ mb: 5 }}> You are not subscribed to any plan. </Alert>}
+            </Card></> : <>
+            <Alert severity='warning' sx={{ mb: 5 }}> You are not subscribed to any plan. </Alert>
+            <Button variant='contained' onClick={() => setOpenCheckoutStepper(true)}>
+                Subscribe Now
+            </Button>
+            </>
+            }
 
-
+          <Dialog  fullWidth maxWidth='lg'  open={openCheckoutStepper} onClose={() => setOpenCheckoutStepper(false)}>
+            <DialogContent>
+                <CheckoutStepper 
+                userData={userData}
+                customToken={token}
+                />
+            </DialogContent>
+          </Dialog>
             <Dialog fullWidth maxWidth='xs' open={open} onClose={handleClose}>
                 <DialogContent
                     sx={{

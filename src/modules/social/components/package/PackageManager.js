@@ -209,6 +209,7 @@ const handleBillingSubmit = (data) => {
         description: `Purchase of ${title}`,
         order_id: order.id,
         notes: {
+          isUpgradePlan : false, // upgrade or personal
           userId: userData.id,
           packageId: packageData.id,
         },

@@ -18,6 +18,20 @@ export const useCreateOrder = () => {
     });
   };
 
+  export const useCreateOrderTrainerPublicWithToken = (token) => {
+    return useMutation({
+      mutationFn: async (orderData) => {
+        console.log("orderData", orderData)
+        const response = await axios.post(`/orders/create`, orderData, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        return response.data;
+      },
+    });
+  }
+
   export const useVerifyPayment = () => {
     const queryClient = useQueryClient();
   

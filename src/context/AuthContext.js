@@ -218,6 +218,62 @@ const AuthProvider = ({ children }) => {
       .catch((err) => (errorCallback ? errorCallback(err) : null));
   };
 
+  const handleLoginMinimal = async (params) => {
+    try {
+      const loginResponse = await axios.post(BASE_URL + authConfig.loginEndpoint, params);
+      
+      // Get user data
+      const userResponse = await axios.get(BASE_URL + authConfig.meEndpoint, {
+        headers: {
+          Authorization: `Bearer ${loginResponse.data.accessToken}`,
+        },
+      });
+
+      return {
+        success: true,
+        user: userResponse.data.user,
+        token: loginResponse.data.accessToken
+      };
+
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Authentication failed'
+      };
+    }
+  };
+
+  const handleRegisterMinimal = async (params) => {
+    try {
+      // First register the user
+      const registerResponse = await axios.post(BASE_URL + '/auth/signup', params);
+      
+      if (registerResponse.data.error) {
+        return {
+          success: false,
+          error: registerResponse.data.error
+        };
+      }
+
+      // If registration successful, do minimal login to get user data
+      const loginResult = await handleLoginMinimal({
+        email: params.email,
+        password: params.password
+      });
+
+      return {
+        success: true,
+        user: loginResult.user,
+        token: loginResult.token
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Registration failed'
+      };
+    }
+  };
+
   const values = {
     user,
     loading,
@@ -230,7 +286,9 @@ const AuthProvider = ({ children }) => {
     register: handleRegister,
     socket,
     seenMessage,
-    sendMessage
+    sendMessage,
+    handleLoginMinimal,
+    handleRegisterMinimal
   };
 
   return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>;
