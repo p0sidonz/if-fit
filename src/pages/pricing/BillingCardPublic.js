@@ -12,7 +12,7 @@ import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
 // ** Custom Components
 import { useState } from 'react'
-import { useUpdateUser, useWhoAmI } from './usePricing'
+import { useUpdateUser, useWhoAmI } from '../../modules/user/hooks/usePricing'
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
 
