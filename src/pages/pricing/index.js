@@ -1,5 +1,5 @@
 // ** React Imports
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Stepper,
   Step,
@@ -23,12 +23,12 @@ import {
   Link,
   Tabs,
   Tab,
-  Alert
-} from '@mui/material';
-import { useGetUpgradePackages } from 'src/modules/user/hooks/usePackages'
+  Alert,
+} from "@mui/material";
+import { useGetUpgradePackages } from "src/modules/user/hooks/usePackages";
 import BlankLayout from "src/@core/layouts/BlankLayout";
-import { useAuth } from 'src/hooks/useAuth'
-import BillingAddressCardPublic from './BillingCardPublic'
+import { useAuth } from "src/hooks/useAuth";
+import BillingAddressCardPublic from "./BillingCardPublic";
 import useRazorpay from "react-razorpay";
 import { useCreateOrderTrainerPublicWithToken } from "../../modules/payments/razorpay/useRazorPay";
 
@@ -37,93 +37,102 @@ import {
   AccountCircle as AccountIcon,
   CreditCard as PaymentIcon,
   Done as DoneIcon,
-  ShoppingCart as CartIcon
-} from '@mui/icons-material';
+  ShoppingCart as CartIcon,
+} from "@mui/icons-material";
 
-const steps = ['Select Plan', 'Account Details', 'Payment', 'Confirmation'];
+const steps = ["Select Plan", "Account Details", "Payment", "Confirmation"];
 
-const CheckoutStepper = ({userData, customToken}) => {
-  const auth = useAuth()
+const CheckoutStepper = ({ userData, customToken, pkgId }) => {
+  const auth = useAuth();
   const [Razorpay] = useRazorpay();
   const [activeStep, setActiveStep] = useState(0);
   const [selectedPlan, setSelectedPlan] = useState(null);
-  const {data: pricingPlans, isFetched} = useGetUpgradePackages()
+  const { data: pricingPlans, isFetched } = useGetUpgradePackages();
   const [isExistingUser, setIsExistingUser] = useState(true);
   const [isModalDismissed, setIsModalDismissed] = useState(false);
-  const [isPreviousButtonDisabled, setIsPreviousButtonDisabled] = useState(false);
-
+  const [isPreviousButtonDisabled, setIsPreviousButtonDisabled] =
+    useState(false);
+  const [orderResponse, setOrderResponse] = useState(null);
   const [billingData, setBillingData] = useState({
-    companyName: '',
-    billingEmail: '',
-    billingPhone: '',
-    billingCountry: '',
-    billingAddressLine1: '',
-    billingState: '',
-    billingZip: ''
+    companyName: "",
+    billingEmail: "",
+    billingPhone: "",
+    billingCountry: "",
+    billingAddressLine1: "",
+    billingState: "",
+    billingZip: "",
   });
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    acceptTos: false
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    acceptTos: false,
   });
-
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [authError, setAuthError] = useState('');
+  const [authError, setAuthError] = useState("");
   const [authenticatedUser, setAuthenticatedUser] = useState(null);
   const [token, setToken] = useState(null);
 
-
+  useEffect(() => {
+    if (customToken) {
+      setToken(customToken);
+    }
+    if (userData) {
+      setAuthenticatedUser(userData);
+    }
+    if (token && userData) {
+      setIsAuthenticated(true);
+    }
+  }, [customToken, userData, token]);
 
   useEffect(() => {
-    if(customToken) {
-      setToken(customToken)
+    if (pkgId && pricingPlans?.result) {
+      const selectedPackage = pricingPlans.result.find(
+        (plan) => plan.id === pkgId
+      );
+      if (selectedPackage) {
+        setSelectedPlan(selectedPackage);
+      }
     }
-    if(userData) {
-      setAuthenticatedUser(userData)
-    }
-    if(token && userData) {
-      setIsAuthenticated(true)
-    }
-  }, [customToken, userData, token])
+  }, [pkgId, pricingPlans]);
 
+  const createOrderTrainerPublicWithToken =
+    useCreateOrderTrainerPublicWithToken(token);
 
+  if (!isFetched) return <p>Loading...</p>;
+  if (isLoading) return <p>Loading...</p>;
 
-  const createOrderTrainerPublicWithToken = useCreateOrderTrainerPublicWithToken(token);
+  const plans = pricingPlans?.result || [];
+  const sortedPlans = [...plans].sort((a, b) => a.order - b.order);
 
-  if(!isFetched) return <p>Loading...</p>
-  if(isLoading) return <p>Loading...</p>
+  console.log("plans", sortedPlans);
 
-  const plans =pricingPlans?.result || []
-  const sortedPlans = [...plans].sort((a, b) => a.order - b.order)
-  
-  console.log("plans", sortedPlans)
-  
   const handlePurchase = async () => {
-    const userData = authenticatedUser
-    console.log("selectedPlan", selectedPlan)
+    const userData = authenticatedUser;
+    console.log("selectedPlan", selectedPlan);
     try {
       const order = await createOrderTrainerPublicWithToken.mutateAsync({
         packageId: selectedPlan?.id,
-        amount: selectedPlan?.isYearlyPlan ? parseInt(selectedPlan?.yearlyPrice) : parseInt(selectedPlan?.monthly_price),
-        currency: selectedPlan?.currency
+        amount: selectedPlan?.isYearlyPlan
+          ? parseInt(selectedPlan?.yearlyPrice)
+          : parseInt(selectedPlan?.monthly_price),
+        currency: selectedPlan?.currency,
       });
-      console.log("order", order)
 
       const options = {
-        key: 'rzp_test_XzVgCoZd6ruTtE',
+        key: "rzp_test_XzVgCoZd6ruTtE",
         amount: order.amount * 100,
         currency: order.currency,
         name: selectedPlan?.title,
         description: `Purchase of ${selectedPlan?.title}`,
         order_id: order.id,
         notes: {
-          isUpgradePlan : true, // upgrade or personal
+          isUpgradePlan: true, // upgrade or personal
           userId: userData.id,
           packageId: selectedPlan?.id,
         },
@@ -133,7 +142,7 @@ const CheckoutStepper = ({userData, customToken}) => {
           contact: billingData.billingPhone,
         },
         theme: {
-          color: '#666CFF'
+          color: "#666CFF",
         },
         modal: {
           ondismiss: () => {
@@ -141,54 +150,69 @@ const CheckoutStepper = ({userData, customToken}) => {
             setIsModalDismissed(true);
           },
           escape: true,
-          confirm_close: true
-        }
+          confirm_close: true,
+        },
+        handler: (response) => {
+          console.log("handler", response);
+          setOrderResponse({
+            orderId: response.razorpay_order_id,
+            paymentId: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+          });
+          setActiveStep(3);
+        },
       };
 
       const rzp = new Razorpay(options);
       rzp && rzp.open();
+
       //next step
       setActiveStep(activeStep + 1);
       //disable previous button
       setIsPreviousButtonDisabled(true);
     } catch (error) {
-      console.error('Error creating order:', error);
+      console.error("Error creating order:", error);
       // Handle error appropriately
     }
   };
 
   const handleNext = async () => {
+    if (activeStep === 0 && !selectedPlan) {
+      return; // Don't proceed if no plan is selected
+    }
     if (activeStep === 1) {
       if (!validateForm()) {
         return;
       }
-      
+
       setIsLoading(true);
-      setAuthError('');
+      setAuthError("");
 
       try {
-        const response = await fetch('/api/auth', {
-          method: 'POST',
+        const response = await fetch("/api/auth", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             ...formData,
-            action: isExistingUser ? 'login' : 'register'
-          })
+            action: isExistingUser ? "login" : "register",
+          }),
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.message || 'Authentication failed');
+          throw new Error(data.message || "Authentication failed");
         }
 
         setIsAuthenticated(true);
         setActiveStep(activeStep + 1);
       } catch (error) {
-        setAuthError(error.message || 'Authentication failed. Please try again.');
-        console.error('Auth error:', error);
+        setAuthError(
+          error.message || "Authentication failed. Please try again."
+        );
+        console.error("Auth error:", error);
       } finally {
         setIsLoading(false);
       }
@@ -199,8 +223,6 @@ const CheckoutStepper = ({userData, customToken}) => {
       setActiveStep(activeStep + 1);
     }
   };
-
-
 
   const handleBack = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
@@ -213,7 +235,7 @@ const CheckoutStepper = ({userData, customToken}) => {
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -222,24 +244,24 @@ const CheckoutStepper = ({userData, customToken}) => {
     if (!validateForm()) {
       return;
     }
-    
+
     setIsLoading(true);
-    setAuthError('');
+    setAuthError("");
 
     try {
       if (isExistingUser) {
         // Handle Login
         const result = await auth.handleLoginMinimal({
           email: formData.email,
-          password: formData.password
+          password: formData.password,
         });
-        console.log("handleSubmit result", result)
+        console.log("handleSubmit result", result);
 
         if (!result.success) {
           throw new Error(result.error);
         }
 
-        console.log("result", result)
+        console.log("result", result);
         setAuthenticatedUser(result.user);
         setToken(result.token);
         setIsAuthenticated(true);
@@ -251,10 +273,10 @@ const CheckoutStepper = ({userData, customToken}) => {
           lastName: formData.lastName,
           username: formData.username,
           email: formData.email,
-          password: formData.password
+          password: formData.password,
         });
 
-        console.log("handleSubmit result", result)
+        console.log("handleSubmit result", result);
 
         if (!result.success) {
           throw new Error(result.error);
@@ -266,8 +288,8 @@ const CheckoutStepper = ({userData, customToken}) => {
         // setActiveStep(activeStep + 1);
       }
     } catch (error) {
-      setAuthError(error.message || 'Authentication failed. Please try again.');
-      console.error('Auth error:', error);
+      setAuthError(error.message || "Authentication failed. Please try again.");
+      console.error("Auth error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -277,32 +299,32 @@ const CheckoutStepper = ({userData, customToken}) => {
     switch (step) {
       case 0:
         return (
-          <Box sx={{ width: '100%' }}>
+          <Box sx={{ width: "100%" }}>
             <Grid container spacing={3}>
               {sortedPlans.map((plan) => (
                 <Grid item xs={12} md={4} key={plan.title}>
-                  <Card 
+                  <Card
                     raised={plan.popular}
                     sx={{
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      position: 'relative',
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      position: "relative",
                       border: selectedPlan?.title === plan.title ? 2 : 0,
-                      borderColor: 'primary.main'
+                      borderColor: "primary.main",
                     }}
                   >
                     {plan.popular && (
                       <Box
                         sx={{
-                          position: 'absolute',
+                          position: "absolute",
                           top: 16,
                           right: 16,
-                          bgcolor: 'primary.main',
-                          color: 'primary.contrastText',
+                          bgcolor: "primary.main",
+                          color: "primary.contrastText",
                           px: 2,
                           py: 0.5,
-                          borderRadius: 16
+                          borderRadius: 16,
                         }}
                       >
                         Popular
@@ -318,72 +340,117 @@ const CheckoutStepper = ({userData, customToken}) => {
                       <Typography variant="h4" component="p" sx={{ my: 2 }}>
                         {plan.isYearlyPlan ? (
                           <>
-                            <Box component="span" sx={{ textDecoration: 'line-through', color: 'text.secondary', mr: 1 }}>
+                            <Box
+                              component="span"
+                              sx={{
+                                textDecoration: "line-through",
+                                color: "text.secondary",
+                                mr: 1,
+                              }}
+                            >
                               ${plan.original_price}
                             </Box>
                             ${plan.yearlyPrice}
-                            <Typography variant="subtitle1" component="span">/year</Typography>
+                            <Typography variant="subtitle1" component="span">
+                              /year
+                            </Typography>
                           </>
                         ) : (
                           <>
                             {plan.monthly_price == 0 ? (
                               <>
-                                <Box component="span" sx={{ textDecoration: 'line-through', color: 'text.secondary', mr: 1 }}>
+                                <Box
+                                  component="span"
+                                  sx={{
+                                    textDecoration: "line-through",
+                                    color: "text.secondary",
+                                    mr: 1,
+                                  }}
+                                >
                                   ${plan.original_price}
                                 </Box>
                                 Free
                               </>
                             ) : (
                               <>
-                                <Box component="span" sx={{ textDecoration: 'line-through', color: 'text.secondary', mr: 1 }}>
+                                <Box
+                                  component="span"
+                                  sx={{
+                                    textDecoration: "line-through",
+                                    color: "text.secondary",
+                                    mr: 1,
+                                  }}
+                                >
                                   ${plan.original_price}
                                 </Box>
-                                ${plan.monthly_price == 0 ? '*Free' : plan.monthly_price}
-                                <Typography variant="subtitle1" component="span">/month</Typography>
+                                $
+                                {plan.monthly_price == 0
+                                  ? "*Free"
+                                  : plan.monthly_price}
+                                <Typography
+                                  variant="subtitle1"
+                                  component="span"
+                                >
+                                  /month
+                                </Typography>
                               </>
                             )}
                           </>
                         )}
                       </Typography>
                       <List>
-                        {Object.entries(plan.planBenefits).map(([key, value]) => (
-                          <ListItem key={key} dense>
-                            <ListItemIcon>
-                              <CheckIcon color="primary" />
-                            </ListItemIcon>
-                            <ListItemText 
-                              primary={`${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}: ${
-                                key === 'clients' 
-                                  ? (value > 50 ? 'Unlimited' : value)
-                                  : typeof value === 'boolean' 
-                                    ? (value ? 'Yes' : 'No') 
+                        {Object.entries(plan.planBenefits).map(
+                          ([key, value]) => (
+                            <ListItem key={key} dense>
+                              <ListItemIcon>
+                                <CheckIcon color="primary" />
+                              </ListItemIcon>
+                              <ListItemText
+                                primary={`${key
+                                  .replace(/_/g, " ")
+                                  .replace(/\b\w/g, (l) => l.toUpperCase())}: ${
+                                  key === "clients"
+                                    ? value > 50
+                                      ? "Unlimited"
+                                      : value
+                                    : typeof value === "boolean"
+                                    ? value
+                                      ? "Yes"
+                                      : "No"
                                     : value
-                              }`} 
-                            />
-                          </ListItem>
-                        ))}
+                                }`}
+                              />
+                            </ListItem>
+                          )
+                        )}
                       </List>
-                      {plan.title == 'Trial' && (
-                        <Typography 
-                          variant="caption" 
-                          component="div" 
-                          sx={{ 
-                            color: 'text.secondary',
+                      {plan.title == "Trial" && (
+                        <Typography
+                          variant="caption"
+                          component="div"
+                          sx={{
+                            color: "text.secondary",
                             mt: 1,
-                            fontStyle: 'italic'
+                            fontStyle: "italic",
                           }}
                         >
                           Trial is for 1 month only
                         </Typography>
                       )}
                     </CardContent>
-                    <CardActions sx={{ mt: 'auto', p: 2 }}>
+                    <CardActions sx={{ mt: "auto", p: 2 }}>
                       <Button
                         fullWidth
-                        variant={selectedPlan?.title === plan.title ? "contained" : "outlined"}
+                        variant={
+                          selectedPlan?.title === plan.title
+                            ? "contained"
+                            : "outlined"
+                        }
                         onClick={() => setSelectedPlan(plan)}
                       >
-                        {selectedPlan?.title === plan.title ? 'Selected' : 'Select Plan'}
+                        {selectedPlan?.title === plan.title
+                          ? "Selected"
+                          : "Select Plan"}
                       </Button>
                     </CardActions>
                   </Card>
@@ -395,21 +462,27 @@ const CheckoutStepper = ({userData, customToken}) => {
 
       case 1:
         return (
-          <Box sx={{ maxWidth: 500, mx: 'auto', p: 3 }}>
+          <Box sx={{ maxWidth: 500, mx: "auto", p: 3 }}>
             {isAuthenticated && authenticatedUser ? (
-              <Box sx={{ textAlign: 'center', my: 4 }}>
+              <Box sx={{ textAlign: "center", my: 4 }}>
                 <Typography variant="h4" gutterBottom color="primary">
-                  Welcome, {authenticatedUser.first_name} {authenticatedUser.last_name}!
+                  Welcome, {authenticatedUser.first_name}{" "}
+                  {authenticatedUser.last_name}!
                 </Typography>
-                <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                  Your account has been verified. Please continue to complete your subscription.
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  sx={{ mb: 3 }}
+                >
+                  Your account has been verified. Please continue to complete
+                  your subscription.
                 </Typography>
                 <BillingAddressCardPublic
-                 token={token} 
-                 callback={handleNextStep}  
-                 setBillingDataLocal={setBillingData}
-                 handlePurchase={handlePurchase}
-                  />
+                  token={token}
+                  callback={handleNextStep}
+                  setBillingDataLocal={setBillingData}
+                  handlePurchase={handlePurchase}
+                />
                 {/* <Button
                   variant="contained"
                   onClick={() => setActiveStep(activeStep + 1)}
@@ -421,12 +494,17 @@ const CheckoutStepper = ({userData, customToken}) => {
             ) : (
               <>
                 <Typography variant="h4" align="center" gutterBottom>
-                  {isExistingUser ? 'Welcome Back!' : 'Create Account'}
+                  {isExistingUser ? "Welcome Back!" : "Create Account"}
                 </Typography>
-                <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 2 }}>
-                  {isExistingUser 
-                    ? 'Please sign in to continue' 
-                    : 'Fill in your information to get started'}
+                <Typography
+                  variant="body1"
+                  align="center"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  {isExistingUser
+                    ? "Please sign in to continue"
+                    : "Fill in your information to get started"}
                 </Typography>
 
                 <Tabs
@@ -435,27 +513,27 @@ const CheckoutStepper = ({userData, customToken}) => {
                   variant="fullWidth"
                   sx={{
                     mb: 4,
-                    '& .MuiTabs-indicator': {
+                    "& .MuiTabs-indicator": {
                       height: 3,
                     },
                     borderBottom: 1,
-                    borderColor: 'divider'
+                    borderColor: "divider",
                   }}
                 >
-                  <Tab 
-                    label="Sign In" 
-                    sx={{ 
-                      textTransform: 'none',
-                      fontSize: '1rem',
-                      fontWeight: 500
+                  <Tab
+                    label="Sign In"
+                    sx={{
+                      textTransform: "none",
+                      fontSize: "1rem",
+                      fontWeight: 500,
                     }}
                   />
-                  <Tab 
-                    label="Sign Up" 
-                    sx={{ 
-                      textTransform: 'none',
-                      fontSize: '1rem',
-                      fontWeight: 500
+                  <Tab
+                    label="Sign Up"
+                    sx={{
+                      textTransform: "none",
+                      fontSize: "1rem",
+                      fontWeight: 500,
                     }}
                   />
                 </Tabs>
@@ -492,21 +570,21 @@ const CheckoutStepper = ({userData, customToken}) => {
                         </Grid>
                       </>
                     )}
-                          {!isExistingUser && (
-                            <Grid item xs={12}>
-                              <TextField
-                                required
-                                fullWidth
-                                label="Username"
-                                name="username"
-                                value={formData.username}
-                                onChange={handleInputChange}
-                                error={!!errors.username}
-                                helperText={errors.username}
-                                variant="outlined"
-                              />
-                            </Grid>
-                          )}
+                    {!isExistingUser && (
+                      <Grid item xs={12}>
+                        <TextField
+                          required
+                          fullWidth
+                          label="Username"
+                          name="username"
+                          value={formData.username}
+                          onChange={handleInputChange}
+                          error={!!errors.username}
+                          helperText={errors.username}
+                          variant="outlined"
+                        />
+                      </Grid>
+                    )}
 
                     <Grid item xs={12}>
                       <TextField
@@ -522,7 +600,7 @@ const CheckoutStepper = ({userData, customToken}) => {
                         variant="outlined"
                       />
                     </Grid>
-                    
+
                     <Grid item xs={12}>
                       <TextField
                         required
@@ -537,7 +615,7 @@ const CheckoutStepper = ({userData, customToken}) => {
                         variant="outlined"
                       />
                     </Grid>
-                    
+
                     {!isExistingUser && (
                       <>
                         <Grid item xs={12}>
@@ -554,27 +632,32 @@ const CheckoutStepper = ({userData, customToken}) => {
                             variant="outlined"
                           />
                         </Grid>
-                        
+
                         <Grid item xs={12}>
                           <FormControlLabel
                             control={
                               <Checkbox
                                 name="acceptTos"
                                 checked={formData.acceptTos}
-                                onChange={(e) => setFormData({
-                                  ...formData,
-                                  acceptTos: e.target.checked
-                                })}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    acceptTos: e.target.checked,
+                                  })
+                                }
                                 color="primary"
                               />
                             }
                             label={
-                              <Typography variant="body2" color="text.secondary">
-                                I agree to the{' '}
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                I agree to the{" "}
                                 <Link href="/terms" color="primary">
                                   Terms of Service
-                                </Link>
-                                {' '}and{' '}
+                                </Link>{" "}
+                                and{" "}
                                 <Link href="/privacy" color="primary">
                                   Privacy Policy
                                 </Link>
@@ -582,7 +665,11 @@ const CheckoutStepper = ({userData, customToken}) => {
                             }
                           />
                           {errors.acceptTos && (
-                            <Typography variant="caption" color="error" sx={{ ml: 2 }}>
+                            <Typography
+                              variant="caption"
+                              color="error"
+                              sx={{ ml: 2 }}
+                            >
                               {errors.acceptTos}
                             </Typography>
                           )}
@@ -605,7 +692,7 @@ const CheckoutStepper = ({userData, customToken}) => {
                         {authError}
                       </Typography>
                     )}
-                    
+
                     <Button
                       type="submit"
                       fullWidth
@@ -615,13 +702,21 @@ const CheckoutStepper = ({userData, customToken}) => {
                       disabled={isLoading}
                       sx={{ mb: 2 }}
                     >
-                      {isLoading ? 'Processing...' : isExistingUser ? 'Sign In' : 'Create Account'}
+                      {isLoading
+                        ? "Processing..."
+                        : isExistingUser
+                        ? "Sign In"
+                        : "Create Account"}
                     </Button>
 
-                    <Typography variant="body2" align="center" color="text.secondary">
+                    <Typography
+                      variant="body2"
+                      align="center"
+                      color="text.secondary"
+                    >
                       {isExistingUser ? (
                         <>
-                          Don't have an account?{' '}
+                          Don't have an account?{" "}
                           <Link
                             component="button"
                             variant="body2"
@@ -632,7 +727,7 @@ const CheckoutStepper = ({userData, customToken}) => {
                         </>
                       ) : (
                         <>
-                          Already have an account?{' '}
+                          Already have an account?{" "}
                           <Link
                             component="button"
                             variant="body2"
@@ -652,98 +747,141 @@ const CheckoutStepper = ({userData, customToken}) => {
 
       case 2:
         return (
-          <Box sx={{ maxWidth: 400, mx: 'auto' }}>
-          {isModalDismissed ? <Alert 
-              severity='error'
-              action={
-                <Button 
-                  color="inherit" 
-                  size="small" 
-                  onClick={()=>{
-                    handlePurchase()
-                    setIsModalDismissed(false)
-                  }}
-                >
-                  Try Again
-                </Button>
-              }
-            >
-              Payment Window is closed. Please click here to try again.
-            </Alert>  : <Alert severity='warning'>
-              Payment Window is open. Please complete the payment to continue.
-            </Alert>}
+          <Box sx={{ maxWidth: 400, mx: "auto" }}>
+            {isModalDismissed ? (
+              <Alert
+                severity="error"
+                action={
+                  <Button
+                    color="inherit"
+                    size="small"
+                    onClick={() => {
+                      handlePurchase();
+                      setIsModalDismissed(false);
+                    }}
+                  >
+                    Try Again
+                  </Button>
+                }
+              >
+                Payment Window is closed. Please click here to try again.
+              </Alert>
+            ) : (
+              <Alert severity="warning">
+                Payment Window is open. Please complete the payment to continue.
+              </Alert>
+            )}
           </Box>
         );
 
       case 3:
         return (
-          <Box sx={{ textAlign: 'center' }}>
+          <Box sx={{ textAlign: "center" }}>
+           {orderResponse?.orderId && <div>
             <Box
               sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                bgcolor: 'success.light',
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                bgcolor: "success.light",
                 width: 64,
                 height: 64,
-                borderRadius: '50%',
-                mx: 'auto',
-                mb: 2
+                borderRadius: "50%",
+                mx: "auto",
+                mb: 2,
               }}
             >
-              <DoneIcon sx={{ color: 'success.contrastText', fontSize: 32 }} />
+              <DoneIcon sx={{ color: "success.contrastText", fontSize: 32 }} />
             </Box>
             <Typography variant="h5" gutterBottom>
-              Thank you for your order!
+              Thank you for your subscription!
             </Typography>
-            <Typography color="textSecondary">
-              We've sent you an email with all the details of your order.
-            </Typography>
+           
+              <div>
+                <Typography variant="h6" color="textSecondary" sx={{ mb: 2 }}>
+                  Order ID: {orderResponse.orderId}
+                </Typography>
+                <Alert
+                  severity="success"
+                  sx={{
+                    mb: 2,
+                    "& .MuiAlert-message": {
+                      width: "100%",
+                      textAlign: "center",
+                    },
+                    "& ul": {
+                      display: "inline-block",
+                      textAlign: "left",
+                      margin: "0 auto",
+                    },
+                  }}
+                >
+                  <ul>
+                    <li>
+                      Your subscription will be activated within 24 hours
+                      (usually instantly)
+                    </li>
+                    <li>
+                      Please logout and log back in to access your new features
+                    </li>
+                  </ul>
+                </Alert>
+                <Button variant="contained" onClick={() => {
+                  setIsModalDismissed(true)
+                  setActiveStep(0)
+                  setOrderResponse(null)
+                }}>
+                Close
+                </Button>
+              </div>
+
+            </div>}
+         
           </Box>
         );
 
       default:
-        return 'Unknown step';
+        return "Unknown step";
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     // Email validation
     if (!formData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Invalid email address';
+      newErrors.email = "Invalid email address";
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 8 characters';
+      newErrors.password = "Password must be at least 8 characters";
     }
 
     // Additional validations for registration
     if (!isExistingUser) {
       if (!formData.firstName) {
-        newErrors.firstName = 'First name is required';
+        newErrors.firstName = "First name is required";
       }
-      
+
       if (!formData.lastName) {
-        newErrors.lastName = 'Last name is required';
+        newErrors.lastName = "Last name is required";
       }
       if (!formData.username) {
-        newErrors.username = 'Username is required';
+        newErrors.username = "Username is required";
       }
       if (!formData.confirmPassword) {
-        newErrors.confirmPassword = 'Please confirm your password';
+        newErrors.confirmPassword = "Please confirm your password";
       } else if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = 'Passwords do not match';
+        newErrors.confirmPassword = "Passwords do not match";
       }
-      
+
       if (!formData.acceptTos) {
-        newErrors.acceptTos = 'You must accept the Terms of Service';
+        newErrors.acceptTos = "You must accept the Terms of Service";
       }
     }
 
@@ -752,7 +890,7 @@ const CheckoutStepper = ({userData, customToken}) => {
   };
 
   return (
-    <Paper sx={{ p: 4, maxWidth: 1200, mx: 'auto' }}>
+    <Paper sx={{ p: 4, maxWidth: 1200, mx: "auto" }}>
       <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
         {steps.map((label) => (
           <Step key={label}>
@@ -763,24 +901,27 @@ const CheckoutStepper = ({userData, customToken}) => {
 
       {getStepContent(activeStep)}
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}>
         <Box>
-          {!isPreviousButtonDisabled && (
-            <Button
-              disabled={activeStep === 0}
-              onClick={handleBack}
-            >
+          {!isPreviousButtonDisabled && activeStep !== 3 && (
+            <Button disabled={activeStep === 0} onClick={handleBack}>
               Back
             </Button>
           )}
         </Box>
-        <Button
-          variant="contained"
-          onClick={handleNext}
-          disabled={isLoading || (activeStep === 1 && !isAuthenticated)}
-        >
-          {isLoading ? 'Processing...' : 'Next'}
-        </Button>
+        {activeStep !== 1 && activeStep !== 3 && (
+          <Button
+            variant="contained"
+            onClick={handleNext}
+            disabled={
+              isLoading ||
+              (activeStep === 0 && !selectedPlan) ||
+              (activeStep === 1 && !isAuthenticated)
+            }
+          >
+            {isLoading ? "Processing..." : "Next"}
+          </Button>
+        )}
       </Box>
 
       {authError && (

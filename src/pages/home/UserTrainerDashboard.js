@@ -42,6 +42,7 @@ import {
   ViewModule as GridIcon,
   Add as AddIcon, 
   Close as CloseIcon,
+  TimerOff as TimerOffIcon,
 } from '@mui/icons-material';
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
 import useNavigateTo from "src/modules/components/useRouterPush";
@@ -577,58 +578,52 @@ const UserTrainerDashboard = () => {
       </Typography>
 
       {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Total Users
-              </Typography>
-              <Typography variant="h5">
-                {relationships.length}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Users with Assigned Diets
-              </Typography>
-              <Typography variant="h5">
-                {relationships.filter(r => r.Assigned_Diet.length > 0).length}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Users with Assigned Programs
-              </Typography>
-              <Typography variant="h5">
-                {relationships.filter(r => r.Assigned_Program.length > 0).length}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Expired Subscriptions
-              </Typography>
-              <Typography variant="h5">
-                {relationships.filter(r => 
-                  r.userInfo.UserAndTrainerSubscription.length > 0 && 
-                  new Date(r.userInfo.UserAndTrainerSubscription[0].end_date) < new Date()
-                ).length}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        {[
+          {
+            title: 'Total Users',
+            value: relationships.length,
+            icon: <PersonIcon sx={{ color: 'primary.main' }} />,
+          },
+          {
+            title: 'Active Diets',
+            value: relationships.filter(r => r.Assigned_Diet.length > 0).length,
+            icon: <DietIcon sx={{ color: 'primary.main' }} />,
+          },
+          {
+            title: 'Active Programs',
+            value: relationships.filter(r => r.Assigned_Program.length > 0).length,
+            icon: <ProgramIcon sx={{ color: 'primary.main' }} />,
+          },
+          {
+            title: 'Expired Subscriptions',
+            value: relationships.filter(r => 
+              r.userInfo.UserAndTrainerSubscription.length > 0 && 
+              new Date(r.userInfo.UserAndTrainerSubscription[0].end_date) < new Date()
+            ).length,
+            icon: <TimerOffIcon sx={{ color: 'error.main' }} />,
+          },
+        ].map((stat, index) => (
+          <Grid item xs={6} md={3} key={index}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent sx={{ p: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  {stat.icon}
+                  <Typography 
+                    variant="body2" 
+                    color="textSecondary" 
+                    sx={{ ml: 1 }}
+                  >
+                    {stat.title}
+                  </Typography>
+                </Box>
+                <Typography variant="h4" sx={{ fontWeight: 500 }}>
+                  {stat.value}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
       </Grid>
 
       {/* View Toggle */}

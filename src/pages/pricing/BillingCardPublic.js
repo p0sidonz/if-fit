@@ -219,7 +219,7 @@ const BillingAddressCardPublic = ({token, callback, setBillingDataLocal, handleP
             </Grid>
             <Grid item xs={12}>
               <LoadingButton  loading={status === "pending"} type='submit' variant='contained' sx={{ mr: 3 }}>
-                Save Changes
+                Save & Next
               </LoadingButton>
               {/* <Button variant='outlined' color='secondary'>
                 Discard
