@@ -46,6 +46,7 @@ import {
 } from '@mui/icons-material';
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
 import useNavigateTo from "src/modules/components/useRouterPush";
+import { useCurrentUserPackages } from 'src/modules/user/hooks/usePackages'
 
 import TrainersStats from './TrainersStats';
 import { getAllUserAndTrainerList } from 'src/modules/diet/hooks/useDiet';
@@ -57,6 +58,7 @@ import axios from '../../utils/axios';
 import { toast } from 'react-hot-toast';
 
 const UserTrainerDashboard = () => {
+  const { data: currentUserPackages, isLoading: isLoadingCurrentUserPackages } = useCurrentUserPackages()
   const navigateTo = useNavigateTo();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -579,10 +581,37 @@ const UserTrainerDashboard = () => {
     }));
   };
 
+  // Update isTrialPackage function with actual implementation
+  const isTrialPackage = () => {
+    if (!currentUserPackages?.history?.length) return true; // If no package history, consider as trial
+
+    // Get the latest package from history
+    const latestPackage = currentUserPackages.history[0];
+    
+    // Check if the package is a trial based on planBenefits
+    // Trial packages typically have limited clients (e.g., less than 5)
+    return latestPackage?.packageInfo?.planBenefits?.clients <= 2;
+  };
+
+  // Add this function to count existing offline clients
+  const getOfflineClientsCount = () => {
+    if (!relationships) return 0;
+    return relationships.filter(rel => rel.type === 'offline').length;
+  };
+
+  // Modify the handleSubmit function
   const handleSubmit = () => {
     // Reset errors
     setErrors({});
     
+    // Check trial package limitation
+    if (isTrialPackage() && getOfflineClientsCount() >= 2) {
+      setErrors({
+        general: 'Trial package users can only add up to 2 offline clients. Please upgrade your package to add more clients.'
+      });
+      return;
+    }
+
     // Validate fields
     const newErrors = {};
     
@@ -630,6 +659,9 @@ const UserTrainerDashboard = () => {
 
     addOfflineClientMutation.mutate(userData);
   };
+
+  // Modify the Add Offline User button to be disabled for trial users who reached the limit
+  const isAddButtonDisabled = isTrialPackage() && getOfflineClientsCount() >= 2;
 
   return (
     <>
@@ -714,6 +746,8 @@ const UserTrainerDashboard = () => {
             color="primary"
             startIcon={<AddIcon />}
             onClick={handleOpenDialog}
+            disabled={isAddButtonDisabled}
+            title={isAddButtonDisabled ? "Trial package users can only add up to 2 offline clients" : ""}
           >
             Add Offline User
           </Button>

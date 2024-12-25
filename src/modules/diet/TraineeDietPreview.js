@@ -10,13 +10,42 @@ import { useEffect } from 'react';
 import FoodSummaryInfo from "./components/FoodSummaryInfo";
 
 const MealCard = ({ meal, chart }) => {
-    console.log("MealCard", meal)
+    // Calculate meal totals
+    const mealTotals = meal.Diet_Meals_FoodList.reduce((acc, food) => {
+        const servings = food.is_custom
+            ? food.custom_serving
+            : food.foodInfo.servings.serving.find(serve => serve.serving_id === JSON.stringify(food.serving_id));
+        
+        if (servings) {
+            acc.calories += Number(servings.calories) || 0;
+            acc.carbohydrate += Number(servings.carbohydrate) || 0;
+            acc.protein += Number(servings.protein) || 0;
+            acc.fat += Number(servings.fat) || 0;
+        }
+        return acc;
+    }, { calories: 0, carbohydrate: 0, protein: 0, fat: 0 });
+
     return (
         <Card>
             <CardContent>
                 <Typography variant="h5" gutterBottom>{meal.title}</Typography>
                 <Typography variant="body2" color="textSecondary">{meal.description}</Typography>
-                {/* {chart} */}
+                
+               
+                {/* Meal Totals */}
+                <Grid container spacing={2} sx={{ mt: 2, mb: 2 }}>
+                    {Object.entries(mealTotals).map(([nutrient, value]) => (
+                        <Grid item xs={6} sm={3} key={nutrient}>
+                            <Typography color="primary" variant="subtitle1" align="center">
+                                {nutrient.charAt(0).toUpperCase() + nutrient.slice(1)}
+                            </Typography>
+                            <Typography variant="h6" align="center">
+                                {Math.round(value * 10) / 10}
+                            </Typography>
+                        </Grid>
+                    ))}
+                </Grid>
+
                 <Box mt={2}>
                     <Typography variant="h6" gutterBottom>Foods</Typography>
                     {meal.Diet_Meals_FoodList.map((food) => (

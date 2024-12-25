@@ -153,16 +153,17 @@ const Register = () => {
       setPasswordMatch(false);
       return;
     }
-    const { username, email, password, firstName, lastName } = data;
+    const { password, firstName, lastName } = data;
+    // Convert username and email to lowercase
+    const username = data.username.toLowerCase();
+    const email = data.email.toLowerCase();
     
     auth.register(
       { username, email, password, firstName, lastName },
       () => {
-        // This is the success callback
         router.push('/login');
       },
       (error) => {
-        // This is the error callback
         if (error?.response?.data?.message) {
           setError('email', {
             type: 'manual',

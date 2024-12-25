@@ -374,6 +374,30 @@ const DietMeals = (props) => {
 
 
             </Grid>
+
+            {/* Add meal totals here */}
+            <Grid container spacing={1} sx={{ mt: 1, mb: 1 }}>
+              {['calories', 'protein', 'carbohydrate', 'fat'].map((nutrient) => {
+                const total = meal.Diet_Meals_FoodList.reduce((sum, food) => {
+                  const servings = food.is_custom
+                    ? food.custom_serving
+                    : food.foodInfo.servings.serving.find(serve => serve.serving_id === JSON.stringify(food.serving_id));
+                  return sum + (Number(servings?.[nutrient]) || 0);
+                }, 0);
+
+                return (
+                  <Grid item xs={3} key={nutrient}>
+                    <Typography color="primary" variant="caption" align="center" display="block">
+                      {nutrient.charAt(0).toUpperCase() + nutrient.slice(1)}
+                    </Typography>
+                    <Typography variant="body2" align="center">
+                      {Math.round(total * 10) / 10}
+                    </Typography>
+                  </Grid>
+                );
+              })}
+            </Grid>
+
             <Collapse in={expanded} timeout="auto" unmountOnExit>
               <Box mt={2} display="flex" justifyContent="space-between" alignItems="center">
                 <Typography variant="body2" color="textSecondary" component="p">
