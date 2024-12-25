@@ -70,9 +70,19 @@ const UserTrainerDashboard = () => {
     first_name: '',
     last_name: '',
     email: '',
+    username: '',
     password: '',
     confirm_password: '',
   });
+  const [errors, setErrors] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    username: '',
+    password: '',
+    confirm_password: '',
+  });
+  const [hideExpiredClients, setHideExpiredClients] = useState(true);
 
   const queryClient = useQueryClient();
 
@@ -81,13 +91,27 @@ const UserTrainerDashboard = () => {
     mutationFn: (userData) => {
       return axios.post('/userandtrainer/addofflineclient', userData);
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
+      if(!res.ok) {
+        setErrors({ ...errors, general: res.data?.message || 'Failed to add client' });
+        return;
+      }
       toast.success('Client added successfully');
-      queryClient.invalidateQueries(['clients']); // Refresh clients list
+      queryClient.invalidateQueries(['clients']);
       handleCloseDialog();
+      setNewUser({
+        first_name: '',
+        last_name: '',
+        email: '',
+        username: '',
+        password: '',
+        confirm_password: '',
+      });
+      setErrors({}); // Clear errors on success
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to add client');
+      const errorMessage = error.response?.data?.message || 'Failed to add client';
+      setErrors({ ...errors, general: errorMessage });
     },
   });
 
@@ -100,17 +124,19 @@ const UserTrainerDashboard = () => {
     assignedPrograms: rel?.Assigned_Program?.length,
   }));
 
+  // Modify the filter function to hide expired clients
+  const filteredRelationships = relationships.filter(relationship => {
+    if (!hideExpiredClients) return true;
+    
+    const subscription = relationship.userInfo.UserAndTrainerSubscription[0];
+    return !subscription || new Date(subscription.end_date) >= new Date();
+  });
 
-
-  // useEffect(() => {
-  //   // Replace this with your actual API call
-  //   const fetchData = async () => {
-  //     const response = await fetch('/api/user-trainer-relationships');
-  //     const data = await response.json();
-  //     setRelationships(data);
-  //   };
-  //   fetchData();
-  // }, []);
+  // Add this helper function
+  const hasExpiredClients = relationships.some(r => 
+    r.userInfo.UserAndTrainerSubscription[0] && 
+    new Date(r.userInfo.UserAndTrainerSubscription[0].end_date) < new Date()
+  );
 
   const toggleRowExpansion = (id) => {
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
@@ -540,8 +566,9 @@ const UserTrainerDashboard = () => {
       email: '',
       password: '',
       confirm_password: '',
-
+      username: '',
     });
+    setErrors({});
   };
 
   const handleInputChange = (e) => {
@@ -553,19 +580,52 @@ const UserTrainerDashboard = () => {
   };
 
   const handleSubmit = () => {
-    // Validate passwords match
+    // Reset errors
+    setErrors({});
+    
+    // Validate fields
+    const newErrors = {};
+    
+    if (!newUser.first_name.trim()) {
+      newErrors.first_name = 'First name is required';
+    }
+    
+    if (!newUser.last_name.trim()) {
+      newErrors.last_name = 'Last name is required';
+    }
+    
+    if (!newUser.username.trim()) {
+      newErrors.username = 'Username is required';
+    }
+    
+    if (!newUser.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(newUser.email)) {
+      newErrors.email = 'Please enter a valid email';
+    }
+    
+    if (!newUser.password) {
+      newErrors.password = 'Password is required';
+    } else if (newUser.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
     if (newUser.password !== newUser.confirm_password) {
-      toast.error('Passwords do not match');
+      newErrors.confirm_password = 'Passwords do not match';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
-    // Prepare data for API
+    // Proceed with submission if no errors
     const userData = {
       first_name: newUser.first_name,
       last_name: newUser.last_name,
       email: newUser.email,
       password: newUser.password,
-
+      username: newUser.username,
     };
 
     addOfflineClientMutation.mutate(userData);
@@ -627,33 +687,52 @@ const UserTrainerDashboard = () => {
       </Grid>
 
       {/* View Toggle */}
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-         {/* Add User Button */}
-         <Button
-          sx={{ mr: 1}}
-          size='small'
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleOpenDialog}
-        >
-          Add Offline User
-        </Button>
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {hasExpiredClients && (
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={hideExpiredClients}
+                  onChange={(e) => setHideExpiredClients(e.target.checked)}
+                  size="small"
+                />
+              }
+              label={
+                <Typography variant="body2" color="text.secondary">
+                  Hide Expired Clients
+                </Typography>
+              }
+            />
+          )}
+        </Box>
+        
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            size="small"
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={handleOpenDialog}
+          >
+            Add Offline User
+          </Button>
 
-        <ToggleButtonGroup
-          size='small'
-          value={viewMode}
-          exclusive
-          onChange={handleViewChange}
-          aria-label="view mode"
-        >
-          <ToggleButton value="table" aria-label="table view">
-            <ListIcon />
-          </ToggleButton>
-          <ToggleButton value="card" aria-label="card view">
-            <GridIcon />
-          </ToggleButton>
-        </ToggleButtonGroup>
+          <ToggleButtonGroup
+            size="small"
+            value={viewMode}
+            exclusive
+            onChange={handleViewChange}
+            aria-label="view mode"
+          >
+            <ToggleButton value="table" aria-label="table view">
+              <ListIcon />
+            </ToggleButton>
+            <ToggleButton value="card" aria-label="card view">
+              <GridIcon />
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
       </Box>
 
       {/* Table/Card View */}
@@ -672,7 +751,7 @@ const UserTrainerDashboard = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {relationships.map((relationship) => (
+                {filteredRelationships.map((relationship) => (
                   <React.Fragment key={relationship.id}>
                     <TableRow>
                       <TableCell>
@@ -714,7 +793,7 @@ const UserTrainerDashboard = () => {
         </Card>
       ) : (
         <Grid container spacing={3}>
-          {relationships.map(relationship => renderCardView(relationship))}
+          {filteredRelationships.map(relationship => renderCardView(relationship))}
         </Grid>
       )}
 
@@ -750,23 +829,11 @@ const UserTrainerDashboard = () => {
             px: 1,
             position: 'relative'
           }}>
-            {addOfflineClientMutation.isLoading && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                  zIndex: 1,
-                }}
-              >
-                <CircularProgress />
-              </Box>
+            {/* Show general error if exists */}
+            {errors.general && (
+              <Typography color="error" variant="body2" sx={{ mb: 2 }}>
+                {errors.general}
+              </Typography>
             )}
             
             <TextField
@@ -776,6 +843,8 @@ const UserTrainerDashboard = () => {
               onChange={handleInputChange}
               fullWidth
               required
+              error={!!errors.first_name}
+              helperText={errors.first_name}
             />
             <TextField
               name="last_name"
@@ -784,6 +853,19 @@ const UserTrainerDashboard = () => {
               onChange={handleInputChange}
               fullWidth
               required
+              error={!!errors.last_name}
+              helperText={errors.last_name}
+            />
+            <TextField
+              name="username"
+              label="Username"
+              value={newUser.username}
+              onChange={handleInputChange}
+              type='text'
+              fullWidth
+              required
+              error={!!errors.username}
+              helperText={errors.username}
             />
             <TextField
               name="email"
@@ -793,6 +875,8 @@ const UserTrainerDashboard = () => {
               onChange={handleInputChange}
               fullWidth
               required
+              error={!!errors.email}
+              helperText={errors.email}
             />
             <TextField
               name="password"
@@ -802,6 +886,8 @@ const UserTrainerDashboard = () => {
               onChange={handleInputChange}
               fullWidth
               required
+              error={!!errors.password}
+              helperText={errors.password}
             />
             <TextField
               name="confirm_password"
@@ -811,6 +897,8 @@ const UserTrainerDashboard = () => {
               onChange={handleInputChange}
               fullWidth
               required
+              error={!!errors.confirm_password}
+              helperText={errors.confirm_password}
             />
           </Box>
 

@@ -54,6 +54,10 @@ import {
   useUserStatsByType,
   useDeleteUserStat
 } from "./hooks/useUserStat";
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
+import CustomInput from './PickersCustomInput'
+
 import { debounce } from 'lodash';
 import HealthStats from './components/HealthStats.js';
 import { format, startOfDay, endOfDay } from 'date-fns';
@@ -153,6 +157,41 @@ const DataTable = ({ type, data, onDelete }) => {
     return [...data].sort(getComparator(order, orderBy));
   }, [data, order, orderBy]);
 
+  // Group data by date
+  const groupedData = React.useMemo(() => {
+    return data.reduce((acc, entry) => {
+      const dateKey = format(new Date(entry.date), 'yyyy-MM-dd');
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(entry);
+      return acc;
+    }, {});
+  }, [data]);
+
+  // Calculate daily totals
+  const getDailyTotals = (entries, type) => {
+    switch(type) {
+      case 'water':
+        return entries.reduce((total, entry) => {
+          const waterData = JSON.parse(entry.waterJson);
+          return total + (waterData.glasses * waterData.glassSize);
+        }, 0);
+      case 'food':
+        return entries.reduce((totals, entry) => {
+          const dietData = JSON.parse(entry.dietJson);
+          return {
+            calories: (totals.calories || 0) + Number(dietData.calories),
+            protein: (totals.protein || 0) + Number(dietData.protein),
+            carbs: (totals.carbs || 0) + Number(dietData.carbs),
+            fat: (totals.fat || 0) + Number(dietData.fat)
+          };
+        }, {});
+      default:
+        return null;
+    }
+  };
+
   const renderTableContent = () => {
     switch(type) {
       case 'water':
@@ -160,76 +199,157 @@ const DataTable = ({ type, data, onDelete }) => {
           <>
             <TableHead>
               <TableRow>
-                <TableCell />
-                {getSortableHeaders().map((header) => (
-                  <TableCell key={header.id}>
-                    <TableSortLabel
-                      active={orderBy === header.id}
-                      direction={orderBy === header.id ? order : 'asc'}
-                      onClick={() => handleRequestSort(header.id)}
-                    >
-                      {header.label}
-                    </TableSortLabel>
-                  </TableCell>
-                ))}
-                <TableCell>Total (oz)</TableCell>
-                <TableCell>Actions</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Details</TableCell>
+                <TableCell align="right">Daily Total</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {sortedData.map((entry) => {
-                const waterData = JSON.parse(entry.waterJson);
-                return (
-                  <React.Fragment key={entry.id}>
-                    <TableRow>
-                      <TableCell>
-                        <IconButton
-                          size="small"
-                          onClick={() => toggleRow(entry.id)}
-                        >
-                          {expandedRows[entry.id] ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-                        </IconButton>
+              {Object.entries(groupedData)
+                .sort(([a], [b]) => new Date(b) - new Date(a))
+                .map(([date, entries]) => {
+                  const dailyTotal = entries.reduce((total, entry) => {
+                    const waterData = JSON.parse(entry.waterJson);
+                    return total + (waterData.glasses * waterData.glassSize);
+                  }, 0);
+
+                  return (
+                    <TableRow key={date} sx={{ '& > *': { borderBottom: 'unset' } }}>
+                      <TableCell component="th" scope="row">
+                        <Typography variant="subtitle1" fontWeight="medium">
+                          {format(new Date(date), 'EEE, MMM d')}
+                        </Typography>
                       </TableCell>
-                      <TableCell>{format(new Date(entry.date), 'MMM d, yyyy h:mm a')}</TableCell>
-                      <TableCell>{waterData.glasses}</TableCell>
-                      <TableCell>{waterData.glassSize}</TableCell>
-                      <TableCell>{waterData.glasses * waterData.glassSize}</TableCell>
                       <TableCell>
-                        <IconButton 
-                          size="small" 
-                          color="error"
-                          onClick={() => handleDelete(entry.id)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          {entries.map((entry) => {
+                            const waterData = JSON.parse(entry.waterJson);
+                            return (
+                              <Box 
+                                key={entry.id} 
+                                sx={{ 
+                                  display: 'flex', 
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  p: 1,
+                                  borderRadius: 1,
+                                  bgcolor: 'background.paper',
+                                  '&:hover': { bgcolor: 'action.hover' }
+                                }}
+                              >
+                                <Box>
+                                  <Typography variant="body2" color="text.secondary">
+                                    {format(new Date(entry.date), 'h:mm a')}
+                                  </Typography>
+                                  <Typography variant="body2">
+                                    {waterData.glasses} glasses × {waterData.glassSize}oz
+                                  </Typography>
+                                </Box>
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleDelete(entry.id)}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
+                            );
+                          })}
+                        </Box>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="h6" color="primary">
+                          {dailyTotal}oz
+                        </Typography>
                       </TableCell>
                     </TableRow>
-                    <TableRow>
-                      <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-                        <Collapse in={expandedRows[entry.id]} timeout="auto" unmountOnExit>
-                          <Box sx={{ margin: 1 }}>
-                            <Typography variant="h6" gutterBottom component="div">
-                              Additional Details
-                            </Typography>
-                            <Table size="small">
-                              <TableBody>
-                                <TableRow>
-                                  <TableCell component="th" scope="row">Location</TableCell>
-                                  <TableCell>{waterData.location || 'Not specified'}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                  <TableCell component="th" scope="row">Notes</TableCell>
-                                  <TableCell>{waterData.notes || 'No notes'}</TableCell>
-                                </TableRow>
-                              </TableBody>
-                            </Table>
-                          </Box>
-                        </Collapse>
+                  );
+                })}
+            </TableBody>
+          </>
+        );
+
+      case 'food':
+        return (
+          <>
+            <TableHead>
+              <TableRow>
+                <TableCell>Date</TableCell>
+                <TableCell>Meals</TableCell>
+                <TableCell align="right">Daily Totals</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {Object.entries(groupedData)
+                .sort(([a], [b]) => new Date(b) - new Date(a))
+                .map(([date, entries]) => {
+                  const dailyTotals = entries.reduce((totals, entry) => {
+                    const dietData = JSON.parse(entry.dietJson);
+                    return {
+                      calories: (totals.calories || 0) + Number(dietData.calories),
+                      protein: (totals.protein || 0) + Number(dietData.protein),
+                      carbs: (totals.carbs || 0) + Number(dietData.carbs),
+                      fat: (totals.fat || 0) + Number(dietData.fat)
+                    };
+                  }, {});
+
+                  return (
+                    <TableRow key={date} sx={{ '& > *': { borderBottom: 'unset' } }}>
+                      <TableCell component="th" scope="row">
+                        <Typography variant="subtitle1" fontWeight="medium">
+                          {format(new Date(date), 'EEE, MMM d')}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          {entries.map((entry) => {
+                            const dietData = JSON.parse(entry.dietJson);
+                            return (
+                              <Box 
+                                key={entry.id} 
+                                sx={{ 
+                                  display: 'flex', 
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  p: 1,
+                                  borderRadius: 1,
+                                  bgcolor: 'background.paper',
+                                  '&:hover': { bgcolor: 'action.hover' }
+                                }}
+                              >
+                                <Box>
+                                  <Typography variant="body2" color="text.secondary">
+                                    {format(new Date(entry.date), 'h:mm a')}
+                                  </Typography>
+                                  <Typography variant="body2">
+                                    {dietData.title} - {dietData.calories}kcal
+                                  </Typography>
+                                </Box>
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleDelete(entry.id)}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
+                            );
+                          })}
+                        </Box>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Box sx={{ textAlign: 'right' }}>
+                          <Typography variant="h6" color="primary">
+                            {dailyTotals.calories}kcal
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            P: {dailyTotals.protein}g | C: {dailyTotals.carbs}g | F: {dailyTotals.fat}g
+                          </Typography>
+                        </Box>
                       </TableCell>
                     </TableRow>
-                  </React.Fragment>
-                );
-              })}
+                  );
+                })}
             </TableBody>
           </>
         );
@@ -325,47 +445,6 @@ const DataTable = ({ type, data, onDelete }) => {
             </TableBody>
           </>
         );
-
-      case 'food':
-        return (
-          <>
-            <TableHead>
-              <TableRow>
-                <TableCell>Date</TableCell>
-                <TableCell>Food</TableCell>
-                <TableCell>Calories</TableCell>
-                <TableCell>Protein</TableCell>
-                <TableCell>Carbs</TableCell>
-                <TableCell>Fat</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {sortedData.map((entry) => {
-                const dietData = JSON.parse(entry.dietJson);
-                return (
-                  <TableRow key={entry.id}>
-                    <TableCell>{format(new Date(entry.date), 'MMM d, yyyy h:mm a')}</TableCell>
-                    <TableCell>{dietData.title}</TableCell>
-                    <TableCell>{dietData.calories} kcal</TableCell>
-                    <TableCell>{dietData.protein}{dietData.unit}</TableCell>
-                    <TableCell>{dietData.carbs}{dietData.unit}</TableCell>
-                    <TableCell>{dietData.fat}{dietData.unit}</TableCell>
-                    <TableCell>
-                      <IconButton 
-                        size="small" 
-                        color="error"
-                        onClick={() => handleDelete(entry.id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </>
-        );
     }
   };
 
@@ -396,7 +475,7 @@ const DataTable = ({ type, data, onDelete }) => {
 // Water Intake Component
 const WaterIntakeForm = () => {
   const { mutate: createStat } = useCreateUserStat();
-  const { control, handleSubmit, reset } = useForm({
+  const { control, handleSubmit, reset, setValue } = useForm({
     defaultValues: {
       date: new Date(),
       waterJson: {
@@ -438,26 +517,49 @@ const WaterIntakeForm = () => {
         </Typography>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <Controller
-                  name="date"
-                  control={control}
-                  render={({ field }) => (
-                    <DateTimePicker
-                      label="Date and Time"
-                      {...field}
-                      renderInput={(params) => (
-                        <TextField 
-                          {...params} 
-                          fullWidth 
-                          variant="outlined" 
-                        />
-                      )}
-                    />
-                  )}
-                />
-              </LocalizationProvider>
+            <Grid item xs={12}>
+              <Box 
+                sx={{ 
+                  mb: 2, 
+                  p: 2,
+                  display: 'flex', 
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  alignItems: 'center', 
+                  gap: 2,
+                  backgroundColor: 'background.paper',
+                  borderRadius: 1,
+                  boxShadow: 1
+                }}
+              >
+                <Stack 
+                  direction={{ xs: 'column', sm: 'row' }} 
+                  spacing={2} 
+                  sx={{ flex: 1 }}
+                >
+                  <Controller
+                    name="date"
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <DatePicker
+                        selected={value}
+                        onChange={onChange}
+                        showTimeSelect
+                        timeIntervals={15}
+                        dateFormat="MMMM d, yyyy h:mm aa"
+                        customInput={<CustomInput label="Date and Time" />}
+                        popperPlacement="bottom-start"
+                      />
+                    )}
+                  />
+                </Stack>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => setValue('date', new Date())}
+                >
+                  Now
+                </Button>
+              </Box>
             </Grid>
             <Grid item xs={12} md={6}>
               <Controller
@@ -559,40 +661,30 @@ const WaterIntakeForm = () => {
   }}
 >
   <Typography variant="subtitle1" sx={{ mr: 2 }}>Date Range:</Typography>
-  <LocalizationProvider dateAdapter={AdapterDateFns}>
-    <Stack 
-      direction={{ xs: 'column', sm: 'row' }} 
-      spacing={2} 
-      sx={{ flex: 1 }}
-    >
-      <DateTimePicker
-        label="From"
-        value={dateRange[0]}
-        onChange={(newValue) => setDateRange([newValue || startOfDay(new Date()), dateRange[1]])}
-        renderInput={(params) => (
-          <TextField 
-            {...params} 
-            size="small"
-            fullWidth
-            sx={{ minWidth: 240 }}
-          />
-        )}
-      />
-      <DateTimePicker
-        label="To"
-        value={dateRange[1]}
-        onChange={(newValue) => setDateRange([dateRange[0], newValue || endOfDay(new Date())])}
-        renderInput={(params) => (
-          <TextField 
-            {...params} 
-            size="small"
-            fullWidth
-            sx={{ minWidth: 240 }}
-          />
-        )}
-      />
-    </Stack>
-  </LocalizationProvider>
+  <Stack 
+    direction={{ xs: 'column', sm: 'row' }} 
+    spacing={2} 
+    sx={{ flex: 1 }}
+  >
+    <DatePicker
+      selected={dateRange[0]}
+      onChange={(date) => setDateRange([date || startOfDay(new Date()), dateRange[1]])}
+      showTimeSelect
+      timeIntervals={15}
+      dateFormat="MMMM d, yyyy h:mm aa"
+      customInput={<CustomInput label="From" />}
+      popperPlacement="bottom-start"
+    />
+    <DatePicker
+      selected={dateRange[1]}
+      onChange={(date) => setDateRange([dateRange[0], date || endOfDay(new Date())])}
+      showTimeSelect
+      timeIntervals={15}
+      dateFormat="MMMM d, yyyy h:mm aa"
+      customInput={<CustomInput label="To" />}
+      popperPlacement="bottom-start"
+    />
+  </Stack>
   <Button
     variant="outlined"
     size="small"
@@ -685,26 +777,49 @@ const WeightTrackingForm = () => {
         </Typography>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <Controller
-                  name="date"
-                  control={control}
-                  render={({ field }) => (
-                    <DateTimePicker
-                      label="Date and Time"
-                      {...field}
-                      renderInput={(params) => (
-                        <TextField 
-                          {...params} 
-                          fullWidth 
-                          variant="outlined" 
-                        />
-                      )}
-                    />
-                  )}
-                />
-              </LocalizationProvider>
+            <Grid item xs={12}>
+              <Box 
+                sx={{ 
+                  mb: 2, 
+                  p: 2,
+                  display: 'flex', 
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  alignItems: 'center', 
+                  gap: 2,
+                  backgroundColor: 'background.paper',
+                  borderRadius: 1,
+                  boxShadow: 1
+                }}
+              >
+                <Stack 
+                  direction={{ xs: 'column', sm: 'row' }} 
+                  spacing={2} 
+                  sx={{ flex: 1 }}
+                >
+                  <Controller
+                    name="date"
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <DatePicker
+                        selected={value}
+                        onChange={onChange}
+                        showTimeSelect
+                        timeIntervals={15}
+                        dateFormat="MMMM d, yyyy h:mm aa"
+                        customInput={<CustomInput label="Date and Time" />}
+                        popperPlacement="bottom-start"
+                      />
+                    )}
+                  />
+                </Stack>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => setValue('date', new Date())}
+                >
+                  Now
+                </Button>
+              </Box>
             </Grid>
             <Grid item xs={12} md={6}>
               <Controller
@@ -864,40 +979,30 @@ const WeightTrackingForm = () => {
   }}
 >
   <Typography variant="subtitle1" sx={{ mr: 2 }}>Date Range:</Typography>
-  <LocalizationProvider dateAdapter={AdapterDateFns}>
-    <Stack 
-      direction={{ xs: 'column', sm: 'row' }} 
-      spacing={2} 
-      sx={{ flex: 1 }}
-    >
-      <DateTimePicker
-        label="From"
-        value={dateRange[0]}
-        onChange={(newValue) => setDateRange([newValue || startOfDay(new Date()), dateRange[1]])}
-        renderInput={(params) => (
-          <TextField 
-            {...params} 
-            size="small"
-            fullWidth
-            sx={{ minWidth: 240 }}
-          />
-        )}
-      />
-      <DateTimePicker
-        label="To"
-        value={dateRange[1]}
-        onChange={(newValue) => setDateRange([dateRange[0], newValue || endOfDay(new Date())])}
-        renderInput={(params) => (
-          <TextField 
-            {...params} 
-            size="small"
-            fullWidth
-            sx={{ minWidth: 240 }}
-          />
-        )}
-      />
-    </Stack>
-  </LocalizationProvider>
+  <Stack 
+    direction={{ xs: 'column', sm: 'row' }} 
+    spacing={2} 
+    sx={{ flex: 1 }}
+  >
+    <DatePicker
+      selected={dateRange[0]}
+      onChange={(date) => setDateRange([date || startOfDay(new Date()), dateRange[1]])}
+      showTimeSelect
+      timeIntervals={15}
+      dateFormat="MMMM d, yyyy h:mm aa"
+      customInput={<CustomInput label="From" />}
+      popperPlacement="bottom-start"
+    />
+    <DatePicker
+      selected={dateRange[1]}
+      onChange={(date) => setDateRange([dateRange[0], date || endOfDay(new Date())])}
+      showTimeSelect
+      timeIntervals={15}
+      dateFormat="MMMM d, yyyy h:mm aa"
+      customInput={<CustomInput label="To" />}
+      popperPlacement="bottom-start"
+    />
+  </Stack>
   <Button
     variant="outlined"
     size="small"
@@ -1127,25 +1232,48 @@ const FoodLoggingForm = () => {
               </Grid>
 
               <Grid item xs={12}>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <Controller
-                    name="date"
-                    control={control}
-                    render={({ field }) => (
-                      <DateTimePicker
-                        label="Date and Time"
-                        {...field}
-                        renderInput={(params) => (
-                          <TextField 
-                            {...params} 
-                            fullWidth 
-                            variant="outlined" 
-                          />
-                        )}
-                      />
-                    )}
-                  />
-                </LocalizationProvider>
+                <Box 
+                  sx={{ 
+                    mb: 2, 
+                    p: 2,
+                    display: 'flex', 
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    alignItems: 'center', 
+                    gap: 2,
+                    backgroundColor: 'background.paper',
+                    borderRadius: 1,
+                    boxShadow: 1
+                  }}
+                >
+                  <Stack 
+                    direction={{ xs: 'column', sm: 'row' }} 
+                    spacing={2} 
+                    sx={{ flex: 1 }}
+                  >
+                    <Controller
+                      name="date"
+                      control={control}
+                      render={({ field: { value, onChange } }) => (
+                        <DatePicker
+                          selected={value}
+                          onChange={onChange}
+                          showTimeSelect
+                          timeIntervals={15}
+                          dateFormat="MMMM d, yyyy h:mm aa"
+                          customInput={<CustomInput label="Date and Time" />}
+                          popperPlacement="bottom-start"
+                        />
+                      )}
+                    />
+                  </Stack>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => setValue('date', new Date())}
+                  >
+                    Now
+                  </Button>
+                </Box>
               </Grid>
 
               {searchMode ? (
@@ -1327,40 +1455,30 @@ const FoodLoggingForm = () => {
   }}
 >
   <Typography variant="subtitle1" sx={{ mr: 2 }}>Date Range:</Typography>
-  <LocalizationProvider dateAdapter={AdapterDateFns}>
-    <Stack 
-      direction={{ xs: 'column', sm: 'row' }} 
-      spacing={2} 
-      sx={{ flex: 1 }}
-    >
-      <DateTimePicker
-        label="From"
-        value={dateRange[0]}
-        onChange={(newValue) => setDateRange([newValue || startOfDay(new Date()), dateRange[1]])}
-        renderInput={(params) => (
-          <TextField 
-            {...params} 
-            size="small"
-            fullWidth
-            sx={{ minWidth: 240 }}
-          />
-        )}
-      />
-      <DateTimePicker
-        label="To"
-        value={dateRange[1]}
-        onChange={(newValue) => setDateRange([dateRange[0], newValue || endOfDay(new Date())])}
-        renderInput={(params) => (
-          <TextField 
-            {...params} 
-            size="small"
-            fullWidth
-            sx={{ minWidth: 240 }}
-          />
-        )}
-      />
-    </Stack>
-  </LocalizationProvider>
+  <Stack 
+    direction={{ xs: 'column', sm: 'row' }} 
+    spacing={2} 
+    sx={{ flex: 1 }}
+  >
+    <DatePicker
+      selected={dateRange[0]}
+      onChange={(date) => setDateRange([date || startOfDay(new Date()), dateRange[1]])}
+      showTimeSelect
+      timeIntervals={15}
+      dateFormat="MMMM d, yyyy h:mm aa"
+      customInput={<CustomInput label="From" />}
+      popperPlacement="bottom-start"
+    />
+    <DatePicker
+      selected={dateRange[1]}
+      onChange={(date) => setDateRange([dateRange[0], date || endOfDay(new Date())])}
+      showTimeSelect
+      timeIntervals={15}
+      dateFormat="MMMM d, yyyy h:mm aa"
+      customInput={<CustomInput label="To" />}
+      popperPlacement="bottom-start"
+    />
+  </Stack>
   <Button
     variant="outlined"
     size="small"

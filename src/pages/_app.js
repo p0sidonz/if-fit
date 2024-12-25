@@ -122,7 +122,7 @@ const App = (props) => {
                       <ReactHotToast>
                         <Toaster
                           position={settings.toastPosition}
-                          toastOptions={{ className: "react-hot-toast" }}
+                          toastOptions={{ className: "react-hot-toast", style: {zIndex: 10000} }}
                         />
                       </ReactHotToast>
                     </ThemeComponent>
