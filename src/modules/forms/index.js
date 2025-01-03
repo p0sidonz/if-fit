@@ -20,7 +20,7 @@ import {
     Tooltip,
     Box,
     Avatar,
-
+    Alert,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -169,9 +169,15 @@ const DynamicFormsList = () => {
             </div>
 
 
-            <Paper elevation={3} style={{ padding: '20px', margin: '20px auto' }}>
 
-
+ {/* Add alert when no forms exist */}
+ {forms.length === 0 && (
+                    <Box sx={{ mb: 3 }}>
+                        <Alert severity="info">
+                            No forms created yet. Click the "Create New Form" button to create one.
+                        </Alert>
+                    </Box>
+                )}
 
                 <List sx={{ width: '100%' }}>
                     {forms.map((form) => (
@@ -328,7 +334,6 @@ const DynamicFormsList = () => {
                     />
                 </Hidden>
 
-            </Paper>
             {/* 
             <AssignDialougeForm
                 name={"Form"}

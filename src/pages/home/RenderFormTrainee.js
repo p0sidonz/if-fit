@@ -183,7 +183,23 @@ const RenderFormTrainee = ({ form, userId, readOnly = false }) => {
 
     return (
         <>
-            <Button onClick={() => setOpen(true)} variant="text" color="primary">
+            <Button 
+                onClick={() => setOpen(true)} 
+                variant="contained"
+                size="small"
+                sx={{
+                    borderRadius: '16px',
+                    height: '25px',
+                    textTransform: 'none',
+                    fontSize: '12px',
+                    ml: 1,
+                    borderColor: 'primary.main',
+                    '&:hover': {
+                        backgroundColor: 'primary.light',
+                        borderColor: 'primary.main'
+                    }
+                }}
+            >
                 {existingResponse ? 'Edit Response' : 'Fill Form'}
             </Button>
             <Dialog open={open} onClose={() => setOpen(false)}>

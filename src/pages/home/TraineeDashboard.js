@@ -33,6 +33,7 @@ import {
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
 import useNavigateTo from "src/modules/components/useRouterPush";
 import { getAllTrainers } from 'src/modules/diet/hooks/useDiet';
+import RenderFormTrainee from './RenderFormTrainee';
 
 const TraineeDashboard = () => {
   const navigateTo = useNavigateTo();
@@ -41,7 +42,7 @@ const TraineeDashboard = () => {
   const [viewMode, setViewMode] = useState(isMobile ? 'card' : 'table');
   const { data: relationships, isLoading } = getAllTrainers();
   const [expandedRows, setExpandedRows] = useState({});
-
+  const [selectedForm, setSelectedForm] = useState(null);
   if (isLoading) return <p>Loading...</p>;
 
   const handleViewChange = (event, newView) => {
@@ -178,7 +179,6 @@ const TraineeDashboard = () => {
                   variant="outlined"
                   sx={{ 
                     p: 2,
-                    height: '100%',
                     backgroundColor: 'background.default',
                     borderRadius: 1
                   }}
@@ -186,7 +186,7 @@ const TraineeDashboard = () => {
                   <Typography 
                     variant="subtitle2" 
                     sx={{ 
-                      mb: 2,
+                      mb: 1.5,
                       display: 'flex',
                       alignItems: 'center',
                       gap: 1
@@ -199,23 +199,22 @@ const TraineeDashboard = () => {
                   {relationship?.Assigned_Forms?.length > 0 ? (
                     <Box sx={{ 
                       display: 'flex', 
-                      flexWrap: 'wrap', 
-                      gap: 1 
+                      flexDirection: 'column',
+                      gap: 2
                     }}>
                       {relationship.Assigned_Forms.map((form) => (
-                        <Chip
-                          key={form.id}
-                          label={form.formInfo.form_name}
-                          onClick={() => navigateTo(`/forms/${form.formInfo.id}`)}
-                          size="small"
-                          variant="outlined"
-                          sx={{ 
-                            '&:hover': { 
-                              backgroundColor: 'primary.light',
-                              cursor: 'pointer'
-                            }
-                          }}
-                        />
+                        <Box key={form.id}>
+                          <Chip
+                            label={form.formInfo.form_name}
+                            size="small"
+                            variant="outlined"
+                            sx={{ mb: 1 }}
+                          />
+                          <RenderFormTrainee 
+                            form={form}
+                            userId={14}
+                          />
+                        </Box>
                       ))}
                     </Box>
                   ) : (
@@ -367,22 +366,21 @@ const TraineeDashboard = () => {
           <Box sx={{ 
             display: 'flex', 
             flexDirection: 'column',
-            gap: 1 
+            gap: 2
           }}>
             {relationship.Assigned_Forms.map((form) => (
-              <Chip
-                key={form.id}
-                label={form.formInfo.form_name}
-                onClick={() => navigateTo(`/forms/${form.formInfo.id}`)}
-                size="small"
-                variant="outlined"
-                sx={{ 
-                  '&:hover': { 
-                    backgroundColor: 'primary.light',
-                    cursor: 'pointer'
-                  }
-                }}
-              />
+              <Box key={form.id}>
+                <Chip
+                  label={form.formInfo.form_name}
+                  size="small"
+                  variant="outlined"
+                  sx={{ mb: 1 }}
+                />
+                <RenderFormTrainee 
+                  form={form}
+                  userId={14}
+                />
+              </Box>
             ))}
           </Box>
         ) : (
@@ -600,6 +598,8 @@ const TraineeDashboard = () => {
           {relationships.map(relationship => renderCardView(relationship))}
         </Grid>
       )}
+
+
     </>
   );
 };

@@ -26,7 +26,8 @@ import {
   InputLabel,
   Fab,
   Hidden,
-  Tooltip
+  Tooltip,
+  Alert
 } from "@mui/material";
 import { Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
 import { FloatBarAction } from "../components/FloatBarAction";
@@ -168,8 +169,28 @@ const DietList = () => {
       ...newDiet,
       image: "https://source.unsplash.com/featured/?food",
     };
-    createDiet.mutate(newDietData)
-    // setDiets([...diets, newDietData]);
+    createDiet.mutate(newDietData, {
+      onSuccess: () => {
+        setNewDietDialogOpen(false);
+        // Reset form
+        setNewDiet({
+          title: "",
+          description: "",
+          calories: "",
+          carbs: "",
+          fat: "",
+          protein: "",
+          type: "veg",
+          is_macro_set: false,
+          macro_type: "",
+          target_calories: "",
+          target_protein: "",
+          target_carbs: "",
+          target_fat: "",
+          target_fibre: "",
+        });
+      }
+    });
   };
 
   const handleSearch = (e) => {
@@ -247,6 +268,7 @@ const DietList = () => {
         </div>
       </Hidden >
 
+
       <Card sx={{ marginTop: 3, padding: 2 }}>
         <CardContent sx={{ display: "flex", gap: 2 }}>
           <TextField
@@ -290,6 +312,17 @@ const DietList = () => {
           )}
         </CardContent>
       </Card>
+
+
+      {/* Add alert when no diets exist */}
+      {filteredDiets.length === 0 && (
+        <Box sx={{ mt: 3 }}>
+          <Alert severity="info" sx={{display: 'flex', justifyContent: 'center'}}>
+            No diets created yet. Click the "Add New Diet" button to create one.
+          </Alert>
+        </Box>
+      )}
+
 
       <Grid container  spacing={2}  sx={{ marginTop: 3 }}>
         {filteredDiets.map((diet, index) => (

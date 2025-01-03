@@ -3,6 +3,8 @@ import useRazorpay from "react-razorpay";
 import { useCreateOrder, useCreateSubscription } from "../../../payments/razorpay/useRazorPay";
 import PackageBilling from './PackageBilling';
 import { useUpdateUser } from '../../../user/hooks/useUserData'
+import { useAuth } from '../../../../hooks/useAuth';
+import { Alert } from '@mui/material';
 
 import {
   Box,
@@ -47,7 +49,7 @@ const getCurrencySymbol = (curr) => {
   }
 };
 
-const PackageCard = ({ packageData, onSelect }) => {
+const PackageCard = ({ packageData, onSelect, isOwnProfile }) => {
   const { title, amount, currency, category, validity, discount, session_count } = packageData;
 
   const displayPrice = discount > 0
@@ -126,13 +128,13 @@ const PackageCard = ({ packageData, onSelect }) => {
             textTransform: 'none',
           }}
         >
-          Learn More
+          {isOwnProfile ? 'View Details' : 'Learn More'}
         </Button>
       </CardActions>
     </Card>
   );
 };
-const PackageDialog = ({ open, handleClose, packageData }) => {
+const PackageDialog = ({ open, handleClose, packageData, isOwnProfile, isTrainerProfile }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [billingData, setBillingData] = useState(null);
   const [isBillingValid, setIsBillingValid] = useState(false);
@@ -197,13 +199,13 @@ const handleBillingSubmit = (data) => {
     try {
       const order = await createOrder.mutateAsync({
         packageId: packageData.id,
-        amount: amount,
+        amount: discount > 0 ? (amount - (amount * discount / 100)) : amount,
         currency: currency
       });
 
       const options = {
         key: 'rzp_test_XzVgCoZd6ruTtE',
-        amount: order.amount,
+        amount: discount > 0 ? (amount - (amount * discount / 100)) : amount,
         currency: order.currency,
         name: title,
         description: `Purchase of ${title}`,
@@ -242,10 +244,23 @@ const handleBillingSubmit = (data) => {
         return (
           <Fade in={activeStep === 0}>
             <Box>
+              {(isOwnProfile || isTrainerProfile) && (
+                <Typography 
+                  variant="subtitle1" 
+                  color="error" 
+                  sx={{ mb: 2, textAlign: 'center' }}
+                >
+                  Note: You cannot purchase packages from your own profile. Please visit other profiles to make purchases.
+                </Typography>
+              )}
               <Typography variant="body1" color="text.secondary" paragraph dangerouslySetInnerHTML={{ __html: JSON.parse(description).blocks[0].text }} />
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline', mb: 2 }}>
                 <Typography component="h2" variant="h3" color="text.primary">
-                  {getCurrencySymbol(currency)}{amount}
+                  {getCurrencySymbol(currency)}
+                  {discount > 0 
+                    ? (amount - (amount * discount / 100))
+                    : amount
+                  }
                 </Typography>
                 <Typography variant="h6" color="text.secondary">
                   /{validity} days
@@ -302,7 +317,13 @@ const handleBillingSubmit = (data) => {
               </Typography>
               {/* Add a summary of the package and billing details here */}
               <Typography variant="body1">Package: {title}</Typography>
-              <Typography variant="body1">Price: {getCurrencySymbol(currency)}{amount}</Typography>
+              <Typography variant="body1">
+                Price: {getCurrencySymbol(currency)}
+                {discount > 0 
+                  ? (amount - (amount * discount / 100))
+                  : amount
+                }
+              </Typography>
               <Typography variant="body1">Billing Name: {billingData?.companyName}</Typography>
               <Typography variant="body1">Billing Email: {billingData?.billingEmail}</Typography>
               {/* Add more billing details as needed */}
@@ -345,21 +366,23 @@ const handleBillingSubmit = (data) => {
               Back
             </Button>
           )}
-          {activeStep < steps.length - 1 ? (
-            <Button
-              variant="contained"
-              onClick={handleNext}
-              disabled={activeStep === 1 && !isBillingValid}
-            >
-              Next
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              onClick={handlePurchase}
-            >
-              Purchase
-            </Button>
+          {!isOwnProfile && (
+            activeStep < steps.length - 1 ? (
+              <Button
+                variant="contained"
+                onClick={handleNext}
+                disabled={activeStep === 1 && !isBillingValid}
+              >
+                Next
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={handlePurchase}
+              >
+                Purchase
+              </Button>
+            )
           )}
         </Box>
       </Dialog>
@@ -368,9 +391,13 @@ const handleBillingSubmit = (data) => {
   );
 };
 
-const PackageManager = ({ packages }) => {
+const PackageManager = ({ packages, profileUserId }) => {
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const userData = JSON.parse(localStorage.getItem('userData'));
+  // Check if the current user is viewing their own profile
+  const isOwnProfile =  userData?.id === profileUserId;
+  const isTrainerProfile = userData?.role === 'trainer';
 
   const handlePackageSelect = (pkg) => {
     setSelectedPackage(pkg);
@@ -383,18 +410,35 @@ const PackageManager = ({ packages }) => {
 
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Grid container spacing={3}>
-        {packages.map((pkg) => (
-          <Grid item xs={12} sm={6} md={4} key={pkg.id}>
-            <PackageCard packageData={pkg} onSelect={handlePackageSelect} />
-          </Grid>
-        ))}
-      </Grid>
+      {packages.length === 0 ? (
+       
+          <Alert 
+            severity="info"
+            sx={{ 
+              width: '100%'
+            }}
+          >
+            No packages available at the moment.
+          </Alert>
+      ) : (
+        <Grid container spacing={3}>
+          {packages.map((pkg) => (
+            <Grid item xs={12} sm={6} md={4} key={pkg.id}>
+              <PackageCard 
+                packageData={pkg} 
+                onSelect={handlePackageSelect}
+                isOwnProfile={isOwnProfile}
+              />
+            </Grid>
+          ))}
+        </Grid>
+      )}
       <PackageDialog
-
+        isTrainerProfile={isTrainerProfile}
         open={dialogOpen}
         handleClose={handleDialogClose}
         packageData={selectedPackage}
+        isOwnProfile={isOwnProfile}
       />
     </Box>
   );

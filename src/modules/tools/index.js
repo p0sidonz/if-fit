@@ -34,6 +34,8 @@ const UserTools = () => {
     proteinPercentage: 30,
     carbPercentage: 40,
     fatPercentage: 30,
+    goal: 'maintain',
+    deficit: 500,
   });
 
   const [results, setResults] = useState({
@@ -150,11 +152,19 @@ const UserTools = () => {
   };
 
   const calculateMacros = (tdee) => {
-    const protein = Math.round((tdee * (formData.proteinPercentage / 100)) / 4);
-    const carbs = Math.round((tdee * (formData.carbPercentage / 100)) / 4);
-    const fats = Math.round((tdee * (formData.fatPercentage / 100)) / 9);
+    // Adjust TDEE based on goal
+    let adjustedTDEE = tdee;
+    if (formData.goal === 'lose') {
+      adjustedTDEE -= formData.deficit;
+    } else if (formData.goal === 'gain') {
+      adjustedTDEE += formData.deficit;
+    }
+
+    const protein = Math.round((adjustedTDEE * (formData.proteinPercentage / 100)) / 4);
+    const carbs = Math.round((adjustedTDEE * (formData.carbPercentage / 100)) / 4);
+    const fats = Math.round((adjustedTDEE * (formData.fatPercentage / 100)) / 9);
     
-    return { protein, carbs, fats };
+    return { protein, carbs, fats, adjustedTDEE };
   };
 
   const calculate1RM = () => {
@@ -179,9 +189,23 @@ const UserTools = () => {
   };
 
   const calculateBMI = () => {
+    let heightInMeters;
     const weight = convertWeight(Number(formData.weight));
-    const height = convertHeight(Number(formData.height)) / 100;
-    return Math.round((weight / (height * height)) * 100) / 100;
+    
+    if (useMetric) {
+      heightInMeters = Number(formData.height) / 100;
+    } else {
+      // When in imperial, calculate from feet and inches
+      const heightInCm = convertFeetInchesToCm(
+        parseFloat(heightFeet) || 0,
+        parseFloat(heightInches) || 0
+      );
+      heightInMeters = heightInCm / 100;
+    }
+    
+    if (!weight || !heightInMeters) return 0;
+    
+    return Math.round((weight / (heightInMeters * heightInMeters)) * 100) / 100;
   };
 
   const handleCalculate = () => {
@@ -205,6 +229,36 @@ const UserTools = () => {
         proteinPercentage: macroPresets[preset].protein,
         fatPercentage: macroPresets[preset].fats,
       }));
+    }
+  };
+
+  const isFormValid = () => {
+    // Common required fields for all calculators
+    const commonFields = {
+      age: formData.age,
+      weight: formData.weight,
+      gender: formData.gender,
+    };
+
+    // Height validation (either metric or imperial)
+    const isHeightValid = useMetric 
+      ? Boolean(formData.height)
+      : (Boolean(heightFeet) || Boolean(heightInches));
+
+    // Basic validation - check if required fields are filled
+    const isCommonValid = Object.values(commonFields).every(field => Boolean(field)) && isHeightValid;
+
+    // Specific validation for each calculator
+    switch(activeCalculator) {
+      case 0: // BMR & TDEE
+      case 1: // Macros
+        return isCommonValid && Boolean(formData.activityLevel);
+      case 2: // Body Fat
+        return isCommonValid;
+      case 3: // 1RM
+        return Boolean(formData.weight1RM) && Boolean(formData.reps1RM);
+      default:
+        return false;
     }
   };
 
@@ -341,6 +395,33 @@ const UserTools = () => {
                   <TextField
                     fullWidth
                     select
+                    label="Goal"
+                    name="goal"
+                    value={formData.goal}
+                    onChange={handleInputChange}
+                  >
+                    <MenuItem value="lose">Weight Loss</MenuItem>
+                    <MenuItem value="maintain">Maintain</MenuItem>
+                    <MenuItem value="gain">Weight Gain</MenuItem>
+                  </TextField>
+                </Grid>
+                {formData.goal !== 'maintain' && (
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Daily Calorie Adjustment"
+                      name="deficit"
+                      type="number"
+                      value={formData.deficit}
+                      onChange={handleInputChange}
+                      helperText={`Calories to ${formData.goal === 'lose' ? 'reduce' : 'add'} per day`}
+                    />
+                  </Grid>
+                )}
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    select
                     label="Macro Split Preset"
                     value={macroPreset}
                     onChange={handlePresetChange}
@@ -418,9 +499,19 @@ const UserTools = () => {
                 variant="contained"
                 color="primary"
                 onClick={handleCalculate}
+                disabled={!isFormValid()}
               >
                 Calculate
               </Button>
+              {!isFormValid() && (
+                <Typography 
+                  color="error" 
+                  variant="caption" 
+                  sx={{ mt: 1, display: 'block', textAlign: 'center' }}
+                >
+                  Please fill in all required fields
+                </Typography>
+              )}
             </Grid>
           </Grid>
         </CardContent>
@@ -464,6 +555,15 @@ const UserTools = () => {
 
               {activeCalculator === 1 && results.macros && (
                 <>
+                  <Grid item xs={12}>
+                    <Card elevation={3}>
+                      <CardContent>
+                        <Typography variant="h6">Adjusted Daily Calories</Typography>
+                        <Typography variant="h4">{results.macros.adjustedTDEE}</Typography>
+                        <Typography color="textSecondary">calories/day</Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
                   <Grid item xs={12} md={4}>
                     <Card elevation={3}>
                       <CardContent>

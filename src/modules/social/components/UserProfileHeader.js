@@ -18,6 +18,7 @@ import { Dialog, DialogTitle, DialogContent, List, ListItem, ListItemText } from
 import Followers from "./followers";
 import Following from "./following";
 import Skeleton from "@mui/material/Skeleton";
+import Tooltip from "@mui/material/Tooltip";
 
 // ** Icon Imports
 import Icon from "src/@core/components/icon";
@@ -203,13 +204,20 @@ const UserProfileHeader = ({user, otherUser, refetchWhoAreYou, isSameUser, usern
                 </LoadingButton>
               )}
 
-              {otherUser?.role === "trainer" && (<Button
-                variant="contained"
-                startIcon={<Icon icon="mdi:package-variant-closed" />}
-                onClick={() => setPackagesDialogOpen(true)}
-              >
-                Packages
-              </Button>)}
+              {otherUser?.role === "trainer" && (
+                <Tooltip title={!sameUser && user?.role === "trainer" ? "Sorry, trainers cannot purchase packages" : ""}>
+                  <span>
+                    <Button
+                      variant="contained"
+                      startIcon={<Icon icon="mdi:package-variant-closed" />}
+                      onClick={() => setPackagesDialogOpen(true)}
+                      disabled={!sameUser && user?.role === "trainer"}
+                    >
+                      Packages
+                    </Button>
+                  </span>
+                </Tooltip>
+              )}
             </Box>
           </>
         )}

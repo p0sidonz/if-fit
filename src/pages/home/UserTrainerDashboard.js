@@ -31,6 +31,7 @@ import {
   FormControl,
   InputLabel,
   CircularProgress,
+  Alert,
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -94,11 +95,13 @@ const UserTrainerDashboard = () => {
       return axios.post('/userandtrainer/addofflineclient', userData);
     },
     onSuccess: (res) => {
-      if(!res.ok) {
-        setErrors({ ...errors, general: res.data?.message || 'Failed to add client' });
+      // Check the ok flag from the API response
+      if (!res.data.ok) {
+        setErrors({ ...errors, general: res.data.message });
         return;
       }
-      toast.success('Client added successfully');
+      
+      toast.success(res.data.message || 'Client added successfully');
       queryClient.invalidateQueries(['clients']);
       handleCloseDialog();
       setNewUser({
@@ -769,69 +772,83 @@ const UserTrainerDashboard = () => {
         </Box>
       </Box>
 
+      {/* Add alert when no users exist */}
+     
       {/* Table/Card View */}
       {viewMode === 'table' ? (
-        <Card>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>User</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Subscription</TableCell>
-                  <TableCell>Expiry</TableCell>
-                  <TableCell>Assigned Diets</TableCell>
-                  <TableCell>Assigned Programs</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredRelationships.map((relationship) => (
-                  <React.Fragment key={relationship.id}>
-                    <TableRow>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Avatar src={relationship.userInfo.avatar} sx={{ mr: 2 }}>
-                            <PersonIcon />
-                          </Avatar>
-                          {`${relationship.userInfo.first_name} ${relationship.userInfo.last_name}`}
-                        </Box>
-                      </TableCell>
-                      <TableCell>{relationship.userInfo.email}</TableCell>
-                      <TableCell>
-                        {relationship.userInfo.UserAndTrainerSubscription.length > 0 ? (
-                          <Typography sx={{ 
-                            color: new Date(relationship.userInfo.UserAndTrainerSubscription[0].end_date) < new Date() 
-                              ? 'error.main' 
-                              : 'success.main'
-                          }}>
-                            {new Date(relationship.userInfo.UserAndTrainerSubscription[0].end_date).toLocaleDateString()}
-                          </Typography>
-                        ) : (
-                          <Typography color="text.secondary">{relationship.type === 'offline' ? <Chip label="Offline Client" variant="outlined" size="small" /> : '-'}</Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>{relationship.Assigned_Diet.length}</TableCell>
-                      <TableCell>{relationship.Assigned_Program.length}</TableCell>
-                      <TableCell>
-                        <IconButton onClick={() => toggleRowExpansion(relationship.id)}>
-                          {expandedRows[relationship.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                    {expandedRows[relationship.id] && renderExpandedRow(relationship)}
-                  </React.Fragment>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Card>
+        filteredRelationships.length > 0 ? (
+          <Card>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>User</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>Subscription</TableCell>
+                    <TableCell>Expiry</TableCell>
+                    <TableCell>Assigned Diets</TableCell>
+                    <TableCell>Assigned Programs</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredRelationships.map((relationship) => (
+                    <React.Fragment key={relationship.id}>
+                      <TableRow>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Avatar src={relationship.userInfo.avatar} sx={{ mr: 2 }}>
+                              <PersonIcon />
+                            </Avatar>
+                            {`${relationship.userInfo.first_name} ${relationship.userInfo.last_name}`}
+                          </Box>
+                        </TableCell>
+                        <TableCell>{relationship.userInfo.email}</TableCell>
+                        <TableCell>
+                          {relationship.userInfo.UserAndTrainerSubscription.length > 0 ? (
+                            <Typography sx={{ 
+                              color: new Date(relationship.userInfo.UserAndTrainerSubscription[0].end_date) < new Date() 
+                                ? 'error.main' 
+                                : 'success.main'
+                            }}>
+                              {new Date(relationship.userInfo.UserAndTrainerSubscription[0].end_date).toLocaleDateString()}
+                            </Typography>
+                          ) : (
+                            <Typography color="text.secondary">{relationship.type === 'offline' ? <Chip label="Offline Client" variant="outlined" size="small" /> : '-'}</Typography>
+                          )}
+                        </TableCell>
+                        <TableCell>{relationship.Assigned_Diet.length}</TableCell>
+                        <TableCell>{relationship.Assigned_Program.length}</TableCell>
+                        <TableCell>
+                          <IconButton onClick={() => toggleRowExpansion(relationship.id)}>
+                            {expandedRows[relationship.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                      {expandedRows[relationship.id] && renderExpandedRow(relationship)}
+                    </React.Fragment>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Card>
+        ) : null
       ) : (
         <Grid container spacing={3}>
           {filteredRelationships.map(relationship => renderCardView(relationship))}
         </Grid>
       )}
 
-     
+      {filteredRelationships.length === 0 && (
+        <Alert 
+          severity="info" 
+          sx={{ mb: 3, mt: 3 }}
+        >
+          {hideExpiredClients && hasExpiredClients 
+            ? "No active clients found. Try unchecking 'Hide Expired Clients' to view all clients."
+            : "No clients found. Click 'Add Offline User' to add your first client."}
+        </Alert>
+      )}
+
       {/* Add User Dialog */}
       <Drawer
         anchor="right"

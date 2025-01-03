@@ -4,7 +4,7 @@ import { useGetWorkouts, useDeleteWorkout, useCreateWorkout, useUpdateWorkout } 
 import {
   List, ListItem, ListItemText, Button, Typography, Box, Link
   , Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid, Card, CardContent, CardActions, Tooltip,
-  Hidden, Divider, IconButton, Avatar, InputAdornment,
+  Hidden, Divider, IconButton, Avatar, InputAdornment, Alert
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -150,6 +150,14 @@ const WorkoutsList = () => {
         </CardContent>
       </Card>
 
+      {/* Add alert when no workouts exist */}
+      {filteredWorkouts.length === 0 && (
+        <Box sx={{ mt: 3 }}>
+          <Alert severity="info">
+            No workouts created yet. Click the "Add New Workout" button to create one.
+          </Alert>
+        </Box>
+      )}
 
       <Grid container spacing={3}>
         {filteredWorkouts?.map((workout) => (

@@ -26,7 +26,8 @@ import {
   InputLabel,
   Box,
   Tooltip,
-  CardActions
+  CardActions,
+  Alert
 } from "@mui/material";
 import { Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
 import EditIcon from "@mui/icons-material/Edit";
@@ -234,6 +235,15 @@ const ProgramList = () => {
           />
         </CardContent>
       </Card>
+
+      {/* Add alert when no programs exist */}
+      {filteredPrograms.length === 0 && (
+        <Box sx={{ mt: 3 }}>
+          <Alert severity="info" sx={{display: 'flex', justifyContent: 'center'}}>
+            No programs created yet. Click the "Add New Program" button to create one.
+          </Alert>
+        </Box>
+      )}
 
       <Grid container spacing={1} sx={{ marginTop: 3 }}>
         {filteredPrograms.map((program, index) => (

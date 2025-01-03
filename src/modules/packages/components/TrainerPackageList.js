@@ -7,6 +7,7 @@ import {
   Typography,
   Hidden,
   Tooltip,
+  Alert,
 } from '@mui/material';
 import TrainerPackageCard from './TrainerPackageCard';
 import { useTrainerPackages } from '../hooks/usePackages';
@@ -47,22 +48,30 @@ const TrainerPackageList = () => {
         </div>
         <div>
           <Hidden smDown>
-          <Tooltip title={`Add New Package`} aria-label="add">
-
-          <Button
-            variant='contained'
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={onNewPackage}
-          >
-            New Package
-          </Button>
-          </Tooltip>
+            <Tooltip title={`Add New Package`} aria-label="add">
+              <Button
+                variant='contained'
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={onNewPackage}
+              >
+                New Package
+              </Button>
+            </Tooltip>
           </Hidden>
         </div>
       </div>
+
+      {packages?.length === 0 && (
+        <Box sx={{ mt: 3 }}>
+          <Alert severity="info">
+            No packages created yet. Click the "New Package" button to create one.
+          </Alert>
+        </Box>
+      )}
+
       <Stack spacing={3} sx={{ mt: 5 }}>
-        {packages.map(pkg => (
+        {packages?.map(pkg => (
           <TrainerPackageCard
             key={pkg.id}
             trainerPackage={pkg}
