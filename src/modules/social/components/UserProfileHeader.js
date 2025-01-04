@@ -19,7 +19,7 @@ import Followers from "./followers";
 import Following from "./following";
 import Skeleton from "@mui/material/Skeleton";
 import Tooltip from "@mui/material/Tooltip";
-
+import { GET_AVATAR_COMPRESSED_URL } from "../../../utils/utils";
 // ** Icon Imports
 import Icon from "src/@core/components/icon";
 import Packages from "./package/Package";
@@ -59,10 +59,13 @@ const StatItem = ({ label, count, onClick }) => (
 );
 
 const UserProfileHeader = ({user, otherUser, refetchWhoAreYou, isSameUser, username}) => {
+  console.log("otherUser", otherUser);
   const sameUser = user?.username === otherUser?.username;
   const followUser = useFollowUser();
   const unFollowUser = useUnFollowUser();
   const router = useRouter();
+
+  const avatarUrl = otherUser?.avatar?.avatar_compressed ?  GET_AVATAR_COMPRESSED_URL(otherUser?.avatar?.avatar_compressed) : "/images/avatars/1.png";
 
   const [followersDialogOpen, setFollowersDialogOpen] = useState(false);
   const [followingDialogOpen, setFollowingDialogOpen] = useState(false);
@@ -84,8 +87,7 @@ const UserProfileHeader = ({user, otherUser, refetchWhoAreYou, isSameUser, usern
 
   // ** State
   const [data, setData] = useState({
-    profileImg:
-      "https://demos.pixinvent.com/materialize-nextjs-admin-template/demo-1/images/pages/profile-banner.png",
+    profileImg: avatarUrl,
     designationIcon: "mdi:fountain-pen-tip",
   });
 
@@ -140,7 +142,7 @@ const UserProfileHeader = ({user, otherUser, refetchWhoAreYou, isSameUser, usern
           // Actual content
           <>
             <ProfilePicture
-              src={data.profileImg}
+              src={avatarUrl || data.profileImg }
               alt="profile-picture"
               sx={{ width: 120, height: 120, borderRadius: '50%', mb: 3 }}
             />

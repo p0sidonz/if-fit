@@ -13,6 +13,7 @@ import OptionsMenu from "src/@core/components/option-menu";
 import Button from "@mui/material/Button";
 import LoadingButton from '@mui/lab/LoadingButton';
 import useNavigateTo from "src/modules/components/useRouterPush";
+import { GET_AVATAR_COMPRESSED_URL } from "src/utils/utils";
 import { 
   ListItem, 
   ListItemAvatar, 
@@ -30,7 +31,7 @@ const UserProfileFollowsListItem = ({ item }) => {
   const { mutate: followUser } = useFollowUser();
 
   const [user, setUser] = useState(item);
-
+  const avatarUrl = user?.avatar?.avatar_compressed ? GET_AVATAR_COMPRESSED_URL(user?.avatar?.avatar_compressed) : "/images/avatars/1.png";
   const handleFollowOrUnFollow = async () => {
     if (user.isFollowing) {
       unFollowUser(user.isFollowingId, {
@@ -59,7 +60,7 @@ const UserProfileFollowsListItem = ({ item }) => {
   <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
     <ListItemAvatar>
       <Avatar
-        src={user.avatar}
+        src={avatarUrl}
         alt={`${user.first_name} ${user.last_name}`}
         sx={{ width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 } }}
       />

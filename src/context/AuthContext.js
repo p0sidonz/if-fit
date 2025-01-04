@@ -3,9 +3,9 @@ import { createContext, useEffect, useState } from "react";
 import { io } from 'socket.io-client';
 import { makeMessagesSeen } from "../modules/chat/chatSlice";
 import store from "src/store/store";
-
+import { setUserDetails } from "src/modules/user/userSlice";
 import {API_URL} from "../modules/consts";
-
+import { useDispatch } from "react-redux";
 // ** Next Import
 import { useRouter } from "next/router";
 // ** Axios
@@ -33,6 +33,7 @@ const AuthContext = createContext(defaultProvider);
 
 const AuthProvider = ({ children }) => {
   // ** States
+  const dispatch = useDispatch();
   const [user, setUser] = useState(defaultProvider.user);
   const [loading, setLoading] = useState(defaultProvider.loading);
   const [isInitialized, setIsInitialized] = useState(
@@ -61,6 +62,7 @@ const AuthProvider = ({ children }) => {
           })
           .then(async (response) => {
             setLoading(false);
+            dispatch(setUserDetails(response.data.user));
             setUser({ ...response.user });
            
           })
@@ -172,6 +174,8 @@ const AuthProvider = ({ children }) => {
           })
           .then(async (response) => {
             const returnUrl = router.query.returnUrl;
+            console.log("response.data.user", response.data.user)
+            dispatch(setUserDetails(response.data.user));
             setUser({ ...response.data.user });
             await window.localStorage.setItem(
               "userData",

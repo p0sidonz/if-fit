@@ -6,6 +6,8 @@ import Typography from "@mui/material/Typography";
 import CardContent from "@mui/material/CardContent";
 import Box from "@mui/material/Box";
 import { Icon } from "@iconify/react"; // Adjust the import path for the icon library you're using
+import { GET_POST_THUMBNAIL_URL } from "../../utils/utils"
+
 
 const PostCard = ({
   data,
@@ -14,12 +16,13 @@ const PostCard = ({
   title = "Default title",
   handleClickOpen,
 }) => {
+  let imageUrl = image ? GET_POST_THUMBNAIL_URL(image) : null;
   console.log("_count", data._count);
   return (
     <Card sx={{ position: "relative", minHeight: 400, maxHeight: 300 }}>
       <CardMedia
         component="img"
-        image={image}
+        image={imageUrl}
         alt="Post image"
         sx={{ minHeight: 400, maxHeight: 300 }}
       />

@@ -73,3 +73,24 @@ export function checkMuscleGroup(muscles) {
     return ""; // If counts are equal or no matches found
   }
 }
+
+const UPLOAD_FOLDER_NAME = "uploads";
+const POST_FOLDER_NAME = "posts";
+const AVATAR_FOLDER_NAME = "avatar";
+const THUMBNAIL_FOLDER_NAME = "thumbnails";
+const COMPRESSED_FOLDER_NAME = "compressed";
+
+export function GET_POST_THUMBNAIL_URL(image) {
+  return `${process.env.NEXT_PUBLIC_API_URL}/${UPLOAD_FOLDER_NAME}/${POST_FOLDER_NAME}/${THUMBNAIL_FOLDER_NAME}/${image}`;
+}
+
+export function GET_POST_IMAGE_URL(image) {
+  return `${process.env.NEXT_PUBLIC_API_URL}/${UPLOAD_FOLDER_NAME}/${POST_FOLDER_NAME}/${COMPRESSED_FOLDER_NAME}/${image}`;
+} 
+
+export function GET_AVATAR_THUMBNAIL_URL(image) {
+  return `${process.env.NEXT_PUBLIC_API_URL}/${UPLOAD_FOLDER_NAME}/${AVATAR_FOLDER_NAME}/${THUMBNAIL_FOLDER_NAME}/${image}`;
+} 
+export function GET_AVATAR_COMPRESSED_URL(image) {
+  return `${process.env.NEXT_PUBLIC_API_URL}/${UPLOAD_FOLDER_NAME}/${AVATAR_FOLDER_NAME}/${COMPRESSED_FOLDER_NAME}/${image}`;
+} 

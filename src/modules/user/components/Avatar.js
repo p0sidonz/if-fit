@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useState, useEffect} from 'react'
 import { CardContent } from '@mui/material'
 import { Box } from '@mui/material'
 import { Typography } from '@mui/material'
@@ -31,7 +31,7 @@ const ImgStyled = styled("img")(({ theme }) => ({
     },
   }));
 
-const AvatarComponent = () => {
+const AvatarComponent = ({avatarUrl}) => {
     const updateProfilePicture = useUpdateProfilePicture();
     const [inputValue, setInputValue] = useState("");
     const [imgSrc, setImgSrc] = useState("/images/avatars/1.png");
@@ -50,6 +50,13 @@ const AvatarComponent = () => {
 
         }
       };
+      useEffect(() => {
+        if (avatarUrl) {
+          setImgSrc(avatarUrl);
+        } else {
+          setImgSrc("/images/avatars/1.png");
+        }
+      }, [avatarUrl]);
     
       const handleInputImageReset = () => {
         setInputValue("");

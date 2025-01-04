@@ -86,6 +86,7 @@ const ProfileTab = () => {
               localPosts.map((post, index) => (
                 <Grid key={index} item lg={4} md={4} xs={12}>
                   <PostCard
+                    image={post.photo?.photo_thumbnail}
                     data={post}
                     title={post.content}
                     id={post.id}

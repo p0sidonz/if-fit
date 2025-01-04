@@ -17,7 +17,16 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { format } from 'date-fns';
 
 const UserBoughtPackageHistory = ({ userHistory, title }) => {
-  if(!userHistory) return <p>No payment history found</p>;
+  if (!userHistory || userHistory.length === 0) {
+    return (
+      <Card>
+        <CardHeader title={title} />
+        <Typography sx={{ p: 3, textAlign: 'center' }}>
+          No package history found
+        </Typography>
+      </Card>
+    );
+  }
 
   const handleDownloadInvoice = (orderId) => {
     // Implement the download functionality here

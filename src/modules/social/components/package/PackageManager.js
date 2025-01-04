@@ -371,7 +371,7 @@ const handleBillingSubmit = (data) => {
               <Button
                 variant="contained"
                 onClick={handleNext}
-                disabled={activeStep === 1 && !isBillingValid}
+                disabled={isOwnProfile || isTrainerProfile || (activeStep === 1 && !isBillingValid)}
               >
                 Next
               </Button>

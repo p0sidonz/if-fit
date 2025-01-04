@@ -15,7 +15,7 @@ import CardContent from "@mui/material/CardContent";
 import InputAdornment from "@mui/material/InputAdornment";
 import Button from "@mui/material/Button";
 import {useUserData, useUpdateUser} from "../hooks/useUserData";
-
+import { GET_AVATAR_THUMBNAIL_URL, GET_AVATAR_COMPRESSED_URL } from "../../../utils/utils";
 import Avatar from "./Avatar";
 // ** Third Party Imports
 import { useForm, Controller } from "react-hook-form";
@@ -52,7 +52,8 @@ const TabAccount = () => {
   // ** State
   const [formData, setFormData] = useState(initialData);
   const realReduxData = useSelector((state) => state.user.details);
-
+  
+  const avatarUrl = GET_AVATAR_COMPRESSED_URL(realReduxData?.avatar?.avatar_compressed) || "/images/avatars/1.png";
   // ** Hooks
   const {
     control,
@@ -108,7 +109,7 @@ const TabAccount = () => {
         <Card>
           <CardHeader title="Account Details" />
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Avatar />
+            <Avatar avatarUrl={avatarUrl} />
             <Divider />
             <CardContent>
 

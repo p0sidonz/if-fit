@@ -28,10 +28,11 @@ import {
 import CommentsComponent from "./CommentsComponent";
 import { Tooltip } from "@mui/material";
 import { ArrowBackIos } from "@mui/icons-material";
+import {  GET_POST_IMAGE_URL } from "../../../../utils/utils";
 
 const PreviewPost = ({ open, onClose, isLoading, post }) => {
   const user = JSON.parse(localStorage.getItem("userData"));
-
+  const imageUrl = GET_POST_IMAGE_URL(post?.photo?.photo_compressed);
   const [newComment, setNewComment] = useState("");
   const postComment = useAddComment();
   const deletePost = useDeleteComment();
@@ -115,7 +116,7 @@ const PreviewPost = ({ open, onClose, isLoading, post }) => {
             >
               <CardMedia
                 component="img"
-                image="https://picsum.photos/id/237/1600/1200"
+                image={imageUrl}
                 alt="Your image description"
                 sx={{
                   height: { xs: "auto", sm: "100%" },

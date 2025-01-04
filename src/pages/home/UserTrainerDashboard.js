@@ -51,12 +51,501 @@ import { useCurrentUserPackages } from 'src/modules/user/hooks/usePackages'
 
 import TrainersStats from './TrainersStats';
 import { getAllUserAndTrainerList } from 'src/modules/diet/hooks/useDiet';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
+import { format, startOfWeek, startOfMonth, startOfYear, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, subMonths, subYears } from 'date-fns';
 // import UserAssignmentsChart from './Stats';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from '../../utils/axios';
 import { toast } from 'react-hot-toast';
+import {
+  Person,
+  Email,
+  ExpandMore,
+  ExpandLess,
+  CalendarToday,
+  LocalDining,
+  FitnessCenter,
+  MoreVert
+} from '@mui/icons-material';
+
+
+
+const TrainerRelationshipCard = ({ relationship }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const hasSubscription = relationship.userInfo.UserAndTrainerSubscription.length > 0;
+  const subscription = hasSubscription ? relationship.userInfo.UserAndTrainerSubscription[0] : null;
+  const isSubscriptionExpired = subscription && new Date(subscription.end_date) < new Date();
+  const navigateTo = useNavigateTo();
+
+  const onToggleExpand = () => {
+    setIsExpanded(prev => !prev);
+  };
+
+  const renderCardExpandedContent = () => (
+    <Box sx={{ mt: 2 }}>
+      {/* Diets Section */}
+      <Paper 
+        elevation={0} 
+        variant="outlined"
+        sx={{ 
+          p: 2,
+          mb: 2,
+          backgroundColor: 'background.default',
+          borderRadius: 1
+        }}
+      >
+        <Typography 
+          variant="subtitle2" 
+          sx={{ 
+            mb: 1.5,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}
+        >
+          <DietIcon fontSize="small" color="primary" />
+          Assigned Diets
+        </Typography>
+        
+        {relationship.Assigned_Diet.length > 0 ? (
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: 1 
+          }}>
+            {relationship.Assigned_Diet.map((diet) => (
+              <Chip
+                key={diet.id}
+                label={diet.dietInfo.title}
+                onClick={() => navigateTo(`/diet/${diet.dietInfo.id}`)}
+                size="small"
+                variant="outlined"
+                sx={{ 
+                  '&:hover': { 
+                    backgroundColor: 'primary.light',
+                    cursor: 'pointer'
+                  }
+                }}
+              />
+            ))}
+          </Box>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            No diets assigned
+          </Typography>
+        )}
+      </Paper>
+
+      {/* Programs Section */}
+      <Paper 
+        elevation={0} 
+        variant="outlined"
+        sx={{ 
+          p: 2,
+          mb: 2,
+          backgroundColor: 'background.default',
+          borderRadius: 1
+        }}
+      >
+        <Typography 
+          variant="subtitle2" 
+          sx={{ 
+            mb: 1.5,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}
+        >
+          <ProgramIcon fontSize="small" color="primary" />
+          Assigned Programs
+        </Typography>
+        
+        {relationship.Assigned_Program.length > 0 ? (
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: 1 
+          }}>
+            {relationship.Assigned_Program.map((program) => (
+              <Chip
+                key={program.id}
+                label={program.programInfo.title}
+                onClick={() => navigateTo(`/program/${program.programInfo.id}`)}
+                size="small"
+                variant="outlined"
+                sx={{ 
+                  '&:hover': { 
+                    backgroundColor: 'primary.light',
+                    cursor: 'pointer'
+                  }
+                }}
+              />
+            ))}
+          </Box>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            No programs assigned
+          </Typography>
+        )}
+      </Paper>
+
+      {/* Forms Section */}
+      <Paper 
+        elevation={0} 
+        variant="outlined"
+        sx={{ 
+          p: 2,
+          backgroundColor: 'background.default',
+          borderRadius: 1
+        }}
+      >
+        <Typography 
+          variant="subtitle2" 
+          sx={{ 
+            mb: 1.5,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1
+          }}
+        >
+          <NoteAltIcon fontSize="small" color="primary" />
+          Assigned Forms
+        </Typography>
+        
+        {relationship?.Assigned_Forms?.length > 0 ? (
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: 1 
+          }}>
+            {relationship.Assigned_Forms.map((form) => (
+              <Box key={form.id}>
+                <Chip
+                  label={form.formInfo.form_name}
+                  size="small"
+                  variant="outlined"
+                  sx={{ mb: 1 }}
+                />
+                <RenderFormTrainee 
+                  form={form}
+                  userId={14}
+                />
+              </Box>
+            ))}
+          </Box>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            No forms assigned
+          </Typography>
+        )}
+      </Paper>
+    </Box>
+  );
+
+  return (
+    <Card sx={{ 
+      width: '100%', 
+      bgcolor: 'background.paper',
+      transition: 'box-shadow 0.3s',
+      '&:hover': {
+        boxShadow: 6
+      }
+    }}>
+      <CardContent sx={{ p: 3 }}>
+        {/* Header with User Info */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Box sx={{ display: 'flex', gap: 2, flex: 1 }}>
+            <Box sx={{ position: 'relative' }}>
+              <Avatar
+                src={relationship.userInfo.avatar}
+                sx={{
+                  width: 64,
+                  height: 64,
+                  border: 2,
+                  borderColor: 'primary.main'
+                }}
+              >
+                <PersonIcon />
+              </Avatar>
+              {hasSubscription && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    bottom: -4,
+                    right: -4,
+                    width: 12,
+                    height: 12,
+                    borderRadius: '50%',
+                    bgcolor: isSubscriptionExpired ? 'error.main' : 'success.main'
+                  }}
+                />
+              )}
+            </Box>
+            
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                {`${relationship.userInfo.first_name} ${relationship.userInfo.last_name}`}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                <Email sx={{ fontSize: 16, mr: 0.5, color: 'text.secondary' }} />
+                <Typography variant="body2" color="text.secondary">
+                  {relationship.userInfo.email}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+          
+       
+        </Box>
+
+        {/* Subscription Section */}
+        <Box sx={{ my: 3 }}>
+          {hasSubscription ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+              <Chip
+                label={subscription.packageInfo.title}
+                color={isSubscriptionExpired ? "error" : "primary"}
+                variant="outlined"
+                sx={{ width: '100%' }}
+              />
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <CalendarToday sx={{ fontSize: 16, mr: 0.5 }} />
+                <Typography 
+                  variant="body2"
+                  color={isSubscriptionExpired ? "error" : "success.main"}
+                >
+                  Expires: {new Date(subscription.end_date).toLocaleDateString()}
+                </Typography>
+              </Box>
+            </Box>
+          ) : (
+            <Chip
+              label={relationship.type === 'offline' ? "Offline Client" : "No Subscription"}
+              variant="outlined"
+              sx={{ width: '100%' }}
+            />
+          )}
+        </Box>
+
+        {/* Stats Section */}
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={6}>
+            <Paper 
+              elevation={0} 
+              sx={{ 
+                bgcolor: (theme) => theme.palette.mode === 'dark' 
+                  ? 'background.paper' 
+                  : 'grey.50',
+                p: 1.5, 
+                textAlign: 'center',
+                borderRadius: 2,
+                border: (theme) => `1px solid ${
+                  theme.palette.mode === 'dark' 
+                    ? theme.palette.divider 
+                    : 'transparent'
+                }`,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 0.5 }}>
+                <LocalDining sx={{ 
+                  fontSize: 20, 
+                  mr: 0.5, 
+                  color: 'primary.main' 
+                }} />
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: (theme) => theme.palette.mode === 'dark' 
+                      ? 'text.primary' 
+                      : 'text.secondary'
+                  }}
+                >
+                  Assigned Diets
+                </Typography>
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                {relationship.Assigned_Diet.length}
+              </Typography>
+            </Paper>
+          </Grid>
+          <Grid item xs={6}>
+            <Paper 
+              elevation={0}
+              sx={{ 
+                bgcolor: (theme) => theme.palette.mode === 'dark' 
+                  ? 'background.paper' 
+                  : 'grey.50',
+                p: 1.5, 
+                textAlign: 'center',
+                borderRadius: 2,
+                border: (theme) => `1px solid ${
+                  theme.palette.mode === 'dark' 
+                    ? theme.palette.divider 
+                    : 'transparent'
+                }`,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 0.5 }}>
+                <FitnessCenter sx={{ fontSize: 20, mr: 0.5, color: 'primary.main' }} />
+                <Typography variant="body2" color="text.secondary">
+                  Assigned Programs
+                </Typography>
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                {relationship.Assigned_Program.length}
+              </Typography>
+            </Paper>
+          </Grid>
+        </Grid>
+
+        {/* Expand Button */}
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <IconButton 
+            onClick={onToggleExpand}
+            size="small"
+            sx={{ 
+              '&:hover': { 
+                bgcolor: 'grey.100' 
+              }
+            }}
+          >
+            {isExpanded ? <ExpandLess /> : <ExpandMore />}
+          </IconButton>
+        </Box>
+
+        {/* Expanded Content */}
+        <Collapse in={isExpanded}>
+          <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'grey.200' }}>
+            {isExpanded && renderCardExpandedContent()}
+          </Box>
+        </Collapse>
+      </CardContent>
+    </Card>
+  );
+};
+
+
+const ClientAcquisitionChart = ({ relationships }) => {
+  const theme = useTheme();
+  const [timeRange, setTimeRange] = useState('all'); // week, month, year, all
+
+  const prepareChartData = () => {
+    // Sort relationships by created_at date
+    const sortedRelationships = [...relationships].sort((a, b) => 
+      new Date(a.created_at) - new Date(b.created_at)
+    );
+
+    let intervals;
+    let formatDate;
+    const now = new Date();
+
+    switch (timeRange) {
+      case 'week':
+        intervals = eachDayOfInterval({
+          start: startOfWeek(now),
+          end: now
+        });
+        formatDate = (date) => format(date, 'EEE');
+        break;
+      
+      case 'month':
+        intervals = eachWeekOfInterval({
+          start: startOfMonth(subMonths(now, 1)),
+          end: now
+        });
+        formatDate = (date) => `Week ${format(date, 'w')}`;
+        break;
+      
+      case 'year':
+        intervals = eachMonthOfInterval({
+          start: startOfYear(now),
+          end: now
+        });
+        formatDate = (date) => format(date, 'MMM');
+        break;
+      
+      case 'all':
+        intervals = eachMonthOfInterval({
+          start: startOfYear(subYears(now, 2)),
+          end: now
+        });
+        formatDate = (date) => format(date, 'MMM yyyy');
+        break;
+      
+      default:
+        return [];
+    }
+
+    return intervals.map(interval => {
+      const count = sortedRelationships.filter(rel => 
+        new Date(rel.created_at) <= interval
+      ).length;
+
+      return {
+        date: formatDate(interval),
+        clients: count
+      };
+    });
+  };
+
+  return (
+    <Card sx={{ p: 2, mb: 3 }}>
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h6">Client Acquisition Trend</Typography>
+        <ToggleButtonGroup
+          size="small"
+          value={timeRange}
+          exclusive
+          onChange={(e, newValue) => newValue && setTimeRange(newValue)}
+        >
+          <ToggleButton value="week">Week</ToggleButton>
+          <ToggleButton value="month">Month</ToggleButton>
+          <ToggleButton value="year">Year</ToggleButton>
+          <ToggleButton value="all">All Time</ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
+      
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart
+          data={prepareChartData()}
+          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis 
+            dataKey="date"
+            tick={{ fontSize: 12 }}
+          />
+          <YAxis 
+            tick={{ fontSize: 12 }}
+            allowDecimals={false}
+          />
+          <Tooltip />
+          <Legend />
+          <Line
+            type="monotone"
+            dataKey="clients"
+            name="Total Clients"
+            stroke={theme.palette.primary.main}
+            strokeWidth={2}
+            dot={{ r: 4 }}
+            activeDot={{ r: 6 }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </Card>
+  );
+};
+
 
 const UserTrainerDashboard = () => {
   const { data: currentUserPackages, isLoading: isLoadingCurrentUserPackages } = useCurrentUserPackages()
@@ -721,6 +1210,9 @@ const UserTrainerDashboard = () => {
         ))}
       </Grid>
 
+      {/* Add the new chart component here */}
+      <ClientAcquisitionChart relationships={relationships} />
+
       {/* View Toggle */}
       <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -834,7 +1326,11 @@ const UserTrainerDashboard = () => {
         ) : null
       ) : (
         <Grid container spacing={3}>
-          {filteredRelationships.map(relationship => renderCardView(relationship))}
+          {filteredRelationships.map(relationship => (
+            <Grid item xs={12} sm={6} md={4} key={relationship.id}>
+              <TrainerRelationshipCard relationship={relationship} />
+            </Grid>
+          ))}
         </Grid>
       )}
 
