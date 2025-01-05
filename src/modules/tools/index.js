@@ -268,8 +268,33 @@ const UserTools = () => {
         Fitness Calculators
       </Typography> */}
 
-      <Box sx={{ mb: 3 }}>
-        <Tabs value={activeCalculator} onChange={(e, v) => setActiveCalculator(v)} centered>
+      <Box sx={{ 
+        mb: 3,
+        borderBottom: 1, 
+        borderColor: 'divider',
+        width: '100%',
+        overflow: 'auto',
+        '::-webkit-scrollbar': {
+          display: 'none'
+        },
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none',
+      }}>
+        <Tabs 
+          value={activeCalculator} 
+          onChange={(e, v) => setActiveCalculator(v)}
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
+          sx={{ 
+            minHeight: { xs: '48px', sm: '64px' },
+            '& .MuiTab-root': {
+              minHeight: { xs: '48px', sm: '64px' },
+              minWidth: { xs: '120px', sm: '160px' },
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+            }
+          }}
+        >
           <Tab label="BMR & TDEE" />
           <Tab label="Macros" />
           <Tab label="Body Fat" />

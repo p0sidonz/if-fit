@@ -127,12 +127,16 @@ const ProfileTab = () => {
         style={{ marginTop: 20 }}
       >
         {isFetching && <CircularProgress />}
-        <Button onClick={handlePreviousPage} disabled={page === 0}>
-          Previous
-        </Button>
-        <Button onClick={handleNextPage} disabled={!hasMore}>
-          Next
-        </Button>
+        {localPosts.length > 0 && (
+          <>
+            <Button onClick={handlePreviousPage} disabled={page === 0}>
+              Previous
+            </Button>
+            <Button onClick={handleNextPage} disabled={!hasMore}>
+              Next
+            </Button>
+          </>
+        )}
         <PreviewPost open={open} onClose={handleClose} post={singleData} isLoading={isRefetching} />
       </Grid>
     </>

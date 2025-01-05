@@ -1506,16 +1506,44 @@ const HealthTrackingPage = () => {
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Tabs 
-        value={activeTab} 
-        onChange={(_, newValue) => setActiveTab(newValue)}
-        variant="fullWidth"
-        sx={{ mb: 3 }}
-      >
-        {tabs.map(({ icon, label }) => (
-          <Tab key={label} icon={icon} label={label} />
-        ))}
-      </Tabs>
+      <Box sx={{ 
+        borderBottom: 1, 
+        borderColor: 'divider',
+        width: '100%',
+        overflow: 'auto', // Enable horizontal scrolling
+        '::-webkit-scrollbar': {  // Hide scrollbar for Chrome/Safari/Newer Edges
+          display: 'none'
+        },
+        msOverflowStyle: 'none',  // Hide scrollbar for IE/Legacy Edge
+        scrollbarWidth: 'none',   // Hide scrollbar for Firefox
+      }}>
+        <Tabs 
+          value={activeTab} 
+          onChange={(_, newValue) => setActiveTab(newValue)}
+          variant="scrollable"     // Change from fullWidth to scrollable
+          scrollButtons="auto"     // Show scroll buttons when needed
+          allowScrollButtonsMobile // Enable scroll buttons on mobile
+          sx={{ 
+            mb: 3,
+            minHeight: { xs: '48px', sm: '64px' }, // Adjust tab height for mobile
+            '& .MuiTab-root': {
+              minHeight: { xs: '48px', sm: '64px' },
+              minWidth: { xs: '120px', sm: '160px' }, // Ensure tabs don't get too narrow
+            }
+          }}
+        >
+          {tabs.map(({ icon, label }) => (
+            <Tab 
+              key={label} 
+              icon={icon} 
+              label={label}
+              sx={{
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }, // Smaller font on mobile
+              }}
+            />
+          ))}
+        </Tabs>
+      </Box>
 
       {React.createElement(tabs[activeTab].component)}
     </Container>

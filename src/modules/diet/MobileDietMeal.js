@@ -84,10 +84,9 @@ export default function MobileDietMeal({
         if (food.is_custom) {
           activeServings = food.custom_serving;
         } else {
-          activeServings = food.foodInfo.servings.serving.filter((serve) => serve.serving_id === JSON.stringify(food.serving_id))[0];
+          activeServings = food.foodInfo.servings.serving.filter((serve) => serve.serving_id === (food.serving_id))[0];
         }
         if (!activeServings) return null;
-
         return (
           <ArrordionMap
             key={food.id}

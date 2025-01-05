@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
-import { useSearchForFood, useGetFoodById, useGetMealList, useCreateNewMeal, useAddFoodToMeal, useUpdateMealFood, useDeleteMeal, useDeleteFood, useUpdateMeal, useCreateCustomFood } from "./hooks/useDiet";
+import { useSearchForFood, useGetFoodById, useGetMealList, useCreateNewMeal, useAddFoodToMeal, useUpdateMealFood, useDeleteMeal, useDeleteFood, useUpdateMeal, useCreateCustomFood, useGetCustomFoods } from "./hooks/useDiet";
 import EditFoodDialog from "./EditFoodDialog";
 import Tooltip from '@mui/material/Tooltip';
 import axios from "../../utils/axios";
@@ -41,19 +41,23 @@ import {
   CardActionArea,
   Collapse,
   IconButton,
-  Hidden
+  Hidden,
+  Divider,
+  Chip,
+  Tabs,
+  Tab
 } from "@mui/material";
 import NutritionValueDisplay from "./NutritionValueDisplay";
 import LoadingButton from "@mui/lab/LoadingButton";
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
-import { ExpandMore as ExpandMoreIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { ExpandMore as ExpandMoreIcon, Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
 import { styled } from '@mui/system';
 import MobileDietMeal from './MobileDietMeal';
 import { FloatBarAction } from "../components/FloatBarAction";
 import FoodChart from "./components/FoodChart";
 import FoodSummaryInfo from "./components/FoodSummaryInfo";
-
+import CustomFoodForm from "./components/CustomFoodForm";
 const DietMeals = (props) => {
   console.log("props.param", props.param)
 
@@ -103,6 +107,12 @@ const DietMeals = (props) => {
   });
 
   const createCustomFood = useCreateCustomFood();
+
+  const [customFoodsList, setCustomFoodsList] = useState([]);
+
+  const { data: customFoods, isLoading: isLoadingCustomFoods } = useGetCustomFoods();
+
+  const [customFoodTab, setCustomFoodTab] = useState(0);
 
   useEffect(() => { 
     refetch()
@@ -379,10 +389,39 @@ const DietMeals = (props) => {
             <Grid container spacing={1} sx={{ mt: 1, mb: 1 }}>
               {['calories', 'protein', 'carbohydrate', 'fat'].map((nutrient) => {
                 const total = meal.Diet_Meals_FoodList.reduce((sum, food) => {
-                  const servings = food.is_custom
-                    ? food.custom_serving
-                    : food.foodInfo.servings.serving.find(serve => serve.serving_id === JSON.stringify(food.serving_id));
-                  return sum + (Number(servings?.[nutrient]) || 0);
+                  let servingValues;
+                  
+                  // Add console.log to debug the food object
+                  console.log('Processing food:', {
+                    food_name: food.foodInfo?.food_name,
+                    serving_id: food.serving_id,
+                    is_custom: food.is_custom,
+                    custom_serving: food.custom_serving,
+                    foodInfo: food.foodInfo
+                  });
+
+                  if (food.is_custom) {
+                    servingValues = food.custom_serving;
+                    console.log('Using custom_serving values:', servingValues);
+                  } else if (food.serving_id?.includes('custom')) { 
+                    servingValues = food.foodInfo?.servings?.serving[0];
+                    console.log('Using custom serving_id values:', servingValues);
+                  } else {
+                    // For regular foods, first try exact match, then fallback to string comparison
+                    const serving = food.foodInfo?.servings?.serving?.find(
+                      serve => serve.serving_id === food.serving_id || 
+                              serve.serving_id === JSON.stringify(food.serving_id)
+                    );
+                    servingValues = serving;
+                    console.log('Using regular serving values:', servingValues);
+                  }
+
+                  // Map 'carbohydrate' to 'carbs' for custom foods if needed
+                  const nutrientKey = food.is_custom && nutrient === 'carbohydrate' ? 'carbs' : nutrient;
+                  const value = Number(servingValues?.[nutrientKey]) || 0;
+                  
+                  console.log(`Adding ${nutrientKey}: ${value} to sum: ${sum}`);
+                  return sum + value;
                 }, 0);
 
                 return (
@@ -509,6 +548,20 @@ const DietMeals = (props) => {
     }
   };
 
+  const handleAddCustomFoodToMeal = async (food) => {
+    try {
+      await addFoodToMeal({
+        meal_id: selectedMeal.id,
+        food_id: food.source_id,
+        serving_id: food.servings.serving[0].serving_id,
+        is_custom: true
+      });
+      setDrawerOpen(false);
+    } catch (error) {
+      console.error('Error adding custom food to meal:', error);
+    }
+  };
+
   return (
     <>
       <Container>
@@ -540,95 +593,52 @@ const DietMeals = (props) => {
           open={drawerOpen}
           onClose={handleCloseDrawer}
         >
-          {!foodId ? (
-            <div style={{ marginLeft: 4, padding: 4 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Button 
-                  variant="outlined" 
-                  onClick={() => setIsCustomFood(prev => !prev)}
-                >
-                  {isCustomFood ? 'Search Food' : 'Add Custom Food'}
-                </Button>
-              </Box>
-              
-              {isCustomFood ? (
-                <Box component="form">
-                  <TextField
-                    label="Food Name"
-                    value={customFood.name}
-                    onChange={(e) => setCustomFood(prev => ({...prev, name: e.target.value}))}
+          {/* Header with Back Button */}
+          {foodId && (
+            <Button
+              sx={{ m: 2 }}
+              variant="text"
+              onClick={() => {
+                setSelectedServing(null);
+                setFoodId(null);
+                setSelectedFood(null);
+              }}
+            >
+              <ArrowBackIcon sx={{ mr: 1 }} /> Back
+            </Button>
+          )}
+
+          {/* Main Content */}
+          <Box sx={{ p: 2 }}>
+            {/* Step 1: Initial Options */}
+            {!foodId && !isCustomFood && (
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Button
                     fullWidth
-                    margin="normal"
-                  />
-                  <TextField
-                    label="Serving Description (e.g., '1 cup' or '100g serving')"
-                    value={customFood.serving_description}
-                    onChange={(e) => setCustomFood(prev => ({...prev, serving_description: e.target.value}))}
-                    fullWidth
-                    margin="normal"
-                  />
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <TextField
-                        label="Calories"
-                        type="number"
-                        value={customFood.calories}
-                        onChange={(e) => setCustomFood(prev => ({...prev, calories: e.target.value}))}
-                        fullWidth
-                        margin="normal"
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        label="Protein (g)"
-                        type="number"
-                        value={customFood.protein}
-                        onChange={(e) => setCustomFood(prev => ({...prev, protein: e.target.value}))}
-                        fullWidth
-                        margin="normal"
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        label="Carbs (g)"
-                        type="number"
-                        value={customFood.carbs}
-                        onChange={(e) => setCustomFood(prev => ({...prev, carbs: e.target.value}))}
-                        fullWidth
-                        margin="normal"
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        label="Fat (g)"
-                        type="number"
-                        value={customFood.fat}
-                        onChange={(e) => setCustomFood(prev => ({...prev, fat: e.target.value}))}
-                        fullWidth
-                        margin="normal"
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        label="Fiber (g)"
-                        type="number"
-                        value={customFood.fiber}
-                        onChange={(e) => setCustomFood(prev => ({...prev, fiber: e.target.value}))}
-                        fullWidth
-                        margin="normal"
-                      />
-                    </Grid>
-                  </Grid>
-                  <Button 
-                    variant="contained" 
-                    fullWidth 
-                    sx={{ mt: 2 }}
-                    onClick={handleAddCustomFood}
+                    variant="contained"
+                    onClick={() => handleSearchFood('')}
+                    startIcon={<SearchIcon />}
                   >
-                    Add Custom Food
+                    Search Food
                   </Button>
-                </Box>
-              ) : (
+                </Grid>
+                <Grid item xs={6}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    onClick={() => setIsCustomFood(true)}
+                    startIcon={<AddIcon />}
+                  >
+                    Custom Food
+                  </Button>
+                </Grid>
+              </Grid>
+            )}
+
+            {/* Step 2A: Food Search */}
+            {!foodId && !isCustomFood && (
+              <Box sx={{ mt: 2 }}>
                 <TextField
                   InputProps={{
                     startAdornment: (
@@ -637,118 +647,151 @@ const DietMeals = (props) => {
                       </InputAdornment>
                     ),
                   }}
-                  placeholder="May be chicken...?"
-                  helperText="Search for food to add to the meal"
-                  variant="outlined"
-                  sx={{ pr: 4 }}
-                  label="Search Food"
+                  placeholder="Search foods..."
                   value={foodSearch}
                   onChange={(e) => handleSearchFood(e.target.value)}
                   fullWidth
-                  margin="normal"
                 />
-              )}
-            </div>
-          ) : (
-            <Button
-              sx={{ margin: 2 }}
-              variant="text"
-              onClick={() => {
-                setSelectedServing(null);
-                setFoodId(null);
-                setSelectedFood(null);
-              }}
-              color="primary"
-            >
-              <ArrowBackIcon sx={{ mr: 3 }} /> Back to search
-            </Button>
-          )}
-          <List
-            sx={{
-              "& .MuiListItemButton-root:hover": {
-                bgcolor: "orange",
-                "&, & .MuiListItemIcon-root": {
-                  color: "yellow",
-                },
-              },
-            }}
-          >
-            {fetchTheFood.isLoading && (
-              <ListItem>
-                <CircularProgress style={{ margin: "0 auto" }} /> Loading...
-              </ListItem>
+                
+                <List sx={{ mt: 1, maxHeight: 300, overflow: 'auto' }}>
+                  {fetchTheFood.isLoading ? (
+                    <ListItem>
+                      <CircularProgress size={20} sx={{ mr: 2 }} />
+                      <ListItemText primary="Searching..." />
+                    </ListItem>
+                  ) : (
+                    searchResults?.map((food) => (
+                      <ListItem
+                        button
+                        key={food.food_id}
+                        onClick={() => handleOnclickSelectedFood(food.food_id)}
+                      >
+                        <ListItemText 
+                          primary={food.food_name}
+                          secondary={food.food_description}
+                        />
+                      </ListItem>
+                    ))
+                  )}
+                </List>
+              </Box>
             )}
 
-            {!foodId &&
-              searchResults?.map((food, index) => (
-                <ListItem
-                  button
-                  key={index}
-                  onClick={() => {
-                    setSelectedFood(food);
-                    handleOnclickSelectedFood(food.food_id);
-                  }}
-                >
-                  <ListItemText
-                    primary={food.food_name}
-                    secondary={food.food_description}
-                  />
-                </ListItem>
-              ))}
+            {/* Step 2B: Custom Foods */}
+            {!foodId && isCustomFood && (
+              <Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <IconButton 
+                    onClick={() => setIsCustomFood(false)}
+                    sx={{ mr: 1 }}
+                    aria-label="back to search"
+                  >
+                    <ArrowBackIcon />
+                  </IconButton>
+                  <Tabs
+                    value={customFoodTab}
+                    onChange={(e, newValue) => setCustomFoodTab(newValue)}
+                    sx={{ flex: 1 }}
+                  >
+                    <Tab label="My Custom Foods" />
+                    <Tab label="Create New" />
+                  </Tabs>
+                </Box>
 
-            {foodId && servingData?.servings?.serving && (
-              <>
-                <ListItem  >
-                  <ListItemText
-                    primary={
-                      <>
-                        <FormControl fullWidth>
-                          <InputLabel id="serving-size">
-                            Serving Size
-                          </InputLabel>
-                          <Select
-                            labelId="serving-size"
-                            id="serving-size"
-                            label="Serving Size"
-                            onChange={handleServingsChange}
-                          >
-                            {console.log("Serving Data:", servingData)}
-                            {servingData?.servings?.serving ? (
-                              servingData.servings.serving.map((serving, index) => (
-                                <MenuItem key={index} value={serving.serving_id}>
-                                  {serving.serving_description}
-                                </MenuItem>
-                              ))
-                            ) : (
-                              <MenuItem disabled>Loading...</MenuItem>
-                            )}
-                          </Select>
-                        </FormControl>
-                      </>
-                    }
-                    secondary={servingData.serving_size}
-                  />
-                </ListItem>
-                {selectedServing && (
-                  <NutritionValueDisplay data={selectedServing} otherData={servingData} showOtherData={true} />
+                {customFoodTab === 0 && (
+                  <List sx={{ maxHeight: 300, overflow: 'auto' }}>
+                    {isLoadingCustomFoods ? (
+                      <ListItem>
+                        <CircularProgress size={20} sx={{ mr: 2 }} />
+                        <ListItemText primary="Loading custom foods..." />
+                      </ListItem>
+                    ) : !customFoods || customFoods.length === 0 ? (
+                      <ListItem>
+                        <ListItemText 
+                          primary="No custom foods found" 
+                          secondary="Create your first custom food using the 'Create New' tab"
+                        />
+                      </ListItem>
+                    ) : (
+                      customFoods.map((food) => {
+                        console.log("customFoods", customFoods)
+                        let servingValues = food.servings.serving[0]
+                        return ( <ListItem
+                          key={food.id}
+                          secondaryAction={
+                            <Button
+                              variant="contained"
+                              size="small"
+                              onClick={() => handleAddCustomFoodToMeal(food)}
+                            >
+                              Add
+                            </Button>
+                          }
+                        >
+                          <ListItemText
+                            primary={food.food_name}
+                            secondary={`${servingValues.calories} cal | P:${servingValues.protein}g | C:${servingValues.carbohydrate}g | F:${servingValues.fat}g`}
+                          />
+                        </ListItem>)
+                      }
+                       )
+                    )}
+                  </List>
                 )}
-                <Grid container spacing={2} justifyContent="center">
-                  <Grid sx={{ m: 5 }} item lg={12} sm={12}>
+
+                {customFoodTab === 1 && (
+                  <CustomFoodForm
+                    customFood={customFood}
+                    setCustomFood={setCustomFood}
+                    onSubmit={handleAddCustomFood}
+                    isLoading={createCustomFood.isLoading}
+                  />
+                )}
+              </Box>
+            )}
+
+            {/* Step 3: Food Details & Serving Selection */}
+            {foodId && (
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  {servingData.food_name}
+                </Typography>
+                
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel>Serving Size</InputLabel>
+                  <Select
+                    value={selectedServing?.serving_id || ''}
+                    onChange={handleServingsChange}
+                    label="Serving Size"
+                  >
+                    {servingData?.servings?.serving?.map((serving) => (
+                      <MenuItem key={serving.serving_id} value={serving.serving_id}>
+                        {serving.serving_description}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                {selectedServing && (
+                  <>
+                    <NutritionValueDisplay 
+                      data={selectedServing}
+                      otherData={servingData}
+                      showOtherData={true}
+                    />
                     <Button
-                      onClick={handleAddFoodToMeal}
                       fullWidth
-                      variant="outlined"
-                      color="primary"
+                      variant="contained"
+                      onClick={handleAddFoodToMeal}
+                      sx={{ mt: 2 }}
                     >
                       Add to Meal
                     </Button>
-                    {/* {JSON.stringify(servingData)} */}
-
-                  </Grid>
-                </Grid>
-              </>
+                  </>
+                )}
+              </Box>
             )}
-          </List>
+          </Box>
         </Drawer>
 
         <Dialog open={open} onClose={() => setOpen(false)}>
