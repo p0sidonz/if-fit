@@ -126,3 +126,16 @@ const fetchOtherUserData = async (username) => {
   const { data } = await axios.get(`/misc/whoareyou/${username}`);
   return data.data;
 }
+
+
+export const useSearchTrainers = (query) => {
+  return useQuery({
+    queryKey: ['trainers', query],
+    queryFn: async () => {
+      const { data } = await axios.get(`/misc/find-trainers/${query}`)
+      return data
+    },
+    enabled: !!query && query.length > 2, // Only fetch if query is at least 3 characters
+    staleTime: 1000 * 60 * 5, // Cache results for 5 minutes
+  })
+}

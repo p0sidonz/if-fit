@@ -42,8 +42,8 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 // Water Stats Component
 const WaterStats = ({ timeRange }) => {
   const baseDate = new Date();
-  const startDate = format(subDays(baseDate, timeRange), 'yyyy-MM-dd');
-  const endDate = format(baseDate, 'yyyy-MM-dd');
+  const startDate = format(startOfDay(subDays(baseDate, timeRange - 1)), 'yyyy-MM-dd');
+  const endDate = format(endOfDay(baseDate), 'yyyy-MM-dd');
 
   const { data: waterStats } = useUserStatsByType(
     startDate,
