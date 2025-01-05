@@ -6,6 +6,8 @@ import { useSocialData, useSinglePost } from "../../hooks/useSocialData";
 import CircularProgress from "@mui/material/CircularProgress";
 import PreviewPost from "src/modules/social/components/profile/PreviewPost";
 import { useRouter } from "next/router";
+import NoPhotographyIcon from '@mui/icons-material/NoPhotography';
+import { Box, Typography } from "@mui/material";
 
 const ProfileTab = () => {
   const router = useRouter();
@@ -82,7 +84,27 @@ const ProfileTab = () => {
       <Grid container spacing={2}>
         <Grid item lg={12} md={12} xs={12}>
           <Grid container justifyContent="space-between" spacing={2}>
-            {localPosts.length > 0 &&
+            {localPosts.length === 0 ? (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  py: 8,
+                  px: 2,
+                  bgcolor: 'background.paper.main',
+                  borderRadius: 1,
+                  width: '100%',
+                }}
+              >
+                <NoPhotographyIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  No Posts Yet
+                </Typography>
+               
+              </Box>
+            ) : (
               localPosts.map((post, index) => (
                 <Grid key={index} item lg={4} md={4} xs={12}>
                   <PostCard
@@ -93,7 +115,8 @@ const ProfileTab = () => {
                     handleClickOpen={handleClickOpen}
                   />
                 </Grid>
-              ))}
+              ))
+            )}
           </Grid>
         </Grid>
       </Grid>

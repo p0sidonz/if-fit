@@ -53,7 +53,7 @@ const TabAccount = () => {
   const [formData, setFormData] = useState(initialData);
   const realReduxData = useSelector((state) => state.user.details);
   
-  const avatarUrl = GET_AVATAR_COMPRESSED_URL(realReduxData?.avatar?.avatar_compressed) || "/images/avatars/1.png";
+  const avatarUrl = realReduxData?.avatar?.avatar_compressed && GET_AVATAR_COMPRESSED_URL(realReduxData?.avatar?.avatar_compressed) || "/images/avatars/1.png";
   // ** Hooks
   const {
     control,

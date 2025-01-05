@@ -17,7 +17,7 @@ import {
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
-
+import { GET_AVATAR_COMPRESSED_URL } from 'src/utils/utils';
 
 const AssignDialog = ({ name, open, onClose, onAssign, onUnassign, users, programId, onAssignLoading, onUnassignLoading,isLoading, assignedUsers = [], useSync }) => {
   const [program_id, setProgram_id] = useState(null);
@@ -119,7 +119,7 @@ const AssignDialog = ({ name, open, onClose, onAssign, onUnassign, users, progra
                   <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', mb: { xs: 2, md: 0 } }}>
                     <ListItemAvatar>
                       <Avatar
-                        src={userInfo.profilePicture} // Add this prop if available
+                        src={GET_AVATAR_COMPRESSED_URL(userInfo.avatar?.avatar_compressed)} // Add this prop if available
                         sx={{
                           bgcolor: assigned ? theme.palette.success.main : theme.palette.primary.main,
                           color: '#fff',

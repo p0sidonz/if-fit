@@ -11,7 +11,7 @@ import {
   Phone as PhoneIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
-
+import { GET_AVATAR_COMPRESSED_URL } from 'src/utils/utils';
 const AssignDialougeForm = ({ name, open, onClose, onAssign, onUnassign, users, programId, onAssignLoading, onUnassignLoading, assignedUsers = [] }) => {
   console.log("AssignDialog -> assignedUsers", assignedUsers)
   const [program_id, setProgram_id] = useState(null);
@@ -111,6 +111,7 @@ const AssignDialougeForm = ({ name, open, onClose, onAssign, onUnassign, users, 
           <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', mb: { xs: 1, sm: 0 } }}>
             <ListItemAvatar>
               <Avatar 
+                src={GET_AVATAR_COMPRESSED_URL(userInfo.avatar?.avatar_compressed)}
                 sx={{ 
                   bgcolor: assigned ? theme.palette.success.main : theme.palette.primary.main,
                   color: '#fff',

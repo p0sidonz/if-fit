@@ -48,7 +48,7 @@ import {
 import NoteAltIcon from '@mui/icons-material/NoteAlt';
 import useNavigateTo from "src/modules/components/useRouterPush";
 import { useCurrentUserPackages } from 'src/modules/user/hooks/usePackages'
-
+import { GET_AVATAR_COMPRESSED_URL } from 'src/utils/utils';
 import TrainersStats from './TrainersStats';
 import { getAllUserAndTrainerList } from 'src/modules/diet/hooks/useDiet';
 import {
@@ -81,6 +81,7 @@ import {
 
 
 const TrainerRelationshipCard = ({ relationship }) => {
+  const theme = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
   const hasSubscription = relationship.userInfo.UserAndTrainerSubscription.length > 0;
   const subscription = hasSubscription ? relationship.userInfo.UserAndTrainerSubscription[0] : null;
@@ -235,11 +236,9 @@ const TrainerRelationshipCard = ({ relationship }) => {
                   size="small"
                   variant="outlined"
                   sx={{ mb: 1 }}
+                  onClick={() => navigateTo(`/forms/${form.id}`)}
                 />
-                <RenderFormTrainee 
-                  form={form}
-                  userId={14}
-                />
+               
               </Box>
             ))}
           </Box>
@@ -264,36 +263,39 @@ const TrainerRelationshipCard = ({ relationship }) => {
       <CardContent sx={{ p: 3 }}>
         {/* Header with User Info */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Box sx={{ display: 'flex', gap: 2, flex: 1 }}>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              gap: 2, 
+              flex: 1,
+              '&:hover': { cursor: 'pointer' },
+            }}
+            onClick={() => navigateTo(`/${relationship.userInfo.username}/view`)}
+          >
             <Box sx={{ position: 'relative' }}>
               <Avatar
-                src={relationship.userInfo.avatar}
+                src={GET_AVATAR_COMPRESSED_URL(relationship.userInfo.avatar?.avatar_compressed)}
                 sx={{
-                  width: 64,
-                  height: 64,
-                  border: 2,
-                  borderColor: 'primary.main'
+                  width: { xs: 40, sm: 64 },
+                  height: { xs: 40, sm: 64 },
+                  bgcolor: theme.palette.primary.main,
+                  color: '#fff',
+                  border: 1,
+                  borderColor: 'divider'
                 }}
               >
-                <PersonIcon />
+                {relationship.userInfo.first_name[0]}{relationship.userInfo.last_name[0]}
               </Avatar>
-              {hasSubscription && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    bottom: -4,
-                    right: -4,
-                    width: 12,
-                    height: 12,
-                    borderRadius: '50%',
-                    bgcolor: isSubscriptionExpired ? 'error.main' : 'success.main'
-                  }}
-                />
-              )}
             </Box>
             
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontWeight: 600,
+                  '&:hover': { color: 'primary.main' }
+                }}
+              >
                 {`${relationship.userInfo.first_name} ${relationship.userInfo.last_name}`}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
@@ -304,8 +306,6 @@ const TrainerRelationshipCard = ({ relationship }) => {
               </Box>
             </Box>
           </Box>
-          
-       
         </Box>
 
         {/* Subscription Section */}
@@ -413,11 +413,7 @@ const TrainerRelationshipCard = ({ relationship }) => {
           <IconButton 
             onClick={onToggleExpand}
             size="small"
-            sx={{ 
-              '&:hover': { 
-                bgcolor: 'grey.100' 
-              }
-            }}
+            variant="outlined"
           >
             {isExpanded ? <ExpandLess /> : <ExpandMore />}
           </IconButton>
@@ -425,7 +421,7 @@ const TrainerRelationshipCard = ({ relationship }) => {
 
         {/* Expanded Content */}
         <Collapse in={isExpanded}>
-          <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'grey.200' }}>
+          <Box sx={{ mt: 2, pt: 2, borderColor: 'grey.200' }}>
             {isExpanded && renderCardExpandedContent()}
           </Box>
         </Collapse>
@@ -986,8 +982,17 @@ const UserTrainerDashboard = () => {
       <Card>
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <Avatar src={relationship.userInfo.avatar} sx={{ mr: 2 }}>
-              <PersonIcon />
+            <Avatar 
+              src={GET_AVATAR_COMPRESSED_URL(relationship.userInfo.avatar?.avatar_compressed)}
+              sx={{
+                bgcolor: theme.palette.primary.main,
+                color: '#fff',
+                width: { xs: 40, sm: 50 },
+                height: { xs: 40, sm: 50 },
+                mr: 2
+              }}
+            >
+              {relationship.userInfo.first_name[0]}{relationship.userInfo.last_name[0]}
             </Avatar>
             <Box>
               <Typography variant="h6">
@@ -1287,11 +1292,32 @@ const UserTrainerDashboard = () => {
                     <React.Fragment key={relationship.id}>
                       <TableRow>
                         <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Avatar src={relationship.userInfo.avatar} sx={{ mr: 2 }}>
-                              <PersonIcon />
+                          <Box 
+                            sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center',
+                              '&:hover': { 
+                                cursor: 'pointer',
+                                '& .username': { color: 'primary.main' }
+                              }
+                            }}
+                            onClick={() => navigateTo(`/${relationship.userInfo.username}/view`)}
+                          >
+                            <Avatar 
+                              src={GET_AVATAR_COMPRESSED_URL(relationship.userInfo.avatar?.avatar_compressed)}
+                              sx={{
+                                bgcolor: theme.palette.primary.main,
+                                color: '#fff',
+                                width: { xs: 40, sm: 50 },
+                                height: { xs: 40, sm: 50 },
+                                mr: 2
+                              }}
+                            >
+                              {relationship.userInfo.first_name[0]}{relationship.userInfo.last_name[0]}
                             </Avatar>
-                            {`${relationship.userInfo.first_name} ${relationship.userInfo.last_name}`}
+                            <Typography className="username">
+                              {`${relationship.userInfo.first_name} ${relationship.userInfo.last_name}`}
+                            </Typography>
                           </Box>
                         </TableCell>
                         <TableCell>{relationship.userInfo.email}</TableCell>

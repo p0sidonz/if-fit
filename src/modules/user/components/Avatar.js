@@ -51,12 +51,12 @@ const AvatarComponent = ({avatarUrl}) => {
         }
       };
       useEffect(() => {
-        if (avatarUrl) {
-          setImgSrc(avatarUrl);
+        if (avatarUrl && avatarUrl.trim() !== '') {
+            setImgSrc(avatarUrl);
         } else {
-          setImgSrc("/images/avatars/1.png");
+            setImgSrc("/images/avatars/1.png");
         }
-      }, [avatarUrl]);
+    }, [avatarUrl]);
     
       const handleInputImageReset = () => {
         setInputValue("");
