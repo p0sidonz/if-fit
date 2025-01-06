@@ -42,6 +42,12 @@ import {
 
 const steps = ["Select Plan", "Account Details", "Payment", "Confirmation"];
 
+const isIndianTimeZone = () => {
+  const timeZoneOffset = new Date().getTimezoneOffset();
+  // Indian timezone offset is -330 minutes (-5:30 hours)
+  return timeZoneOffset === -330;
+};
+
 const CheckoutStepper = ({ userData, customToken, pkgId, payments }) => {
   const auth = useAuth();
   const [Razorpay] = useRazorpay();
@@ -143,18 +149,24 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments }) => {
     }
 
     try {
+      const finalAmount = selectedPlan?.isYearlyPlan
+        ? (isIndianTimeZone() && selectedPlan?.lowIncomeCountryPrice 
+            ? parseInt(selectedPlan?.lowIncomeCountryPrice) 
+            : parseInt(selectedPlan?.yearlyPrice))
+        : (isIndianTimeZone() && selectedPlan?.lowIncomeCountryPrice 
+            ? parseInt(selectedPlan?.lowIncomeCountryPrice) 
+            : parseInt(selectedPlan?.monthly_price));
+
       const order = await createOrderTrainerPublicWithToken.mutateAsync({
         packageId: selectedPlan?.id,
-        amount: selectedPlan?.isYearlyPlan
-          ? parseInt(selectedPlan?.yearlyPrice)
-          : parseInt(selectedPlan?.monthly_price),
-        currency: selectedPlan?.currency,
+        amount: finalAmount,
+        currency: isIndianTimeZone() ? 'INR' : selectedPlan?.currency,
       });
 
       const options = {
         key: "rzp_test_XzVgCoZd6ruTtE",
         amount: order.amount * 100,
-        currency: order.currency,
+        currency: isIndianTimeZone() ? 'INR' : selectedPlan?.currency,
         name: selectedPlan?.title,
         description: `Purchase of ${selectedPlan?.title}`,
         order_id: order.id,
@@ -381,9 +393,11 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments }) => {
                                 mr: 1,
                               }}
                             >
-                              ${plan.original_price}
+                              {isIndianTimeZone() ? '₹' : '$'}
+                              {isIndianTimeZone() && plan.lowIncomeCountryPrice ? plan?.original_lowIncomeCountryPrice : plan.original_price}
                             </Box>
-                            ${plan.yearlyPrice}
+                            {isIndianTimeZone() ? '₹' : '$'}
+                            {isIndianTimeZone() && plan.lowIncomeCountryPrice ? plan.lowIncomeCountryPrice : plan.yearlyPrice}
                             <Typography variant="subtitle1" component="span">
                               /year
                             </Typography>
@@ -400,7 +414,8 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments }) => {
                                     mr: 1,
                                   }}
                                 >
-                                  ${plan.original_price}
+                                  {isIndianTimeZone() ? '₹' : '$'}
+                                  {isIndianTimeZone() && plan.lowIncomeCountryPrice ? plan?.original_lowIncomeCountryPrice : plan.original_price}
                                 </Box>
                                 Free
                               </>
@@ -414,16 +429,16 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments }) => {
                                     mr: 1,
                                   }}
                                 >
-                                  ${plan.original_price}
+                                  {isIndianTimeZone() ? '₹' : '$'}
+                                  {isIndianTimeZone() && plan.lowIncomeCountryPrice ? plan?.original_lowIncomeCountryPrice : plan.original_price}
                                 </Box>
-                                $
-                                {plan.monthly_price == 0
-                                  ? "*Free"
-                                  : plan.monthly_price}
-                                <Typography
-                                  variant="subtitle1"
-                                  component="span"
-                                >
+                                {isIndianTimeZone() ? '₹' : '$'}
+                                {isIndianTimeZone() && plan.lowIncomeCountryPrice 
+                                  ? plan.lowIncomeCountryPrice 
+                                  : plan.monthly_price == 0 
+                                    ? "*Free" 
+                                    : plan.monthly_price}
+                                <Typography variant="subtitle1" component="span">
                                   /month
                                 </Typography>
                               </>

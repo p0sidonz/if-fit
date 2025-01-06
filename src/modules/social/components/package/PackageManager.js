@@ -38,7 +38,11 @@ import {
   Watch as WatchIcon,
 } from '@mui/icons-material';
 
-
+const isIndianTimeZone = () => {
+  const timeZoneOffset = new Date().getTimezoneOffset();
+  // Indian timezone offset is -330 minutes (-5:30 hours)
+  return timeZoneOffset === -330;
+};
 
 const getCurrencySymbol = (curr) => {
   switch (curr) {
@@ -50,12 +54,14 @@ const getCurrencySymbol = (curr) => {
 };
 
 const PackageCard = ({ packageData, onSelect, isOwnProfile }) => {
-  const { title, amount, currency, category, validity, discount, session_count } = packageData;
-
+  const { title, amount, lowIncomeCountryPrice, currency, category, validity, discount, session_count } = packageData;
+  console.log("packageDa432423ta", packageData);
+  // Determine price based on timezone
+  const basePrice = isIndianTimeZone() && lowIncomeCountryPrice ? lowIncomeCountryPrice : amount;
+  
   const displayPrice = discount > 0
-    ? (amount * (100 - discount) / 100).toFixed(2)
-    : amount;
-
+    ? (basePrice * (100 - discount) / 100).toFixed(2)
+    : basePrice;
 
   return (
     <Card sx={{
@@ -197,15 +203,23 @@ const handleBillingSubmit = (data) => {
   const handlePurchase = async () => {
     const userData = JSON.parse(localStorage.getItem('userData'));
     try {
+      const basePrice = isIndianTimeZone() && packageData.lowIncomeCountryPrice 
+        ? packageData.lowIncomeCountryPrice 
+        : amount;
+      
+      const finalAmount = discount > 0 
+        ? (basePrice - (basePrice * discount / 100)) 
+        : basePrice;
+
       const order = await createOrder.mutateAsync({
         packageId: packageData.id,
-        amount: discount > 0 ? (amount - (amount * discount / 100)) : amount,
+        amount: finalAmount,
         currency: currency
       });
 
       const options = {
         key: 'rzp_test_XzVgCoZd6ruTtE',
-        amount: discount > 0 ? (amount - (amount * discount / 100)) : amount,
+        amount: finalAmount,
         currency: order.currency,
         name: title,
         description: `Purchase of ${title}`,
