@@ -28,7 +28,7 @@ import CustomChip from 'src/@core/components/mui/chip'
 // ** Component Import
 // import PricingPlans from 'src/views/pages/pricing/PricingPlans'
 
-const CurrentPlanCard = ({ subscription }) => {
+const CurrentPlanCard = ({ subscription , payments}) => {
     console.log(subscription)
     // ** State
     const [open, setOpen] = useState(false)
@@ -190,6 +190,7 @@ const CurrentPlanCard = ({ subscription }) => {
                 <CheckoutStepper 
                 userData={userData}
                 customToken={token}
+                payments={payments}
                 />
             </DialogContent>
           </Dialog>

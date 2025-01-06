@@ -32,8 +32,9 @@ import {
 import { Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
 import { FloatBarAction } from "../components/FloatBarAction";
 import AssignDialog from "../program/AssignDialog";
-
+import usePackagesEvents from "../user/hooks/usePackagesEvents";
 const DietList = () => {
+  const {isPackageExpired} = usePackagesEvents()
   const updateDiet = useUpdateDiet();
   const deleteDiet = useDeleteDiet();
   const assignUser = assignUserToDiet();
@@ -255,16 +256,20 @@ const DietList = () => {
     {/* <Container> */}
       <Hidden smDown>
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleAddDiet}
-            startIcon={<AddIcon />}
-            sx={{ marginTop: 3 }}
-          >
-            Add New Diet
-          </Button>
-
+          <Tooltip title={isPackageExpired ? "Package expired. Please renew to add new diets." : ""}>
+            <span>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleAddDiet}
+                startIcon={<AddIcon />}
+                sx={{ marginTop: 3 }}
+                disabled={isPackageExpired}
+              >
+                Add New Diet
+              </Button>
+            </span>
+          </Tooltip>
         </div>
       </Hidden >
 
@@ -329,9 +334,11 @@ const DietList = () => {
           <Grid item xs={12} sm={12} md={4} key={index}>
             <DietCard
               onAssignClick={onAssignClick}
-             diet={diet} 
-             onEdit={handleEdit} 
-             onDelete={handleDelete} />
+              diet={diet} 
+              onEdit={handleEdit} 
+              onDelete={handleDelete}
+              disabled={isPackageExpired}
+            />
           </Grid>
         ))}
       </Grid>
@@ -618,7 +625,15 @@ const DietList = () => {
         </DialogActions>
       </Dialog>
       <Hidden smUp>
-        <FloatBarAction name="Diet" handleClick={handleAddDiet} />
+        <Tooltip title={isPackageExpired ? "Package expired. Please renew to add new diets." : ""}>
+          <span>
+            <FloatBarAction 
+              name="Diet" 
+              handleClick={handleAddDiet} 
+              disabled={isPackageExpired}
+            />
+          </span>
+        </Tooltip>
       </Hidden>
 
       <AssignDialog
@@ -628,12 +643,13 @@ const DietList = () => {
         open={openAssignDialog}
         onAssign={handleAssignConfirm}
         onAssignLoading={assignUser?.isLoading}
-        onUnassignLoading={unassignUser.isLoading }
+        onUnassignLoading={unassignUser.isLoading}
         onUnassign={handleDeleteAssignee}
         onClose={() => setOpenAssignDialog(false)}
         users={users}
         assignedUsers={assignedUsers}
         useSync={handleSyncDiet}
+        disabled={isPackageExpired}
       />
 
     {/* </Container> */}

@@ -42,7 +42,7 @@ import {
 
 const steps = ["Select Plan", "Account Details", "Payment", "Confirmation"];
 
-const CheckoutStepper = ({ userData, customToken, pkgId }) => {
+const CheckoutStepper = ({ userData, customToken, pkgId, payments }) => {
   const auth = useAuth();
   const [Razorpay] = useRazorpay();
   const [activeStep, setActiveStep] = useState(0);
@@ -50,6 +50,7 @@ const CheckoutStepper = ({ userData, customToken, pkgId }) => {
   const { data: pricingPlans, isFetched } = useGetUpgradePackages();
   const [isExistingUser, setIsExistingUser] = useState(true);
   const [isModalDismissed, setIsModalDismissed] = useState(false);
+  const [isTrialAvailable, setIsTrialAvailable] = useState(false);
   const [isPreviousButtonDisabled, setIsPreviousButtonDisabled] =
     useState(false);
   const [orderResponse, setOrderResponse] = useState(null);
@@ -112,9 +113,35 @@ const CheckoutStepper = ({ userData, customToken, pkgId }) => {
 
   console.log("plans", sortedPlans);
 
+
+
+  useEffect(() => {
+      function checkIfUserAviledTrial() {
+        const isUserAviledTrial = payments?.some(payment => payment.packageInfo.title === "Trail" && payment.status === "COMPLETED");
+        if (isUserAviledTrial) {
+          setIsTrialAvailable(true);
+        }
+      }
+      checkIfUserAviledTrial();
+  }, [payments]);
+
   const handlePurchase = async () => {
     const userData = authenticatedUser;
-    console.log("selectedPlan", selectedPlan);
+    
+    // Add check for Trial package
+    if (selectedPlan?.title === "Trial" && 
+        (selectedPlan?.monthly_price === 0 || selectedPlan?.yearlyPrice === 0)) {
+      // Generate a mock order ID for trial
+      const trialOrderId = `orderTrial_${Math.random().toString(36).substr(2, 9)}`;
+      setOrderResponse({
+        orderId: trialOrderId,
+        paymentId: 'trial',
+        signature: 'trial'
+      });
+      setActiveStep(3);
+      return;
+    }
+
     try {
       const order = await createOrderTrainerPublicWithToken.mutateAsync({
         packageId: selectedPlan?.id,
@@ -229,7 +256,12 @@ const CheckoutStepper = ({ userData, customToken, pkgId }) => {
   };
 
   const handleNextStep = () => {
-    setActiveStep(activeStep + 1);
+    if (selectedPlan?.title === "Trial" && 
+        (selectedPlan?.monthly_price === 0 || selectedPlan?.yearlyPrice === 0)) {
+      handlePurchase();
+    } else {
+      setActiveStep(activeStep + 1);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -312,6 +344,7 @@ const CheckoutStepper = ({ userData, customToken, pkgId }) => {
                       position: "relative",
                       border: selectedPlan?.title === plan.title ? 2 : 0,
                       borderColor: "primary.main",
+                      opacity: plan.title === "Trial" && isTrialAvailable ? 0.7 : 1
                     }}
                   >
                     {plan.popular && (
@@ -441,18 +474,30 @@ const CheckoutStepper = ({ userData, customToken, pkgId }) => {
                     <CardActions sx={{ mt: "auto", p: 2 }}>
                       <Button
                         fullWidth
-                        variant={
-                          selectedPlan?.title === plan.title
-                            ? "contained"
-                            : "outlined"
-                        }
+                        variant={selectedPlan?.title === plan.title ? "contained" : "outlined"}
                         onClick={() => setSelectedPlan(plan)}
+                        disabled={plan.title === "Trial" && isTrialAvailable}
                       >
-                        {selectedPlan?.title === plan.title
-                          ? "Selected"
-                          : "Select Plan"}
+                        {plan.title === "Trial" && isTrialAvailable 
+                          ? "Already Availed"
+                          : selectedPlan?.title === plan.title
+                            ? "Selected"
+                            : "Select Plan"}
                       </Button>
                     </CardActions>
+                    {plan.title === "Trial" && isTrialAvailable && (
+                      <Typography
+                        variant="caption"
+                        component="div"
+                        sx={{
+                          color: "error.main",
+                          textAlign: "center",
+                          mb: 2
+                        }}
+                      >
+                        You have already availed the trial plan
+                      </Typography>
+                    )}
                   </Card>
                 </Grid>
               ))}

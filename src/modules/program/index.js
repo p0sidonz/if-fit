@@ -4,7 +4,7 @@ import { useGetProgramList, useUpdateProgram, addNewProgram, useDeleteProgram, g
 import CardHeader, { Hidden } from "@mui/material";
 import AssignDialog from "./AssignDialog";
 import { useRouter } from "next/router";
-
+import usePackagesEvents from "../user/hooks/usePackagesEvents";
 import {
   Card,
   CardContent,
@@ -35,6 +35,7 @@ import { FloatBarAction } from "../components/FloatBarAction";
 import LoadingButton from "@mui/lab/LoadingButton";
 
 const ProgramList = () => {
+  const {isPackageExpired} = usePackagesEvents()
   const router = useRouter();
   const deleteProgram = useDeleteProgram();
   const assignUser = assignUserToProgram();
@@ -194,24 +195,27 @@ const ProgramList = () => {
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Typography variant="h4" gutterBottom>
-          Program
-        </Typography>
-        <Hidden smDown>
-          <Tooltip title={`Add New Program`} aria-label="add">
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleAddProgram}
-              startIcon={<AddIcon />}
-              sx={{ marginTop: 3 }}
-            >
-              Add New Program
-            </Button>
+      <Hidden smDown>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Typography variant="h4" gutterBottom>
+            Program
+          </Typography>
+          <Tooltip title={isPackageExpired ? "Package expired. Please renew to add new programs." : ""}>
+            <span>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleAddProgram}
+                startIcon={<AddIcon />}
+                sx={{ marginTop: 3 }}
+                disabled={isPackageExpired}
+              >
+                Add New Program
+              </Button>
+            </span>
           </Tooltip>
-        </Hidden>
-      </div>
+        </div>
+      </Hidden>
 
 
 
@@ -252,7 +256,9 @@ const ProgramList = () => {
             handleNavigation={handleNavigation}
             program={program}
             onEdit={handleEdit}
-            onDelete={handleDelete} />
+            onDelete={handleDelete}
+            disabled={isPackageExpired}
+          />
         ))}
       </Grid>
 
@@ -389,10 +395,19 @@ const ProgramList = () => {
         users={users}
         assignedUsers={assignedUsers}
         useSync={handleSyncProgram}
+        disabled={isPackageExpired}
       />
 
       <Hidden smUp>
-        <FloatBarAction name="Program" handleClick={handleAddProgram} />
+        <Tooltip title={isPackageExpired ? "Package expired. Please renew to add new programs." : ""}>
+          <span>
+            <FloatBarAction 
+              name="Program" 
+              handleClick={handleAddProgram} 
+              disabled={isPackageExpired}
+            />
+          </span>
+        </Tooltip>
       </Hidden>
 
     </>

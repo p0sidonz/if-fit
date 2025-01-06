@@ -1,6 +1,6 @@
 import React from 'react';
 import { styled } from '@mui/material/styles';
-import { Grid,Card, CardContent, CardActions, Typography, Box, Button, Avatar, IconButton, Menu, MenuItem, Chip, List, ListItem, ListItemText } from '@mui/material';
+import { Grid,Card, CardContent, CardActions, Typography, Box, Button, Avatar, IconButton, Menu, MenuItem, Chip, List, ListItem, ListItemText, Tooltip } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
@@ -51,7 +51,7 @@ const ProgramText = styled(ListItemText)(({ theme }) => ({
   },
 }));
 
-const ProgramCard = ({ program, onEdit, onDelete, handleNavigation, onAssignClick }) => {
+const ProgramCard = ({ disabled, program, onEdit, onDelete, handleNavigation, onAssignClick }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
 
@@ -121,19 +121,24 @@ const ProgramCard = ({ program, onEdit, onDelete, handleNavigation, onAssignClic
           </Box>
         </CardContent>
         <CardActions sx={{ padding: 2, borderTop: 1, borderColor: 'divider' }}>
-          <Button
-            onClick={(e) => {
-              e.stopPropagation();
-              onAssignClick(program.id);
-            }}
-            startIcon={<AssignmentIndIcon />}
-            color="primary"
-            variant="contained"
-            size="small"
-            fullWidth
-          >
-            Assign Program
-          </Button>
+          <Tooltip title={disabled ? "Package expired. Please renew to assign program." : ""} sx={{ width: '100%' }}>
+            <span style={{ width: '100%' }}>
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAssignClick(program.id);
+                }}
+                startIcon={<AssignmentIndIcon />}
+                color="primary"
+                variant="contained"
+                size="small"
+                fullWidth
+                disabled={disabled}
+              >
+                Assign Program
+              </Button>
+            </span>
+          </Tooltip>
         </CardActions>
       </StyledProgramCard>
     </Grid>

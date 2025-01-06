@@ -23,6 +23,7 @@ import { GET_AVATAR_COMPRESSED_URL } from "../../../utils/utils";
 // ** Icon Imports
 import Icon from "src/@core/components/icon";
 import Packages from "./package/Package";
+import usePackagesEvents from "../../user/hooks/usePackagesEvents";
 
 const ProfilePicture = styled("img")(({ theme }) => ({
   width: 120,
@@ -64,7 +65,7 @@ const UserProfileHeader = ({user, otherUser, refetchWhoAreYou, isSameUser, usern
   const followUser = useFollowUser();
   const unFollowUser = useUnFollowUser();
   const router = useRouter();
-
+  const {isPackageExpired} = usePackagesEvents()
   const avatarUrl = otherUser?.avatar?.avatar_compressed ?  GET_AVATAR_COMPRESSED_URL(otherUser?.avatar?.avatar_compressed) : "/images/avatars/1.png";
 
   const [followersDialogOpen, setFollowersDialogOpen] = useState(false);
@@ -207,13 +208,19 @@ const UserProfileHeader = ({user, otherUser, refetchWhoAreYou, isSameUser, usern
               )}
 
               {otherUser?.role === "trainer" && (
-                <Tooltip title={!sameUser && user?.role === "trainer" ? "Sorry, trainers cannot purchase packages" : ""}>
+                <Tooltip title={
+                  !sameUser && user?.role === "trainer" 
+                    ? "Sorry, trainers cannot purchase packages" 
+                    : isPackageExpired 
+                      ? "Packages are not available currently"
+                      : ""
+                }>
                   <span>
                     <Button
                       variant="contained"
                       startIcon={<Icon icon="mdi:package-variant-closed" />}
                       onClick={() => setPackagesDialogOpen(true)}
-                      disabled={!sameUser && user?.role === "trainer"}
+                      disabled={(!sameUser && user?.role === "trainer") || isPackageExpired}
                     >
                       Packages
                     </Button>

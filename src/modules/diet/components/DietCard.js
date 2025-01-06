@@ -7,7 +7,7 @@ import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import OpacityIcon from "@mui/icons-material/Opacity";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
-import { Button } from "@mui/material";
+import { Button, Tooltip } from "@mui/material";
 
 
 import { Card, CardContent, Typography, List, ListItem, ListItemText, IconButton, Menu, MenuItem, Box, Chip, Avatar } from '@mui/material';
@@ -53,7 +53,7 @@ const MacroText = styled(ListItemText)(({ theme }) => ({
   },
 }));
 
-const DietPlanCard = ({ diet,onAssignClick, dietId,title, description, target_calories, target_carbs, target_fat, target_protein, type, updated_at, handleEdit, handleDelete, handleNavigation }) => {
+const DietPlanCard = ({ diet,onAssignClick, dietId,title, description, target_calories, target_carbs, target_fat, target_protein, type, updated_at, handleEdit, handleDelete, handleNavigation, disabled }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
 
@@ -121,19 +121,25 @@ const DietPlanCard = ({ diet,onAssignClick, dietId,title, description, target_ca
         {new Date(updated_at).toLocaleDateString()}
       </Box>
     </Box>
-    <Button
-      sx={{mt: 4}}
-    onClick={(e) => {
-      e.stopPropagation();
-      onAssignClicked(dietId);
-    }}
-    startIcon={<AssignmentIndIcon />}
-    color="primary"
-    variant="contained"
-    size="small"
-  >
-    Assign
-  </Button>
+    <Tooltip title={disabled ? "Package expired. Please renew to assign diet." : ""} arrow>
+      <span>
+        <Button
+          fullWidth
+          disabled={disabled}
+          sx={{mt: 4}}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAssignClicked(dietId);
+          }}
+          startIcon={<AssignmentIndIcon />}
+          color="primary"
+          variant="contained"
+          size="small"
+        >
+          Assign
+        </Button>
+      </span>
+    </Tooltip>
   </CardContent>
 </StyledCard>
   );
@@ -142,7 +148,7 @@ const DietPlanCard = ({ diet,onAssignClick, dietId,title, description, target_ca
 
 
 
-const DietCard = ({ diet, onEdit, onDelete, id,onAssignClick }, props) => {
+const DietCard = ({ diet, onEdit, onDelete, id,onAssignClick, disabled }, props) => {
   const router = useRouter();
 
   const handleNavigation = () => {
@@ -201,6 +207,7 @@ const DietCard = ({ diet, onEdit, onDelete, id,onAssignClick }, props) => {
       updated_at={updated_at}
       handleEdit={handleEdit}
       handleDelete={handleDelete}
+      disabled={disabled}
       handleNavigation={handleNavigation}
     />
   );

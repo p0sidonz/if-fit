@@ -34,8 +34,10 @@ import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
 import AssignDialougeForm from './componemts/AssignDialougeForm';
 import AssignDialog from './AssignDialog';
 import ResponseDialouge from './componemts/ResponseDialouge';
+import usePackagesEvents from '../user/hooks/usePackagesEvents';
 
 const DynamicFormsList = () => {
+    const {isPackageExpired} = usePackagesEvents()
     const navigateTo = useNavigateTo();
     const { data: forms = [] } = useFetchForms();
     const createForm = useCreateForm();
@@ -153,16 +155,18 @@ const DynamicFormsList = () => {
                 </div>
                 <div>
                     <Hidden smDown>
-                        <Tooltip title={`Add New Form`} aria-label="add">
-
-                            <Button
-                                variant='contained'
-                                color="primary"
-                                startIcon={<AddIcon />}
-                                onClick={() => setNewFormDialogOpen(true)}
+                        <Tooltip title={isPackageExpired ? "Package expired. Please renew to add new forms." : ""}>
+                            <span>
+                                <Button
+                                    variant='contained'
+                                    color="primary"
+                                    startIcon={<AddIcon />}
+                                    onClick={() => setNewFormDialogOpen(true)}
+                                    disabled={isPackageExpired}
                             >
                                 Create New Form
                             </Button>
+                            </span>
                         </Tooltip>
                     </Hidden>
                 </div>
@@ -237,11 +241,13 @@ const DynamicFormsList = () => {
                                     <AssignmentIndIcon sx={{ mr: 0.5, fontSize: { xs: '1rem', sm: '1.25rem' } }} />
                                     Responses
                                 </Button>
-
-                                <Button
-                                    size='small'
-                                    variant="contained"
-                                    onClick={() => onAssignClick(form)}
+                                <Tooltip title={isPackageExpired ? "Package expired. Please renew to assign form." : ""} arrow>
+                                    <span>
+                                        <Button
+                                            disabled={isPackageExpired}
+                                            size='small'
+                                            variant="contained"
+                                            onClick={() => onAssignClick(form)}
                                     sx={{
                                         mr: { xs: 1, sm: 2 },
                                         fontSize: { xs: '0.75rem', sm: '0.875rem' }
@@ -250,6 +256,8 @@ const DynamicFormsList = () => {
                                     <AssignmentIndIcon sx={{ mr: 0.5, fontSize: { xs: '1rem', sm: '1.25rem' } }} />
                                     Assign
                                 </Button>
+                                </span>
+                                </Tooltip>
                                 <IconButton
                                     edge="end"
                                     onClick={(event) => handleMenuOpen(event, form)}
