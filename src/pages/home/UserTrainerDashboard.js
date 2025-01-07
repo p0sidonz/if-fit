@@ -88,6 +88,8 @@ const TrainerRelationshipCard = ({ relationship }) => {
   const isSubscriptionExpired = subscription && new Date(subscription.end_date) < new Date();
   const navigateTo = useNavigateTo();
 
+  const avatarUrl = GET_AVATAR_COMPRESSED_URL(relationship.userInfo?.avatar?.avatar_compressed ?? null);
+
   const onToggleExpand = () => {
     setIsExpanded(prev => !prev);
   };
@@ -274,7 +276,7 @@ const TrainerRelationshipCard = ({ relationship }) => {
           >
             <Box sx={{ position: 'relative' }}>
               <Avatar
-                src={GET_AVATAR_COMPRESSED_URL(relationship.userInfo.avatar?.avatar_compressed)}
+                src={avatarUrl}
                 sx={{
                   width: { xs: 40, sm: 64 },
                   height: { xs: 40, sm: 64 },
@@ -983,7 +985,7 @@ const UserTrainerDashboard = () => {
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             <Avatar 
-              src={GET_AVATAR_COMPRESSED_URL(relationship.userInfo.avatar?.avatar_compressed)}
+              src={GET_AVATAR_COMPRESSED_URL(relationship.userInfo?.avatar?.avatar_compressed ?? null)}
               sx={{
                 bgcolor: theme.palette.primary.main,
                 color: '#fff',
@@ -1304,7 +1306,7 @@ const UserTrainerDashboard = () => {
                             onClick={() => navigateTo(`/${relationship.userInfo.username}/view`)}
                           >
                             <Avatar 
-                              src={GET_AVATAR_COMPRESSED_URL(relationship.userInfo.avatar?.avatar_compressed)}
+                              src={GET_AVATAR_COMPRESSED_URL(relationship.userInfo?.avatar?.avatar_compressed ?? null)}
                               sx={{
                                 bgcolor: theme.palette.primary.main,
                                 color: '#fff',
