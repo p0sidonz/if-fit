@@ -243,7 +243,7 @@ const TrainerRelationshipCard = ({ relationship }) => {
           >
             <Box sx={{ position: 'relative' }}>
               <Avatar
-                src={GET_AVATAR_COMPRESSED_URL(relationship.trainerInfo.avatar.avatar_compressed)}
+                src={GET_AVATAR_COMPRESSED_URL(relationship.trainerInfo?.avatar?.avatar_compressed)}
                 sx={{
                   bgcolor: theme.palette.primary.main,
                   color: '#fff',
@@ -703,7 +703,7 @@ const TraineeDashboard = () => {
                           onClick={() => navigateTo(`/${relationship.trainerInfo.username}/view`)}
                         >
                           <Avatar
-                            src={GET_AVATAR_COMPRESSED_URL(relationship.trainerInfo.avatar.avatar_compressed)}
+                            src={GET_AVATAR_COMPRESSED_URL(relationship.trainerInfo?.avatar?.avatar_compressed)}
                             sx={{
                               bgcolor: theme.palette.primary.main,
                               color: '#fff',
