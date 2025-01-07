@@ -621,7 +621,7 @@ const TraineeDashboard = () => {
                 Total Trainers
               </Typography>
               <Typography variant="h5">
-                {relationships.length}
+                {relationships?.length}
               </Typography>
             </CardContent>
           </Card>
@@ -633,7 +633,7 @@ const TraineeDashboard = () => {
                 Active Diets
               </Typography>
               <Typography variant="h5">
-                {relationships.filter(r => r.Assigned_Diet.length > 0).length}
+                {relationships?.filter(r => r.Assigned_Diet.length > 0).length}
               </Typography>
             </CardContent>
           </Card>
@@ -645,7 +645,7 @@ const TraineeDashboard = () => {
                 Active Programs
               </Typography>
               <Typography variant="h5">
-                {relationships.filter(r => r.Assigned_Program.length > 0).length}
+                {relationships?.filter(r => r.Assigned_Program.length > 0).length}
               </Typography>
             </CardContent>
           </Card>
@@ -686,7 +686,7 @@ const TraineeDashboard = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {relationships.map((relationship) => (
+                {relationships?.map((relationship) => (
                   <React.Fragment key={relationship.id}>
                     <TableRow>
                       <TableCell>

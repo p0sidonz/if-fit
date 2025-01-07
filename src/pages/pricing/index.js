@@ -25,7 +25,7 @@ import {
   Tab,
   Alert,
 } from "@mui/material";
-import { useGetUpgradePackages } from "src/modules/user/hooks/usePackages";
+import { useGetUpgradePackages, useHandleTrailSubscription } from "src/modules/user/hooks/usePackages";
 import BlankLayout from "src/@core/layouts/BlankLayout";
 import { useAuth } from "src/hooks/useAuth";
 import BillingAddressCardPublic from "./BillingCardPublic";
@@ -50,6 +50,7 @@ const isIndianTimeZone = () => {
 
 const CheckoutStepper = ({ userData, customToken, pkgId, payments }) => {
   const auth = useAuth();
+  const handleTrailSubscription = useHandleTrailSubscription();
   const [Razorpay] = useRazorpay();
   const [activeStep, setActiveStep] = useState(0);
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -136,18 +137,54 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments }) => {
     
     // Add check for Trial package
     if (selectedPlan?.title === "Trial" && 
-        (selectedPlan?.monthly_price === 0 || selectedPlan?.yearlyPrice === 0)) {
-      // Generate a mock order ID for trial
-      const trialOrderId = `orderTrial_${Math.random().toString(36).substr(2, 9)}`;
-      setOrderResponse({
-        orderId: trialOrderId,
-        paymentId: 'trial',
-        signature: 'trial'
-      });
-      setActiveStep(3);
-      return;
+        (selectedPlan?.monthly_price === 0 || selectedPlan?.monthly_price === "0" || 
+         selectedPlan?.yearlyPrice === 0 || selectedPlan?.yearlyPrice === "0")) {
+      try {
+        // Generate order ID using timestamp
+        const trialOrderId = `trial_${Date.now()}`;
+        
+        // Collect browser and device information
+        const browserInfo = {
+          userAgent: navigator.userAgent,
+          language: navigator.language,
+          platform: navigator.platform,
+          screenResolution: `${window.screen.width}x${window.screen.height}`,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          referrer: document.referrer || 'direct',
+          timestamp: new Date().toISOString()
+        };
+
+        // Call trial subscription API with required body
+        const result = await handleTrailSubscription.mutateAsync({
+          order_id: trialOrderId,
+          package_id: selectedPlan.id,
+          browser_info: browserInfo,
+          ip_address: window.location.hostname,
+          page_url: window.location.href,
+          user_email: authenticatedUser?.email,
+          user_id: authenticatedUser?.id
+        });
+
+        if (result.ok) {
+          setOrderResponse({
+            orderId: trialOrderId,
+            paymentId: 'trial',
+            signature: 'trial'
+          });
+          setActiveStep(3);
+          
+          return; // Add early return here to prevent Razorpay execution
+        } else {
+          throw new Error(result.message);
+        }
+        return; // Add return here as well for the trial case
+      } catch (error) {
+        console.error("Error creating trial subscription:", error);
+        return; // Add return here to prevent Razorpay execution even in case of error
+      }
     }
 
+    // Rest of the Razorpay logic will only execute for non-trial plans
     try {
       const finalAmount = selectedPlan?.isYearlyPlan
         ? (isIndianTimeZone() && selectedPlan?.lowIncomeCountryPrice 
@@ -267,10 +304,10 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments }) => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     if (selectedPlan?.title === "Trial" && 
         (selectedPlan?.monthly_price === 0 || selectedPlan?.yearlyPrice === 0)) {
-      handlePurchase();
+      await handlePurchase();
     } else {
       setActiveStep(activeStep + 1);
     }
@@ -886,12 +923,18 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments }) => {
                     </li>
                   </ul>
                 </Alert>
-                <Button variant="contained" onClick={() => {
-                  setIsModalDismissed(true)
-                  setActiveStep(0)
-                  setOrderResponse(null)
-                }}>
-                Close
+                <Button 
+                  variant="contained" 
+                  onClick={() => {
+                    setIsModalDismissed(true);
+                    setActiveStep(0);
+                    setOrderResponse(null);
+                    setSelectedPlan(null);
+                    // Reset any other necessary state
+                    window.location.reload(); // or your desired redirect path
+                  }}
+                >
+                  Close
                 </Button>
               </div>
 
@@ -963,7 +1006,7 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments }) => {
 
       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}>
         <Box>
-          {!isPreviousButtonDisabled && activeStep !== 3 && (
+          {!isPreviousButtonDisabled && activeStep !== 3 && activeStep !== 2 && (
             <Button disabled={activeStep === 0} onClick={handleBack}>
               Back
             </Button>
