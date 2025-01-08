@@ -48,7 +48,7 @@ const isIndianTimeZone = () => {
   return timeZoneOffset === -330;
 };
 
-const CheckoutStepper = ({ userData, customToken, pkgId, payments }) => {
+const CheckoutStepper = ({ userData, customToken, pkgId, payments, hasTrialAccess }) => {
   const auth = useAuth();
   const handleTrailSubscription = useHandleTrailSubscription();
   const [Razorpay] = useRazorpay();
@@ -123,14 +123,18 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments }) => {
 
 
   useEffect(() => {
-      function checkIfUserAviledTrial() {
-        const isUserAviledTrial = payments?.some(payment => payment.packageInfo.title === "Trail" && payment.status === "COMPLETED");
-        if (isUserAviledTrial) {
-          setIsTrialAvailable(true);
-        }
-      }
-      checkIfUserAviledTrial();
-  }, [payments]);
+    function checkIfUserAviledTrial() {
+      // Check both payments history and hasTrialAccess prop
+      const hasTrialInPayments = payments?.some(payment => 
+        payment.packageInfo.title === "Trial" && 
+        payment.status === "COMPLETED"
+      );
+      
+      // Set trial availability based on both conditions
+      setIsTrialAvailable(hasTrialInPayments || hasTrialAccess);
+    }
+    checkIfUserAviledTrial();
+  }, [payments, hasTrialAccess]);
 
   const handlePurchase = async () => {
     const userData = authenticatedUser;
@@ -528,16 +532,16 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments }) => {
                         fullWidth
                         variant={selectedPlan?.title === plan.title ? "contained" : "outlined"}
                         onClick={() => setSelectedPlan(plan)}
-                        disabled={plan.title === "Trial" && isTrialAvailable}
+                        disabled={plan.title === "Trial" && (isTrialAvailable || hasTrialAccess)}
                       >
-                        {plan.title === "Trial" && isTrialAvailable 
+                        {plan.title === "Trial" && (isTrialAvailable || hasTrialAccess)
                           ? "Already Availed"
                           : selectedPlan?.title === plan.title
                             ? "Selected"
                             : "Select Plan"}
                       </Button>
                     </CardActions>
-                    {plan.title === "Trial" && isTrialAvailable && (
+                    {plan.title === "Trial" && isTrialAvailable && !hasTrialAccess && (
                       <Typography
                         variant="caption"
                         component="div"

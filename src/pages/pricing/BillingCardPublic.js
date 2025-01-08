@@ -9,6 +9,7 @@ import InputLabel from '@mui/material/InputLabel'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 import FormControl from '@mui/material/FormControl'
+import { COUNTRIES } from '../../modules/user/consts'
 import FormHelperText from '@mui/material/FormHelperText'
 // ** Custom Components
 import { useState } from 'react'
@@ -145,12 +146,7 @@ const BillingAddressCardPublic = ({token, callback, setBillingDataLocal, handleP
                       label='Country'
                       error={Boolean(errors.billingCountry)}
                     >
-                      <MenuItem value='australia'>Australia</MenuItem>
-                      <MenuItem value='canada'>Canada</MenuItem>
-                      <MenuItem value='france'>France</MenuItem>
-                      <MenuItem value='india'>India</MenuItem>
-                      <MenuItem value='united-kingdom'>United Kingdom</MenuItem>
-                      <MenuItem value='united-states'>United States</MenuItem>
+                      {COUNTRIES.map(country => <MenuItem key={country.iso_code} value={country.iso_code}>{country.country}</MenuItem>)}
                     </Select>
                   )}
                 />

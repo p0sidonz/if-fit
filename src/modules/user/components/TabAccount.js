@@ -262,10 +262,20 @@ const TabAccount = () => {
                     )}
                   />
                 </Grid>
-
+                <Grid item xs={12} sm={6}>
+                  <Controller
+                    name="country"
+                    control={control}
+                    render={({ field }) => (
+                      <Select fullWidth {...field} label="Country" value={formData.country} onChange={(e) => handleFormChange("country", e.target.value)}>
+                        {COUNTRIES.map(country => <MenuItem key={country.iso_code} value={country.iso_code}>{country.country}</MenuItem>)}
+                      </Select>
+                    )}
+                  />
+                </Grid>
                 <Grid item xs={12} sm={12}>
                   <Controller
-                    name="dob"
+                    name="bio"
                     control={control}
                     render={({ field }) => (
                       <TextField
@@ -276,6 +286,7 @@ const TabAccount = () => {
                         label="Bio"
                         type="text"
                         value={formData?.bio}
+                        inputProps={{ maxLength: 160 }}
                         onChange={(e) =>
                           handleFormChange("bio", e.target.value)
                         }
@@ -283,7 +294,7 @@ const TabAccount = () => {
                     )}
                   />
                 </Grid>
-
+               
 
 
                 <Grid item xs={12}>

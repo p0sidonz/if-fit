@@ -18,7 +18,9 @@ const TabBilling = () => {
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
-        <CurrentPlanCard subscription={currentUserPackages?.activePackages}  payments={currentUserPackages?.history}/>
+        <CurrentPlanCard subscription={currentUserPackages?.activePackages}  payments={currentUserPackages?.history} 
+        isTrialAvailable={currentUserPackages?.isTrialAvailable}
+        />
       </Grid>
 
       <Grid item xs={12}>

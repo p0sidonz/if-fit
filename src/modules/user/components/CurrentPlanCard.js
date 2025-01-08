@@ -28,7 +28,7 @@ import CustomChip from 'src/@core/components/mui/chip'
 // ** Component Import
 // import PricingPlans from 'src/views/pages/pricing/PricingPlans'
 
-const CurrentPlanCard = ({ subscription , payments}) => {
+const CurrentPlanCard = ({ subscription , payments, isTrialAvailable}) => {
     console.log(subscription)
     // ** State
     const [open, setOpen] = useState(false)
@@ -191,6 +191,7 @@ const CurrentPlanCard = ({ subscription , payments}) => {
                 userData={userData}
                 customToken={token}
                 payments={payments}
+                hasTrialAccess={isTrialAvailable}
                 />
             </DialogContent>
           </Dialog>

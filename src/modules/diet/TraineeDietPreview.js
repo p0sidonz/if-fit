@@ -12,10 +12,12 @@ import FoodSummaryInfo from "./components/FoodSummaryInfo";
 const MealCard = ({ meal, chart }) => {
     // Calculate meal totals
     const mealTotals = meal.Diet_Meals_FoodList.reduce((acc, food) => {
-        const servings = food.is_custom
+        const servinfdsfsdfgs = food.is_custom
             ? food.custom_serving
             : food.foodInfo.servings.serving.find(serve => serve.serving_id === JSON.stringify(food.serving_id));
-        
+            const servings = food.is_custom
+            ? food.custom_serving
+            : food.foodInfo.servings.serving.find((serve) => serve.serving_id === food.serving_id);
         if (servings) {
             acc.calories += Number(servings.calories) || 0;
             acc.carbohydrate += Number(servings.carbohydrate) || 0;
@@ -60,24 +62,111 @@ const MealCard = ({ meal, chart }) => {
 const FoodItem = ({ food }) => {
     const activeServings = food.is_custom
         ? food.custom_serving
-        : food.foodInfo.servings.serving.find(serve => serve.serving_id === JSON.stringify(food.serving_id));
+        : food.foodInfo.servings.serving.find(serve => serve.serving_id === food.serving_id);
 
     if (!activeServings) return null;
 
+    const nutritionItems = [
+        { label: 'Cals', value: activeServings?.calories },
+        { label: 'Carbs', value: activeServings?.carbohydrate },
+        { label: 'Protein', value: activeServings?.protein },
+        { label: 'Fat', value: activeServings?.fat },
+    ];
+
+    const specialUnits = [
+        'cup', 'diced', 'wedge', 'slice', 'piece',
+        'small', 'medium', 'large',
+        'whole', 'half', 'thigh'
+    ];
+
+    const hasSpecialUnit = (description) => {
+        if (!description) return false;
+        if (description.toLowerCase() === 'serving' || 
+            description.toLowerCase().includes('g serving')) {
+            return false;
+        }
+        return specialUnits.some(unit => description.toLowerCase().includes(unit));
+    };
+
+    const formatNumber = (num) => {
+        return parseFloat(parseFloat(num).toFixed(3)).toString();
+    };
+
     return (
-        <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography>{food.foodInfo.food_name}</Typography>
+        <Accordion sx={{
+            '&:before': {
+                display: 'none',
+            },
+            boxShadow: 'rgba(0, 0, 0, 0.04) 0px 3px 5px',
+            mb: 1
+        }}>
+            <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                    '& .MuiAccordionSummary-content': {
+                        margin: '12px 0',
+                        flexDirection: 'column',
+                        gap: 0.5
+                    }
+                }}
+            >
+                <Typography 
+                    variant='h6' 
+                    sx={{ 
+                        width: '100%', 
+                        flexShrink: 0,
+                        fontWeight: 500
+                    }}
+                >
+                    {food.foodInfo.food_name}
+                </Typography>
+                {activeServings && (
+                    <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{ 
+                            fontSize: '0.9em'
+                        }}
+                    >
+                        {hasSpecialUnit(activeServings.measurement_description)
+                            ? `${formatNumber(activeServings.metric_serving_amount)}x ${activeServings.measurement_description}`
+                            : `${formatNumber(activeServings.metric_serving_amount)}g`
+                        }
+                    </Typography>
+                )}
             </AccordionSummary>
             <AccordionDetails>
-                <Grid container spacing={2}>
-                    {['Calories', 'Carbohydrate', 'Protein', 'Fat'].map((nutrient) => (
-                        <Grid item xs={6} sm={3} key={nutrient}>
-                            <Typography color="primary" variant="subtitle1" align="center">
-                                {nutrient}
+                <Grid 
+                    container 
+                    spacing={2} 
+                    sx={{ 
+                        '& .MuiTypography-root': {
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                                transform: 'scale(1.05)',
+                            }
+                        }
+                    }}
+                >
+                    {nutritionItems.map(({ label, value }) => (
+                        <Grid item xs={6} lg={3} key={label}>
+                            <Typography 
+                                color="primary" 
+                                sx={{ 
+                                    fontSize: '1.2rem', 
+                                    fontWeight: 'bold',
+                                    textAlign: 'center'
+                                }}
+                            >
+                                {label}
                             </Typography>
-                            <Typography variant="h6" align="center">
-                                {activeServings[nutrient.toLowerCase()]}
+                            <Typography 
+                                sx={{ 
+                                    fontSize: '1rem',
+                                    textAlign: 'center'
+                                }}
+                            >
+                                {value}
                             </Typography>
                         </Grid>
                     ))}
@@ -113,7 +202,7 @@ const TraineeDietPreview = ({ param, relationId }) => {
             if (diet.shoudsync) {
                 setJsonDiet(diet?.dietInfo?.Diet_Meals)
             } else {
-                console.log("dietdsadf", diet)
+                console.log("dietdsadf",JSON.parse(diet?.dietJson))
                 try {
                     setJsonDiet(JSON.parse(diet?.dietJson))
                 } catch (error) {

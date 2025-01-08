@@ -17,9 +17,9 @@ import {
   Tab,
   Switch,
   Divider,
-  ExpandMore,
-  ExpandLess,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
 const UserTools = () => {
   const [activeCalculator, setActiveCalculator] = useState(0);
@@ -272,11 +272,19 @@ const UserTools = () => {
         'heavy': -1.0,
       }[advancedFormData.trainingIntensity];
 
-      // Cardio adjustment
+      // Cardio adjustment based on minutes
       let cardioAdjustment = 0;
       if (advancedFormData.includesCardio === 'yes') {
         const minutes = Number(advancedFormData.cardioMinutes);
-        cardioAdjustment = minutes >= 150 ? -1.0 : -0.5;
+        if (minutes >= 300) {
+          cardioAdjustment = -2.0;
+        } else if (minutes >= 150) {
+          cardioAdjustment = -1.5;
+        } else if (minutes >= 75) {
+          cardioAdjustment = -1.0;
+        } else {
+          cardioAdjustment = -0.5;
+        }
       }
 
       bodyFat += frequencyAdjustment + intensityAdjustment + cardioAdjustment;
@@ -621,6 +629,118 @@ const UserTools = () => {
               </>
             )}
 
+
+            {activeCalculator === 2 && (
+              <Grid item xs={12}>
+                <Button
+                  variant="text"
+                  onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                  endIcon={showAdvancedOptions ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                >
+                  Advanced Options
+                </Button>
+
+                {showAdvancedOptions && (
+                  <Grid container spacing={3} sx={{ mt: 1 }}>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        select
+                        label="Do you workout?"
+                        name="doesWorkout"
+                        value={advancedFormData.doesWorkout}
+                        onChange={handleAdvancedInputChange}
+                        sx={{ backgroundColor: 'background.paper' }}
+                      >
+                        <MenuItem value="no">No</MenuItem>
+                        <MenuItem value="yes">Yes</MenuItem>
+                      </TextField>
+                    </Grid>
+
+                    {advancedFormData.doesWorkout === 'yes' && (
+                      <>
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            fullWidth
+                            select
+                            label="Workouts per week"
+                            name="workoutFrequency"
+                            value={advancedFormData.workoutFrequency}
+                            onChange={handleAdvancedInputChange}
+                            sx={{ backgroundColor: 'background.paper' }}
+                          >
+                            <MenuItem value="1-2">1-2 times</MenuItem>
+                            <MenuItem value="3-4">3-4 times</MenuItem>
+                            <MenuItem value="5+">5+ times</MenuItem>
+                          </TextField>
+                        </Grid>
+
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            fullWidth
+                            select
+                            label="Training Intensity"
+                            name="trainingIntensity"
+                            value={advancedFormData.trainingIntensity}
+                            onChange={handleAdvancedInputChange}
+                            sx={{ backgroundColor: 'background.paper' }}
+                          >
+                            <MenuItem value="light">Light</MenuItem>
+                            <MenuItem value="moderate">Moderate</MenuItem>
+                            <MenuItem value="heavy">Heavy</MenuItem>
+                          </TextField>
+                        </Grid>
+
+                        <Grid item xs={12} md={advancedFormData.includesCardio === 'yes' ? 6 : 12}>
+                          <TextField
+                            fullWidth
+                            select
+                            label="Includes Cardio?"
+                            name="includesCardio"
+                            value={advancedFormData.includesCardio}
+                            onChange={handleAdvancedInputChange}
+                            sx={{ backgroundColor: 'background.paper' }}
+                          >
+                            <MenuItem value="no">No</MenuItem>
+                            <MenuItem value="yes">Yes</MenuItem>
+                          </TextField>
+                        </Grid>
+
+                        {advancedFormData.includesCardio === 'yes' && (
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Minutes of Cardio per Week"
+                              name="cardioMinutes"
+                              type="number"
+                              value={advancedFormData.cardioMinutes}
+                              onChange={handleAdvancedInputChange}
+                              sx={{ backgroundColor: 'background.paper' }}
+                              InputProps={{
+                                inputProps: { min: 0 }
+                              }}
+                            />
+                          </Grid>
+                        )}
+                      </>
+                    )}
+                  </Grid>
+                )}
+              </Grid>
+            )}
+
+{activeCalculator === 2 && (
+              <>
+                <Grid item xs={12}>
+                  <Card elevation={3}>
+                    <CardContent>
+                      <Typography variant="h6">Estimated Body Fat</Typography>
+                      <Typography variant="h4">{results.bodyFat}%</Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </>
+            )}
             <Grid item xs={12}>
               <Button
                 fullWidth
@@ -727,7 +847,7 @@ const UserTools = () => {
                   </Grid>
                 </>
               )}
-
+{/* 
               {activeCalculator === 3 && (
                 <>
                   <Grid item xs={12}>
@@ -743,7 +863,7 @@ const UserTools = () => {
                     <Button
                       variant="text"
                       onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-                      endIcon={showAdvancedOptions ? <ExpandLess /> : <ExpandMore />}
+                      endIcon={showAdvancedOptions ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                     >
                       Advanced Options
                     </Button>
@@ -828,7 +948,7 @@ const UserTools = () => {
                     </>
                   )}
                 </>
-              )}
+              )} */}
 
               {activeCalculator === 3 && (
                 <Grid item xs={12}>
