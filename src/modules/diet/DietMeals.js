@@ -139,7 +139,7 @@ const DietMeals = (props) => {
     }
   }
 
-  const handleDeleteFoodlModal = (food) => {
+  const handleDeleteFoodModal = (food) => {
     console.log("Selected handleDeleteFoodlModal:", food)
     setSelectedFoodDelete(food)
     setOpenDeleteFood(true);
@@ -486,7 +486,7 @@ const DietMeals = (props) => {
             {/* <MealTable meal={meal} data={meal.Diet_Meals_FoodList} /> */}
             <MobileDietMeal
               handleEditFood={handleEditFood}
-              handleDeleteFoodlModal={handleDeleteFoodlModal}
+              handleDeleteFoodModal={handleDeleteFoodModal}
               meal={meal}
               data={meal.Diet_Meals_FoodList}
 
