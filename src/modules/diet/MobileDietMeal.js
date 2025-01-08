@@ -23,6 +23,26 @@ const FoodAccordion = ({ food, activeServings, handleEditFood, handleDeleteFoodM
     { label: 'Fat', value: activeServings?.fat },
   ];
 
+  const specialUnits = [
+    'cup', 'diced', 'wedge', 'slice', 'piece',
+    'small', 'medium', 'large',
+    'whole', 'half', 'thigh'
+  ];
+
+  const hasSpecialUnit = (description) => {
+    if (!description) return false;
+    if (description.toLowerCase() === 'serving' || 
+        description.toLowerCase().includes('g serving')) {
+      return false;
+    }
+    return specialUnits.some(unit => description.toLowerCase().includes(unit));
+  };
+
+  const formatNumber = (num) => {
+    // Convert to float and remove trailing zeros
+    return parseFloat(parseFloat(num).toFixed(3)).toString();
+  };
+
   return (
     <Accordion 
       key={food.id} 
@@ -43,6 +63,8 @@ const FoodAccordion = ({ food, activeServings, handleEditFood, handleDeleteFoodM
         sx={{
           '& .MuiAccordionSummary-content': {
             margin: '12px 0',
+            flexDirection: 'column',
+            gap: 0.5
           }
         }}
       >
@@ -51,24 +73,25 @@ const FoodAccordion = ({ food, activeServings, handleEditFood, handleDeleteFoodM
           sx={{ 
             width: '100%', 
             flexShrink: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-            fontWeight: 500,
-            '& .serving-info': {
-              color: 'text.secondary',
-              fontSize: '0.9em',
-              marginLeft: '4px'
-            }
+            fontWeight: 500
           }}
         >
           {food?.foodInfo.food_name}
-          {(activeServings?.metric_serving_amount || activeServings?.metric_serving_unit) && (
-            <span className="serving-info">
-              {`${activeServings?.metric_serving_amount || ''} ${activeServings?.metric_serving_unit || ''}`}
-            </span>
-          )}
         </Typography>
+        {activeServings && (
+          <Typography 
+            variant="body2" 
+            color="text.secondary"
+            sx={{ 
+              fontSize: '0.9em'
+            }}
+          >
+            {hasSpecialUnit(activeServings.measurement_description)
+              ? `${formatNumber(activeServings.metric_serving_amount)}x ${activeServings.measurement_description}`
+              : `${formatNumber(activeServings.metric_serving_amount)}g`
+            }
+          </Typography>
+        )}
       </AccordionSummary>
 
       <AccordionDetails sx={{ pb: 2 }}>

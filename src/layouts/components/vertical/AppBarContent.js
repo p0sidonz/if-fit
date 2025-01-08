@@ -25,8 +25,9 @@ const AppBarContent = props => {
 
         <ModeToggler settings={settings} saveSettings={saveSettings} />
       </Box>
-      <GlobalSearch />
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
+      <GlobalSearch />
+
         <UserDropdown settings={settings} />
       </Box>
     </Box>
