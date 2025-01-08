@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import PackageManager from './PackageManager'
 import { useGetPackages } from '../../hooks/usePackages'
 
-const Packages = ({ username }) => {
+const Packages = ({ username, isSameUser }) => {
     console.log("Packages   ", username)
     const { data, isLoading, refetch, isRefetching } = useGetPackages(username)
 
@@ -15,7 +15,7 @@ const Packages = ({ username }) => {
 
 
 
-    return <PackageManager packages={data} />
+    return <PackageManager packages={data} isSameUser={isSameUser} />
 
 }
 export default Packages

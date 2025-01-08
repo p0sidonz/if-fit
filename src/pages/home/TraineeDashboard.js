@@ -53,6 +53,7 @@ import { GET_AVATAR_COMPRESSED_URL } from 'src/utils/utils';
 
 
 const TrainerRelationshipCard = ({ relationship }) => {
+  const theme = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
   const hasSubscription = relationship.trainerInfo.UserAndTrainerSubscription.length > 0;
   const subscription = hasSubscription ? relationship.trainerInfo.UserAndTrainerSubscription[0] : null;

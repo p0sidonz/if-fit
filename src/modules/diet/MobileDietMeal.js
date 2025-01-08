@@ -9,91 +9,165 @@ import { TableCell, Button, Tooltip } from '@mui/material';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
-const ArrordionMap = ({ food, activeServings, handleEditFood, handleDeleteFoodlModal }) => {
+const FoodAccordion = ({ food, activeServings, handleEditFood, handleDeleteFoodModal }) => {
   const [expanded, setExpanded] = React.useState(false);
 
   const handleChange = (panel) => (event, isExpanded) => {
     setExpanded(isExpanded ? panel : false);
-  }
+  };
+
+  const nutritionItems = [
+    { label: 'Cals', value: activeServings?.calories },
+    { label: 'Carbs', value: activeServings?.carbohydrate },
+    { label: 'Protein', value: activeServings?.protein },
+    { label: 'Fat', value: activeServings?.fat },
+  ];
+
   return (
-  
-  <Accordion key={food.id} expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
-    <AccordionSummary
-
-      expandIcon={<ExpandMoreIcon />}
-      aria-controls="panel1bh-content"
-      id="panel1bh-header"
+    <Accordion 
+      key={food.id} 
+      expanded={expanded === 'panel1'} 
+      onChange={handleChange('panel1')}
+      sx={{
+        '&:before': {
+          display: 'none',
+        },
+        boxShadow: 'rgba(0, 0, 0, 0.04) 0px 3px 5px',
+        mb: 1
+      }}
     >
-      <Typography variant='h6' sx={{ width: '100%', flexShrink: 0 }}>
-        {food?.foodInfo.food_name}
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon />}
+        aria-controls="panel1bh-content"
+        id="panel1bh-header"
+        sx={{
+          '& .MuiAccordionSummary-content': {
+            margin: '12px 0',
+          }
+        }}
+      >
+        <Typography 
+          variant='h6' 
+          sx={{ 
+            width: '100%', 
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            fontWeight: 500,
+            '& .serving-info': {
+              color: 'text.secondary',
+              fontSize: '0.9em',
+              marginLeft: '4px'
+            }
+          }}
+        >
+          {food?.foodInfo.food_name}
+          {(activeServings?.metric_serving_amount || activeServings?.metric_serving_unit) && (
+            <span className="serving-info">
+              {`${activeServings?.metric_serving_amount || ''} ${activeServings?.metric_serving_unit || ''}`}
+            </span>
+          )}
+        </Typography>
+      </AccordionSummary>
 
-      </Typography>
-
-    </AccordionSummary>
-    <AccordionDetails>
-
-      <Grid container spacing={2}>
-        <Grid item xs={6} lg={3}>
-          <Typography color={"primary"} sx={{ fontSize: '1.2rem', fontWeight: 'bold' }} align="center">Cals</Typography>
-          <Typography sx={{ fontSize: '1rem', }} variant="body1" align="center">{activeServings?.calories}</Typography>
+      <AccordionDetails sx={{ pb: 2 }}>
+        <Grid 
+          container 
+          spacing={2} 
+          sx={{ 
+            mb: 2,
+            '& .MuiTypography-root': {
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'scale(1.05)',
+              }
+            }
+          }}
+        >
+          {nutritionItems.map(({ label, value }) => (
+            <Grid item xs={6} lg={3} key={label}>
+              <Typography 
+                color="primary" 
+                sx={{ 
+                  fontSize: '1.2rem', 
+                  fontWeight: 'bold',
+                  textAlign: 'center'
+                }}
+              >
+                {label}
+              </Typography>
+              <Typography 
+                sx={{ 
+                  fontSize: '1rem',
+                  textAlign: 'center'
+                }}
+              >
+                {value}
+              </Typography>
+            </Grid>
+          ))}
         </Grid>
-        <Grid item xs={6} lg={3}>
-          <Typography color={"primary"} sx={{ fontSize: '1.2rem', fontWeight: 'bold' }} align="center">Carbs</Typography>
-          <Typography sx={{ fontSize: '1rem', }} variant="body1" align="center">{activeServings?.carbohydrate}</Typography>
-        </Grid>
-        <Grid item xs={6} lg={3}>
-          <Typography color={"primary"} sx={{ fontSize: '1.2rem', fontWeight: 'bold' }} align="center">Protein</Typography>
-          <Typography sx={{ fontSize: '1rem', }} variant="body1" align="center">{activeServings?.protein}</Typography>
-        </Grid>
-        <Grid item xs={6} lg={3}>
-          <Typography color={"primary"} sx={{ fontSize: '1.2rem', fontWeight: 'bold' }} align="center">Fat</Typography>
-          <Typography sx={{ fontSize: '1rem', }} variant="body1" align="center">{activeServings?.fat}</Typography>
-        </Grid>
-      </Grid>
-      <div style={{ display: 'flex', justifyContent: 'center', }}>
-        <Tooltip title="Edit Food" arrow>
-          <Button fullWidth onClick={() => { handleEditFood(food, activeServings) }}>
-            <ModeEditIcon />
-          </Button>
-        </Tooltip>
-        <Tooltip title="Delete Food" arrow>
 
-          <Button fullWidth onClick={() => { handleDeleteFoodlModal(food) }}>
-            <DeleteForeverIcon color="error" />
-          </Button>
-        </Tooltip>
-      </div>
-    </AccordionDetails>
-  </Accordion>)
-}
-
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center',
+          gap: '8px'
+        }}>
+          <Tooltip title="Edit Food" arrow>
+            <Button 
+              onClick={() => handleEditFood(food, activeServings)}
+              sx={{
+                minWidth: '120px',
+                '&:hover': {
+                  backgroundColor: 'action.hover'
+                }
+              }}
+            >
+              <ModeEditIcon />
+            </Button>
+          </Tooltip>
+          <Tooltip title="Delete Food" arrow>
+            <Button 
+              onClick={() => handleDeleteFoodModal(food)}
+              sx={{
+                minWidth: '120px',
+                '&:hover': {
+                  backgroundColor: 'error.light'
+                }
+              }}
+            >
+              <DeleteForeverIcon color="error" />
+            </Button>
+          </Tooltip>
+        </div>
+      </AccordionDetails>
+    </Accordion>
+  );
+};
 
 export default function MobileDietMeal({
   meal,
   data,
   handleEditFood,
-  handleDeleteFoodlModal
+  handleDeleteFoodModal
 }) {
-  const [expanded, setExpanded] = React.useState(false);
-
-
   return (
-    <div>
+    <div style={{ padding: '8px 0' }}>
       {meal.Diet_Meals_FoodList.map((food) => {
-        let activeServings;
-        if (food.is_custom) {
-          activeServings = food.custom_serving;
-        } else {
-          activeServings = food.foodInfo.servings.serving.filter((serve) => serve.serving_id === (food.serving_id))[0];
-        }
+        const activeServings = food.is_custom
+          ? food.custom_serving
+          : food.foodInfo.servings.serving.find((serve) => serve.serving_id === food.serving_id);
+
         if (!activeServings) return null;
+        
         return (
-          <ArrordionMap
+          <FoodAccordion
             key={food.id}
             food={food}
             activeServings={activeServings}
             handleEditFood={handleEditFood}
-            handleDeleteFoodlModal={handleDeleteFoodlModal}
+            handleDeleteFoodModal={handleDeleteFoodModal}
           />
         );
       })}

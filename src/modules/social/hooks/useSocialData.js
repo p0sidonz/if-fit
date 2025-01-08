@@ -280,3 +280,21 @@ export const useUnLikePost = () => {
 
 
 }
+
+export const useDeletePost = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (postId) => {
+      const response = await axios.delete(`/posts/delete/${postId}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries("socialData");
+      toast.success("Post deleted successfully");
+    },
+    onError: (error) => {
+      toast.error("Error deleting post: " + error.message);
+    },
+  });
+}

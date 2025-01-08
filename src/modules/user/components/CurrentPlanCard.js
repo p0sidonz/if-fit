@@ -98,7 +98,7 @@ const CurrentPlanCard = ({ subscription , payments}) => {
     
         return { daysRemaining, totalDays, progressPercentage, alertInfo };
     }, [subscription?.created_at, subscription?.expiration_date]);
-
+    console.log("subscription", subscription)
 
     return (
         <>

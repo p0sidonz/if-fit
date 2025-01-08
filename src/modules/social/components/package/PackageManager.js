@@ -53,7 +53,7 @@ const getCurrencySymbol = (curr) => {
   }
 };
 
-const PackageCard = ({ packageData, onSelect, isOwnProfile }) => {
+const PackageCard = ({ packageData, onSelect, isOwnProfile, isSameUser }) => {
   const { title, amount, lowIncomeCountryPrice, currency, category, validity, discount, session_count } = packageData;
   console.log("packageDa432423ta", packageData);
   // Determine price based on timezone
@@ -140,7 +140,7 @@ const PackageCard = ({ packageData, onSelect, isOwnProfile }) => {
     </Card>
   );
 };
-const PackageDialog = ({ open, handleClose, packageData, isOwnProfile, isTrainerProfile }) => {
+const PackageDialog = ({ open, handleClose, packageData, isOwnProfile, isTrainerProfile, isSameUser }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [billingData, setBillingData] = useState(null);
   const [isBillingValid, setIsBillingValid] = useState(false);
@@ -259,13 +259,15 @@ const handleBillingSubmit = (data) => {
           <Fade in={activeStep === 0}>
             <Box>
               {(isOwnProfile || isTrainerProfile) && (
-                <Typography 
-                  variant="subtitle1" 
-                  color="error" 
-                  sx={{ mb: 2, textAlign: 'center' }}
+                <Alert 
+                  severity="info"
+                  sx={{ mb: 2 }}
                 >
-                  Note: You cannot purchase packages from your own profile. Please visit other profiles to make purchases.
-                </Typography>
+                  {isSameUser 
+                    ? "Preview of how your packages appear to other users"
+                    : "Note: You cannot purchase packages because your current role is a trainer. Create a new account to purchase packages."
+                  }
+                </Alert>
               )}
               <Typography variant="body1" color="text.secondary" paragraph dangerouslySetInnerHTML={{ __html: JSON.parse(description).blocks[0].text }} />
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline', mb: 2 }}>
@@ -405,7 +407,7 @@ const handleBillingSubmit = (data) => {
   );
 };
 
-const PackageManager = ({ packages, profileUserId }) => {
+const PackageManager = ({ packages, profileUserId, isSameUser }) => {
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const userData = JSON.parse(localStorage.getItem('userData'));
@@ -442,12 +444,14 @@ const PackageManager = ({ packages, profileUserId }) => {
                 packageData={pkg} 
                 onSelect={handlePackageSelect}
                 isOwnProfile={isOwnProfile}
+                isSameUser={isSameUser}
               />
             </Grid>
           ))}
         </Grid>
       )}
       <PackageDialog
+        isSameUser={isSameUser}
         isTrainerProfile={isTrainerProfile}
         open={dialogOpen}
         handleClose={handleDialogClose}

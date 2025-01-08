@@ -44,9 +44,9 @@ const EditFoodDialog = ({ openFoodEdit, setOpenFoodEdit, selectedFood, setSelect
       return newLocalServing;
     });
   };
-  const handleSave = () => {
-    setselectedServingdForEdit(localServing);
-    handleSaveEditServing(localServing);
+  const handleSave = (data) => {
+    setselectedServingdForEdit(data);
+    handleSaveEditServing(data);
     setOpenFoodEdit(false);
   };
 
@@ -54,8 +54,12 @@ const EditFoodDialog = ({ openFoodEdit, setOpenFoodEdit, selectedFood, setSelect
     <Dialog maxWidth="sm" open={openFoodEdit} onClose={() => setOpenFoodEdit(false)}>
       <DialogTitle>Edit {selectedFood?.foodInfo?.food_name} Nutrition value</DialogTitle>
       <DialogContent>
-        <NutritionValueDisplay data={localServing} />
-        <div key="metric_serving_amount" style={{ margin: '20px 0' }}>
+        <NutritionValueDisplay title={"Update Serving"} closeModal={()=>setOpenFoodEdit(false)} data={localServing} hideSlider={false} changeServing={(data)=>{
+          console.log(data)
+          setLocalServing(data)
+          handleSave(data)
+        }} />
+        {/* <div key="metric_serving_amount" style={{ margin: '20px 0' }}>
           <Typography id="metric_serving_amount-slider" gutterBottom>
             Serving Amount
           </Typography>
@@ -69,16 +73,16 @@ const EditFoodDialog = ({ openFoodEdit, setOpenFoodEdit, selectedFood, setSelect
             max={500}
           />
           <h2 >Quantity: {localServing?.metric_serving_amount} ({localServing?.metric_serving_unit})</h2>
-        </div>
+        </div> */}
       </DialogContent>
-      <DialogActions>
+      {/* <DialogActions>
         <Button onClick={() => setOpenFoodEdit(false)} color="secondary">
           Cancel
         </Button>
         <LoadingButton color="primary" onClick={handleSave}>
           Save
         </LoadingButton>
-      </DialogActions>
+      </DialogActions> */}
     </Dialog>
   );
 };

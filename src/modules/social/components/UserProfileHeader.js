@@ -60,7 +60,9 @@ const StatItem = ({ label, count, onClick }) => (
 );
 
 const UserProfileHeader = ({user, otherUser, refetchWhoAreYou, isSameUser, username}) => {
-  console.log("otherUser", otherUser);
+  console.log("browsing", otherUser);
+  console.log("loggedin", user);
+
   const sameUser = user?.username === otherUser?.username;
   const followUser = useFollowUser();
   const unFollowUser = useUnFollowUser();
@@ -106,6 +108,52 @@ const UserProfileHeader = ({user, otherUser, refetchWhoAreYou, isSameUser, usern
   useEffect(() => {
     handleCloseDialog();
   }, [username])
+
+
+
+  const RenderPackageButton = () => {
+    // Don't show button at all if viewing a trainee's profile
+    if (otherUser.role !== "trainer") {
+      return null;
+    }
+
+    // Viewing own profile as a trainer
+    if (isSameUser && user.role === "trainer") {
+      return (
+        <Button 
+          onClick={() => setPackagesDialogOpen(true)} 
+          variant="contained" 
+          startIcon={<Icon icon="mdi:package-variant-closed" />}
+        >
+          Packages
+        </Button>
+      );
+    }
+
+    // Trainer viewing another trainer's profile
+    if (user.role === "trainer" && otherUser.role === "trainer") {
+      return (
+        <Button 
+          onClick={() => setPackagesDialogOpen(true)}
+          variant="contained" 
+          startIcon={<Icon icon="mdi:package-variant-closed" />}
+        >
+          Packages
+        </Button>
+      );
+    }
+
+    // Trainee viewing a trainer's profile
+    return (
+      <Button 
+        onClick={() => setPackagesDialogOpen(true)} 
+        variant="contained" 
+        startIcon={<Icon icon="mdi:package-variant-closed" />}
+      >
+        Packages
+      </Button>
+    );
+  };
 
   const designationIcon = 'mdi:fountain-pen-tip'
   return (
@@ -207,10 +255,10 @@ const UserProfileHeader = ({user, otherUser, refetchWhoAreYou, isSameUser, usern
                 </LoadingButton>
               )}
 
-              {otherUser?.role === "trainer" && (
+              {/* {otherUser?.role === "trainer" && (
                 <Tooltip title={
-                  !sameUser && user?.role === "trainer" 
-                    ? "Sorry, trainers cannot purchase packages" 
+                  user?.role === "trainer" 
+                    ? "Sorry, trainers cannot purchase packages from other trainers" 
                     : isPackageExpired 
                       ? "Packages are not available currently"
                       : ""
@@ -220,13 +268,14 @@ const UserProfileHeader = ({user, otherUser, refetchWhoAreYou, isSameUser, usern
                       variant="contained"
                       startIcon={<Icon icon="mdi:package-variant-closed" />}
                       onClick={() => setPackagesDialogOpen(true)}
-                      disabled={(!sameUser && user?.role === "trainer") || isPackageExpired}
+                      disabled={user?.role === "trainer" || isPackageExpired}
                     >
                       Packages
                     </Button>
                   </span>
                 </Tooltip>
-              )}
+              )} */}
+              { <RenderPackageButton/>}
             </Box>
           </>
         )}
@@ -254,7 +303,7 @@ const UserProfileHeader = ({user, otherUser, refetchWhoAreYou, isSameUser, usern
       <Dialog maxWidth="md" fullWidth open={packagesDialogOpen} onClose={handleCloseDialog}>
         <DialogTitle>Buy Plans</DialogTitle>
         <DialogContent>
-          <Packages username={username}/>
+          <Packages username={username} isSameUser={isSameUser}/>
                     {/* <Following
             username={username}
           /> */}

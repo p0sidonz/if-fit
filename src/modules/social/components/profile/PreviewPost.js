@@ -24,30 +24,34 @@ import {
   useDeleteComment,
   useLikePost,
   useUnLikePost,
+  useDeletePost,
 } from "../../hooks/useSocialData";
 import CommentsComponent from "./CommentsComponent";
 import { Tooltip } from "@mui/material";
 import { ArrowBackIos } from "@mui/icons-material";
 import {  GET_POST_IMAGE_URL } from "../../../../utils/utils";
+import { useRouter } from 'next/router';
 
 const PreviewPost = ({ open, onClose, isLoading, post }) => {
+  const router = useRouter();
   const user = JSON.parse(localStorage.getItem("userData"));
   const imageUrl = GET_POST_IMAGE_URL(post?.photo?.photo_compressed);
   const [newComment, setNewComment] = useState("");
   const postComment = useAddComment();
-  const deletePost = useDeleteComment();
+  const deleteComment = useDeleteComment();
   const likePost = useLikePost();
   const unLikePost = useUnLikePost();
+  const deletePost = useDeletePost();
 
   if (isLoading) {
     return <CircularProgress />;
   }
 
   const handleDeleteComment = (commentId) => {
-    if (deletePost.isPending) return;
-    deletePost.mutate(commentId, {
+    if (deleteComment.isPending) return;
+    deleteComment.mutate(commentId, {
       onSuccess: (data) => {
-        console.log("onSuccess deletePost ", data);
+        console.log("onSuccess deleteComment ", data);
         // need to remove post from list
         //filter out the comment from post.PostComment
         const newComments = post.PostComment.filter(
@@ -76,6 +80,20 @@ const PreviewPost = ({ open, onClose, isLoading, post }) => {
         post.isLiked = !post.isLiked;
         post._count.Likes = post._count.Likes - 1;
 
+      },
+    });
+  };
+
+  const handleNavigateToProfile = () => {
+    onClose();
+    router.push(`/${post?.user?.username}/view`);
+  };
+
+  const handleDeletePost = () => {
+    if (deletePost.isPending) return;
+    deletePost.mutate(post.id, {
+      onSuccess: () => {
+        onClose();
       },
     });
   };
@@ -136,14 +154,29 @@ const PreviewPost = ({ open, onClose, isLoading, post }) => {
                     justifyContent: "space-between",
                   }}
                 >
-                  <Avatar alt="Username" sx={{ mr: 1 }}>
-                    AS
-                  </Avatar>
-
-                  <Typography variant="body1">@{post?.user?.username}</Typography>
-                  <Link href="#" sx={{ ml: "auto" }}>
-                    View Profile
-                  </Link>
+                  <Box 
+                    sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      cursor: 'pointer' 
+                    }}
+                    onClick={handleNavigateToProfile}
+                  >
+                    <Avatar alt={post?.user?.username} sx={{ mr: 1 }}>
+                      {post?.user?.username?.substring(0, 2)?.toUpperCase()}
+                    </Avatar>
+                    <Typography variant="body1">@{post?.user?.username}</Typography>
+                  </Box>
+                  {user.id === post?.user?.id && (
+                    <Tooltip title="Delete Post" arrow placement="top">
+                      <IconButton 
+                        onClick={handleDeletePost}
+                        disabled={deletePost.isPending}
+                      >
+                        <Icon icon="mdi:delete" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
                 </Box>
                 <Box sx={{ p: 2 }}>
                   <Typography variant="body1"> {post?.content}</Typography>

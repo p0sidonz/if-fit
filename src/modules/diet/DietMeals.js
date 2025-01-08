@@ -243,6 +243,31 @@ const DietMeals = (props) => {
     }
   };
 
+  const handleAddFoodToMealCustom = async (newServing) => {
+    console.log("newSe324234rving", newServing)
+    if (selectedMeal && selectedServing) {
+      try {
+        await addFoodToMeal({
+          meal_id: selectedMeal.id,
+          food_id: foodId,
+          serving_id: selectedServing.serving_id,
+          is_custom: true,
+          custom_serving: newServing,
+        });
+
+      } catch (error) {
+        console.error('Error adding food to  meal:', error);
+      }
+      //clear the selected food
+      // setMeals(updatedMeals);
+      // setSelectedServing(null);
+      setDrawerOpen(false); // Close the drawer after adding the food
+      setSelectedFood(null); // Reset selected food after adding
+    }
+  };
+
+
+
   const handleDeleteFoodFromMeal = () => {
     try {
       deleteFood(selectedFoodDelete);
@@ -562,6 +587,10 @@ const DietMeals = (props) => {
     }
   };
 
+  const handleChangeServing = (newServing) => {
+   handleAddFoodToMealCustom(newServing)
+  };
+
   return (
     <>
       <Container>
@@ -775,18 +804,22 @@ const DietMeals = (props) => {
                 {selectedServing && (
                   <>
                     <NutritionValueDisplay 
+                      changeServing={handleChangeServing}
                       data={selectedServing}
                       otherData={servingData}
                       showOtherData={true}
+                      hideSlider={false}
+                      title={"Add to Meal"}
+
                     />
-                    <Button
+                    {/* <Button
                       fullWidth
                       variant="contained"
                       onClick={handleAddFoodToMeal}
                       sx={{ mt: 2 }}
                     >
                       Add to Meal
-                    </Button>
+                    </Button> */}
                   </>
                 )}
               </Box>
