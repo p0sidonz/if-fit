@@ -17,6 +17,8 @@ import {
   Tab,
   Switch,
   Divider,
+  ExpandMore,
+  ExpandLess,
 } from '@mui/material';
 
 const UserTools = () => {
@@ -52,6 +54,15 @@ const UserTools = () => {
   const [heightFeet, setHeightFeet] = useState('');
   const [heightInches, setHeightInches] = useState('');
 
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+  const [advancedFormData, setAdvancedFormData] = useState({
+    doesWorkout: 'no',
+    workoutFrequency: '1-2',
+    trainingIntensity: 'light',
+    includesCardio: 'no',
+    cardioMinutes: '',
+  });
+
   const activityLevels = {
     sedentary: { factor: 1.2, label: 'Sedentary (little or no exercise)' },
     light: { factor: 1.375, label: 'Light (exercise 1-3 times/week)' },
@@ -71,6 +82,7 @@ const UserTools = () => {
 
   // Unit conversion functions
   const convertWeight = (value) => {
+    if (!value) return 0;
     return useMetric ? value : value * 0.453592; // lbs to kg
   };
 
@@ -79,7 +91,8 @@ const UserTools = () => {
   };
 
   const convertFeetInchesToCm = (feet, inches) => {
-    return Math.round((feet * 30.48) + (inches * 2.54));
+    const totalInches = (feet * 12) + parseFloat(inches);
+    return Math.round(totalInches * 2.54);
   };
 
   const convertCmToFeetInches = (cm) => {
@@ -90,15 +103,46 @@ const UserTools = () => {
   };
 
   const handleUnitToggle = () => {
-    setUseMetric(!useMetric);
-    // Convert existing values when switching units
+    // Convert weight and height based on the CURRENT unit system before toggling
+    const isCurrentlyMetric = useMetric;
+
+    // Convert weight when switching units
     if (formData.weight) {
+      const currentWeight = Number(formData.weight);
+      const newWeight = isCurrentlyMetric 
+        ? Math.round(currentWeight * 2.20462) // Converting FROM kg TO lbs
+        : Math.round(currentWeight / 2.20462); // Converting FROM lbs TO kg
+
       setFormData(prev => ({
         ...prev,
-        weight: useMetric ? (prev.weight * 2.20462) : (prev.weight * 0.453592),
-        height: useMetric ? (prev.height * 0.393701) : (prev.height * 2.54),
+        weight: newWeight.toString()
       }));
     }
+
+    // Convert height when switching units
+    if (isCurrentlyMetric) {
+      // Converting FROM cm TO feet/inches
+      if (formData.height) {
+        const { feet, inches } = convertCmToFeetInches(formData.height);
+        setHeightFeet(feet.toString());
+        setHeightInches(inches.toString());
+        setFormData(prev => ({ ...prev, height: '' }));
+      }
+    } else {
+      // Converting FROM feet/inches TO cm
+      if (heightFeet || heightInches) {
+        const cm = convertFeetInchesToCm(
+          parseFloat(heightFeet) || 0,
+          parseFloat(heightInches) || 0
+        );
+        setHeightFeet('');
+        setHeightInches('');
+        setFormData(prev => ({ ...prev, height: cm.toString() }));
+      }
+    }
+    
+    // Toggle the unit system after all conversions
+    setUseMetric(!isCurrentlyMetric);
   };
 
   const handleInputChange = (e) => {
@@ -109,6 +153,7 @@ const UserTools = () => {
   };
 
   const handleHeightConvert = () => {
+    // Convert height
     if (useMetric) {
       // Converting from cm to feet/inches
       if (formData.height) {
@@ -129,21 +174,47 @@ const UserTools = () => {
         setFormData(prev => ({ ...prev, height: cm.toString() }));
       }
     }
+
+    // Convert weight
+    if (formData.weight) {
+      const currentWeight = Number(formData.weight);
+      const newWeight = useMetric 
+        ? Math.round(currentWeight * 2.20462) // Converting FROM kg TO lbs
+        : Math.round(currentWeight / 2.20462); // Converting FROM lbs TO kg
+
+      setFormData(prev => ({
+        ...prev,
+        weight: newWeight.toString()
+      }));
+    }
+    
     setUseMetric(!useMetric);
   };
 
   // Calculation functions
   const calculateBMR = () => {
-    const weight = convertWeight(Number(formData.weight));
-    const height = convertHeight(Number(formData.height));
+    // Get weight - if imperial, use raw value without conversion
+    const weight = useMetric ? Number(formData.weight) : Number(formData.weight);
+    
+    // Get height in cm regardless of unit system
+    let heightInCm;
+    if (useMetric) {
+      heightInCm = Number(formData.height);
+    } else {
+      const feet = parseFloat(heightFeet) || 0;
+      const inches = parseFloat(heightInches) || 0;
+      heightInCm = convertFeetInchesToCm(feet, inches);
+    }
+    
     const age = Number(formData.age);
     
     let bmr;
     if (formData.gender === 'male') {
-      bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+      bmr = 88.362 + (13.397 * (useMetric ? weight : weight * 0.453592)) + (4.799 * heightInCm) - (5.677 * age);
     } else {
-      bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+      bmr = 447.593 + (9.247 * (useMetric ? weight : weight * 0.453592)) + (3.098 * heightInCm) - (4.330 * age);
     }
+    
     return Math.round(bmr);
   };
 
@@ -184,24 +255,50 @@ const UserTools = () => {
     } else {
       bodyFat = (1.20 * bmi) + (0.23 * age) - 5.4;
     }
+
+    // Apply adjustments based on advanced options
+    if (showAdvancedOptions && advancedFormData.doesWorkout === 'yes') {
+      // Workout frequency adjustment
+      const frequencyAdjustment = {
+        '1-2': -0.5,
+        '3-4': -1.0,
+        '5+': -1.5,
+      }[advancedFormData.workoutFrequency];
+
+      // Training intensity adjustment
+      const intensityAdjustment = {
+        'light': -0.3,
+        'moderate': -0.6,
+        'heavy': -1.0,
+      }[advancedFormData.trainingIntensity];
+
+      // Cardio adjustment
+      let cardioAdjustment = 0;
+      if (advancedFormData.includesCardio === 'yes') {
+        const minutes = Number(advancedFormData.cardioMinutes);
+        cardioAdjustment = minutes >= 150 ? -1.0 : -0.5;
+      }
+
+      bodyFat += frequencyAdjustment + intensityAdjustment + cardioAdjustment;
+    }
     
-    return Math.round(bodyFat * 100) / 100;
+    return Math.max(Math.round(bodyFat * 100) / 100, 3); // Ensure body fat doesn't go below 3%
   };
 
   const calculateBMI = () => {
-    let heightInMeters;
-    const weight = convertWeight(Number(formData.weight));
+    const weight = useMetric ? Number(formData.weight) : Number(formData.weight) * 0.453592;
     
+    let heightInCm;
     if (useMetric) {
-      heightInMeters = Number(formData.height) / 100;
+      heightInCm = Number(formData.height);
     } else {
-      // When in imperial, calculate from feet and inches
-      const heightInCm = convertFeetInchesToCm(
+      heightInCm = convertFeetInchesToCm(
         parseFloat(heightFeet) || 0,
         parseFloat(heightInches) || 0
       );
-      heightInMeters = heightInCm / 100;
     }
+    
+    const heightInMeters = heightInCm / 100;
     
     if (!weight || !heightInMeters) return 0;
     
@@ -230,6 +327,13 @@ const UserTools = () => {
         fatPercentage: macroPresets[preset].fats,
       }));
     }
+  };
+
+  const handleAdvancedInputChange = (e) => {
+    setAdvancedFormData({
+      ...advancedFormData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const isFormValid = () => {
@@ -267,7 +371,6 @@ const UserTools = () => {
       {/* <Typography variant="h4" gutterBottom align="center">
         Fitness Calculators
       </Typography> */}
-
       <Box sx={{ 
         mb: 3,
         borderBottom: 1, 
@@ -625,15 +728,106 @@ const UserTools = () => {
                 </>
               )}
 
-              {activeCalculator === 2 && (
-                <Grid item xs={12}>
-                  <Card elevation={3}>
-                    <CardContent>
-                      <Typography variant="h6">Estimated Body Fat</Typography>
-                      <Typography variant="h4">{results.bodyFat}%</Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
+              {activeCalculator === 3 && (
+                <>
+                  <Grid item xs={12}>
+                    <Card elevation={3}>
+                      <CardContent>
+                        <Typography variant="h6">Estimated Body Fat</Typography>
+                        <Typography variant="h4">{results.bodyFat}%</Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Button
+                      variant="text"
+                      onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                      endIcon={showAdvancedOptions ? <ExpandLess /> : <ExpandMore />}
+                    >
+                      Advanced Options
+                    </Button>
+                  </Grid>
+
+                  {showAdvancedOptions && (
+                    <>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          select
+                          label="Do you workout?"
+                          name="doesWorkout"
+                          value={advancedFormData.doesWorkout}
+                          onChange={handleAdvancedInputChange}
+                        >
+                          <MenuItem value="no">No</MenuItem>
+                          <MenuItem value="yes">Yes</MenuItem>
+                        </TextField>
+                      </Grid>
+
+                      {advancedFormData.doesWorkout === 'yes' && (
+                        <>
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              select
+                              label="Workouts per week"
+                              name="workoutFrequency"
+                              value={advancedFormData.workoutFrequency}
+                              onChange={handleAdvancedInputChange}
+                            >
+                              <MenuItem value="1-2">1-2 times</MenuItem>
+                              <MenuItem value="3-4">3-4 times</MenuItem>
+                              <MenuItem value="5+">5+ times</MenuItem>
+                            </TextField>
+                          </Grid>
+
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              select
+                              label="Training Intensity"
+                              name="trainingIntensity"
+                              value={advancedFormData.trainingIntensity}
+                              onChange={handleAdvancedInputChange}
+                            >
+                              <MenuItem value="light">Light</MenuItem>
+                              <MenuItem value="moderate">Moderate</MenuItem>
+                              <MenuItem value="heavy">Heavy</MenuItem>
+                            </TextField>
+                          </Grid>
+
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              select
+                              label="Includes Cardio?"
+                              name="includesCardio"
+                              value={advancedFormData.includesCardio}
+                              onChange={handleAdvancedInputChange}
+                            >
+                              <MenuItem value="no">No</MenuItem>
+                              <MenuItem value="yes">Yes</MenuItem>
+                            </TextField>
+                          </Grid>
+
+                          {advancedFormData.includesCardio === 'yes' && (
+                            <Grid item xs={12} sm={6}>
+                              <TextField
+                                fullWidth
+                                label="Minutes of Cardio per Week"
+                                name="cardioMinutes"
+                                type="number"
+                                value={advancedFormData.cardioMinutes}
+                                onChange={handleAdvancedInputChange}
+                              />
+                            </Grid>
+                          )}
+                        </>
+                      )}
+                    </>
+                  )}
+                </>
               )}
 
               {activeCalculator === 3 && (
