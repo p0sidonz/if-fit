@@ -578,6 +578,7 @@ const DietMeals = (props) => {
       await addFoodToMeal({
         meal_id: selectedMeal.id,
         food_id: food.source_id,
+        custom_serving: food.servings.serving[0],
         serving_id: food.servings.serving[0].serving_id,
         is_custom: true
       });

@@ -50,19 +50,51 @@ const convertUnit = (value, fromUnit, toUnit) => {
   return value * unitConversions[fromUnit][toUnit];
 };
 
-const NutritionValueDisplay = ({ data, otherData, showOtherData = false, changeServing, hideSlider = false  , closeModal = null, title = null}) => {
-  const [servingMultiplier, setServingMultiplier] = useState(1);
-  const [selectedUnit, setSelectedUnit] = useState(data?.metric_serving_unit || 'g');
+// Add this helper function at the top with other utilities
+const hasSpecialMeasurement = (description) => {
+  if (!description) return false;
+  // Check if the description is just grams
+  if (description.toLowerCase().trim() === 'g' || 
+      description.toLowerCase().trim() === 'gram' ||
+      description.toLowerCase().trim() === 'grams' ||
+      /^\d+g$/.test(description.toLowerCase().trim())) {
+    return false;
+  }
+  const specialUnits = [
+    'cup', 'diced', 'wedge', 'slice', 'piece',
+    'small', 'medium', 'large', // size-based measurements
+    'whole', 'half', 'serving'  // Add serving as a special unit
+  ];
+  return specialUnits.some(unit => description.toLowerCase().includes(unit));
+};
 
-  // Calculate adjusted values based on serving multiplier (convert from grams to multiplier)
+const NutritionValueDisplay = ({ data, otherData, showOtherData = false, changeServing, hideSlider = false, closeModal = null, title = null }) => {
+  const [useCustomMeasurement, setUseCustomMeasurement] = useState(false);
+  const [servingMultiplier, setServingMultiplier] = useState(() => {
+    if (hasSpecialMeasurement(data?.measurement_description)) {
+      return 1;
+    } else {
+      return data?.metric_serving_amount || 100;
+    }
+  });
+  const [selectedUnit, setSelectedUnit] = useState(data?.metric_serving_unit || 'g');
+  
+  const isSpecialMeasurement = hasSpecialMeasurement(data?.measurement_description) && !useCustomMeasurement;
+
+  // Modify getAdjustedValue to handle special measurements differently
   const getAdjustedValue = (value) => {
     const baseServingSize = data?.metric_serving_amount || 100;
-    const baseUnit = data?.metric_serving_unit || 'g';
     
-    // Convert current serving size to base unit if needed
-    const convertedServingSize = convertUnit(servingMultiplier, selectedUnit, baseUnit);
-    const multiplier = convertedServingSize / baseServingSize;
-    return (parseFloat(value) * multiplier).toFixed(1);
+    if (isSpecialMeasurement) {
+      // For special measurements (like cups), use multiplier directly
+      return (parseFloat(value) * servingMultiplier).toFixed(1);
+    } else {
+      // For regular measurements, convert based on serving size
+      const baseUnit = data?.metric_serving_unit || 'g';
+      const convertedServingSize = convertUnit(servingMultiplier, selectedUnit, baseUnit);
+      const multiplier = convertedServingSize / baseServingSize;
+      return (parseFloat(value) * multiplier).toFixed(1);
+    }
   };
 
   // Update the serving change handler to use the actual gram value
@@ -89,39 +121,69 @@ const NutritionValueDisplay = ({ data, otherData, showOtherData = false, changeS
         <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', marginBottom: 5, borderColor: 'black' }}>
           Nutrition Facts
         </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
+        {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
           <Typography>{data?.number_of_units} servings</Typography>
-        </Box>
+        </Box> */}
       {!hideSlider && <>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Typography>Serving size</Typography>
-          <Typography>{servingMultiplier}</Typography>
-          <Select
-            value={selectedUnit}
-            onChange={handleUnitChange}
-            size="small"
-          >
-            <MenuItem value="g">g</MenuItem>
-            <MenuItem value="ml">ml</MenuItem>
-            <MenuItem value="oz">oz</MenuItem>
-          </Select>
+          <Typography>
+            {isSpecialMeasurement 
+              ? `${servingMultiplier}x ${data.measurement_description}`
+              : `${servingMultiplier} ${selectedUnit}`
+            }
+          </Typography>
+          {hasSpecialMeasurement(data?.measurement_description) && (
+            <Button 
+              size="small" 
+              onClick={() => {
+                setUseCustomMeasurement(!useCustomMeasurement);
+                // Reset to appropriate initial value when switching modes
+                setServingMultiplier(useCustomMeasurement ? 1 : data?.metric_serving_amount || 100);
+                setSelectedUnit('g');
+              }}
+            >
+              {useCustomMeasurement ? 'Use Standard Serving' : 'Use Custom Amount'}
+            </Button>
+          )}
+          {!isSpecialMeasurement && (
+            <Select
+              value={selectedUnit}
+              onChange={handleUnitChange}
+              size="small"
+            >
+              <MenuItem value="g">g</MenuItem>
+              <MenuItem value="ml">ml</MenuItem>
+              <MenuItem value="oz">oz</MenuItem>
+            </Select>
+          )}
         </Box>
         <Box sx={{ my: 2 }}>
-          <Typography gutterBottom>Adjust Serving Size ({selectedUnit})</Typography>
+          <Typography gutterBottom>
+            {isSpecialMeasurement 
+              ? `Adjust Servings (${data.measurement_description})`
+              : `Adjust Serving Size (${selectedUnit})`
+            }
+          </Typography>
           <Slider
             value={servingMultiplier}
             onChange={handleServingChange}
             min={0}
-            max={selectedUnit === 'oz' ? 18 : 500} // Adjust max based on unit
-            step={selectedUnit === 'oz' ? 0.5 : 10} // Adjust step based on unit
-            marks={[
+            max={isSpecialMeasurement ? 10 : (selectedUnit === 'oz' ? 18 : 500)}
+            step={isSpecialMeasurement ? 0.5 : (selectedUnit === 'oz' ? 0.5 : 10)}
+            marks={isSpecialMeasurement ? [
+              { value: 0, label: '0x' },
+              { value: 1, label: '1x' },
+              { value: 5, label: '5x' },
+              { value: 10, label: '10x' }
+            ] : [
               { value: 0, label: `0${selectedUnit}` },
               { value: selectedUnit === 'oz' ? 4 : 100, label: `${selectedUnit === 'oz' ? 4 : 100}${selectedUnit}` },
               { value: selectedUnit === 'oz' ? 8 : 250, label: `${selectedUnit === 'oz' ? 8 : 250}${selectedUnit}` },
               { value: selectedUnit === 'oz' ? 16 : 500, label: `${selectedUnit === 'oz' ? 16 : 500}${selectedUnit}` }
             ]}
             valueLabelDisplay="auto"
-            aria-label={`Serving size in ${selectedUnit}`}
+            aria-label={isSpecialMeasurement ? "Number of servings" : `Serving size in ${selectedUnit}`}
           />
           <Button 
             variant="contained"
