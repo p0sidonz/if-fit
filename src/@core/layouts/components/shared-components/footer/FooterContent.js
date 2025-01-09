@@ -28,7 +28,7 @@ const FooterContent = () => {
           iankit.me
         </LinkStyled> */}
       </Typography>
-      {hidden ? null : (
+      {/* {hidden ? null : (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', '& :not(:last-child)': { mr: 4 } }}>
           <LinkStyled target='_blank' href='#'>
            Terms and Conditions
@@ -43,7 +43,24 @@ const FooterContent = () => {
             Support
           </LinkStyled>
         </Box>
-      )}
+      )} */}
+       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', '& :not(:last-child)': { mr: 4 } }}>
+          <LinkStyled target='_blank' href='#'>
+           Terms and Conditions
+          </LinkStyled>
+          <LinkStyled
+            target='_blank'
+            href='#'
+          >
+            Privacy Policy
+          </LinkStyled>
+          <LinkStyled target='_blank' href='#'>
+            Support
+          </LinkStyled>
+          <LinkStyled href='/faq'>
+            FAQ
+          </LinkStyled>
+        </Box>
     </Box>
   )
 }

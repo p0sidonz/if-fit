@@ -9,7 +9,6 @@ import Box from '@mui/material/Box'
 import MuiTabList from '@mui/lab/TabList'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
-
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
@@ -54,9 +53,31 @@ const TabList = styled(MuiTabList)(({ theme }) => ({
   }
 }))
 
-const Faqs = ({ data, activeTab, handleChange }) => {
+const Faqs = ({ data, activeTab, handleChange, highlightedText }) => {
+  const filterFaqData = () => {
+    if (!highlightedText || !data?.faqData) return data?.faqData
+
+    return Object.values(data.faqData).reduce((acc, tab) => {
+      // Filter Q&As based on search text
+      const filteredQandA = tab.qandA.filter(
+        item =>
+          item.question.toLowerCase().includes(highlightedText.toLowerCase()) ||
+          item.answer.toLowerCase().includes(highlightedText.toLowerCase())
+      )
+
+      // Only include tab if it has matching Q&As
+      if (filteredQandA.length > 0) {
+        acc[tab.id] = { ...tab, qandA: filteredQandA }
+      }
+
+      return acc
+    }, {})
+  }
+
   const renderTabContent = () => {
-    return data?.faqData ? Object.values(data.faqData).map(tab => {
+    const filteredData = filterFaqData()
+    
+    return filteredData ? Object.values(filteredData).map(tab => {
       return (
         <TabPanel key={tab.id} value={tab.id} sx={{ p: 6, pt: 0, width: '100%' }}>
           <Box key={tab.id}>
@@ -70,37 +91,39 @@ const Faqs = ({ data, activeTab, handleChange }) => {
               </Box>
             </Box>
             <Box sx={{ mt: 4 }}>
-              {tab.qandA.map(item => {
-                return (
-                  <Accordion key={item.id}>
-                    <AccordionSummary expandIcon={<Icon icon='mdi:chevron-down' />}>
-                      <Typography sx={{ fontWeight: '500' }}>{item.question}</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <Typography sx={{ color: 'text.secondary' }}>{item.answer}</Typography>
-                    </AccordionDetails>
-                  </Accordion>
-                )
-              })}
+              {tab.qandA.map(item => (
+                <Accordion key={item.id}>
+                  <AccordionSummary expandIcon={<Icon icon='mdi:chevron-down' />}>
+                    <Typography sx={{ fontWeight: '500' }}>{item.question}</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Typography sx={{ color: 'text.secondary' }}>{item.answer}</Typography>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
             </Box>
           </Box>
         </TabPanel>
       )
-    }) : null
+    }) : (
+      <Box sx={{ p: 6, textAlign: 'center' }}>
+        <Typography>No matching FAQs found</Typography>
+      </Box>
+    )
   }
 
   const renderTabs = () => {
-    if (data?.faqData) {
-      return Object.values(data.faqData).map(tab => {
+    const filteredData = filterFaqData()
+    
+    if (filteredData) {
+      return Object.values(filteredData).map(tab => {
         if (tab?.qandA?.length) {
-          return <Tab key={tab.id} value={tab.id} label={tab.title} icon={<Icon icon={tab.icon} fontSize={20} />} />
-        } else {
-          return null
+          return <Tab key={tab.id} value={tab.id} label={`${tab.title} (${tab.qandA.length})`} icon={<Icon icon={tab.icon} fontSize={20} />} />
         }
+        return null
       })
-    } else {
-      return null
     }
+    return null
   }
 
   return (
@@ -116,7 +139,7 @@ const Faqs = ({ data, activeTab, handleChange }) => {
               '& img': { maxWidth: '100%', display: { xs: 'none', md: 'block' } }
             }}
           >
-            <img height={195} alt='illustration' src='/images/pages/faq-illustration.png' />
+            {/* <img height={195} alt='illustration' src='/images/pages/faq-illustration.png' /> */}
           </Box>
         </Box>
         {renderTabContent()}

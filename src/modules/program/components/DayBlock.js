@@ -123,13 +123,37 @@ const DayBlock = ({ day, onUpdate, index, weekNumber, workouts }) => {
         onAddWorkout={handleAddWorkout}
       />
 
-      <Dialog open={jusWorkoutSlider} onClose={justWorkoutClose}>
-        <DialogTitle>Workout Detail</DialogTitle>
-        <DialogContent>
+      <Dialog 
+        open={jusWorkoutSlider} 
+        onClose={justWorkoutClose}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            minHeight: '80vh',
+            maxHeight: '90vh',
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          textAlign: 'center',
+          borderBottom: 1,
+          borderColor: 'divider',
+          py: 2
+        }}>
+          Workout Detail
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
           <JustWorkout workout={selectedWorkout?.Workout} />
         </DialogContent>
-        <DialogActions>
-          <Button fullWidth onClick={justWorkoutClose} color="primary">
+        <DialogActions sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+          <Button 
+            fullWidth 
+            onClick={justWorkoutClose} 
+            color="primary"
+            variant="contained"
+            size="large"
+          >
             Close
           </Button>
         </DialogActions>

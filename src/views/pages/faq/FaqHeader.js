@@ -38,12 +38,13 @@ const FaqHeader = props => {
 
   return (
     <Card>
-      <CardContent sx={{ pt: 23, textAlign: 'center', pb: theme => `${theme.spacing(23)} !important` }}>
+      <CardContent sx={{ pt: 10, textAlign: 'center', pb: theme => `${theme.spacing(10)} !important` }}>
         <Typography variant='h5' sx={{ mb: 8 }}>
           Hello, how can we help?
         </Typography>
 
         <TextField
+          className='is-full sm:max-is-[55%] md:max-is-[600px]'
           value={searchTerm}
           placeholder='Search a question....'
           onChange={e => handleFaqFilter(e)}

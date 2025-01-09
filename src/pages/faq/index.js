@@ -11,34 +11,51 @@ import Icon from 'src/@core/components/icon'
 // ** Third Party Imports
 import axios from 'axios'
 
+
 // ** Demo Imports
 import FAQS from 'src/views/pages/faq/Faqs'
 import FaqHeader from 'src/views/pages/faq/FaqHeader'
 import FaqFooter from 'src/views/pages/faq/FaqFooter'
+import { faqData } from 'src/data/faqs'
 
 const FAQ = ({ apiData }) => {
   // ** States
   const [data, setData] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState('payment')
+
+
   useEffect(() => {
     if (searchTerm !== '') {
-      // axios.get('/pages/faqs', { params: { q: searchTerm } }).then(response => {
-      //   if (response.data.faqData && Object.values(response.data.faqData).length) {
-      //     setData(response.data)
-
-      //     // @ts-ignore
-      //     setActiveTab(Object.values(response.data.faqData)[0].id)
-      //   } else {
-      //     setData(null)
-      //   }
-      // })
+      const searchLower = searchTerm.toLowerCase();
+      const filteredData = {
+        faqData: Object.fromEntries(
+          Object.entries(faqData).map(([category, categoryData]) => [
+            category,
+            {
+              ...categoryData,
+              qandA: categoryData.qandA.filter(qa => 
+                qa.question.toLowerCase().includes(searchLower) ||
+                qa.answer.toLowerCase().includes(searchLower)
+              )
+            }
+          ]).filter(([_, categoryData]) => categoryData.qandA.length > 0)
+        )
+      };
+      
+      if (Object.keys(filteredData.faqData).length > 0) {
+        setData(filteredData);
+        setActiveTab(Object.keys(filteredData.faqData)[0]);
+      } else {
+        setData(null);
+      }
     } else {
-      setData(apiData)
+      setData({ faqData });
     }
-  }, [apiData, searchTerm])
+  }, [searchTerm]);
 
   const handleChange = (event, newValue) => {
+    console.log(newValue)
     setActiveTab(newValue)
   }
 
@@ -49,10 +66,22 @@ const FAQ = ({ apiData }) => {
     </Box>
   )
 
+  const highlightText = (text) => {
+    if (!searchTerm) return text;
+    const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
+    return parts.map((part, index) => 
+      part.toLowerCase() === searchTerm.toLowerCase() ? (
+        <span key={index} sx={{ backgroundColor: 'yellow' }}>{part}</span>
+      ) : part
+    );
+  };
+
   return (
     <Fragment>
       <FaqHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      {data !== null ? <FAQS data={data} activeTab={activeTab} handleChange={handleChange} /> : renderNoResult}
+      {faqData !== null ? <FAQS data={{
+        faqData: faqData
+      }} activeTab={activeTab} handleChange={handleChange} /> : renderNoResult}
       <FaqFooter />
     </Fragment>
   )
@@ -60,7 +89,7 @@ const FAQ = ({ apiData }) => {
 
 export const getStaticProps = async () => {
   
-  const apiData = []
+  const apiData = []  
 
   return {
     props: {

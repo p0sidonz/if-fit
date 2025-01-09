@@ -58,7 +58,7 @@ const FaqFooter = () => {
               onClick={e => e.preventDefault()}
               sx={{ mt: 4, textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
             >
-              + (810) 2548 2568
+              + (91) 7000799192
             </Typography>
             <Typography sx={{ mt: 2, color: 'text.secondary' }}>We are always happy to help!</Typography>
           </StyledBox1>
@@ -76,7 +76,7 @@ const FaqFooter = () => {
               onClick={e => e.preventDefault()}
               sx={{ mt: 4, textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
             >
-              hello@help.com
+              support@ifetch.fit
             </Typography>
             <Typography sx={{ mt: 2, color: 'text.secondary' }}>Best way to get answer faster!</Typography>
           </StyledBox2>

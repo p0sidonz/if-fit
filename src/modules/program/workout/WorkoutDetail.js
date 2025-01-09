@@ -7,78 +7,63 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const ViewWorkoutSets = ({ weight, reps, rest, tempo, typesOfSet }) => {
   return (
-    <Grid container spacing={2}>
+    <Grid container spacing={3} sx={{ p: 1 }}>
       <Grid item xs={3} sm={3} md={3} lg={3}>
-        <TextField
-          disabled
-          label="Weight"
-          value={typesOfSet?.weight === 'bodyweight' ? 'Bodyweight' : weight}
-          size="small"
-          fullWidth
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <Typography color={"primary"}>
-                  {typesOfSet?.weight === 'bodyweight' ? '' : typesOfSet?.weight}
-                </Typography>
-              </InputAdornment>
-            ),
-          }}
-        />
+        <Box sx={{ textAlign: 'center', p: 1, borderRadius: 1, bgcolor: 'background.paper' }}>
+          <Typography variant="caption" color="text.secondary" display="block">
+            Weight
+          </Typography>
+          <Typography variant="h6" color="primary" sx={{ mt: 0.5 }}>
+            {typesOfSet?.weight === 'bodyweight' ? 'BW' : weight}
+            {typesOfSet?.weight !== 'bodyweight' && (
+              <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
+                {typesOfSet?.weight}
+              </Typography>
+            )}
+          </Typography>
+        </Box>
       </Grid>
+
       <Grid item xs={3} sm={3} md={3} lg={3}>
-        <TextField
-          disabled
-          label="Reps"
-          value={reps}
-          size="small"
-          fullWidth
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <Typography color={"primary"}>
-                  {typesOfSet?.reps}
-                </Typography>
-              </InputAdornment>
-            ),
-          }}
-        />
+        <Box sx={{ textAlign: 'center', p: 1, borderRadius: 1, bgcolor: 'background.paper' }}>
+          <Typography variant="caption" color="text.secondary" display="block">
+            Reps
+          </Typography>
+          <Typography variant="h6" color="primary" sx={{ mt: 0.5 }}>
+            {reps}
+            <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
+              {typesOfSet?.reps}
+            </Typography>
+          </Typography>
+        </Box>
       </Grid>
+
       <Grid item xs={3} sm={3} md={3} lg={3}>
-        <TextField
-          disabled
-          label="Rest"
-          value={rest}
-          size="small"
-          fullWidth
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <Typography color={"primary"}>
-                  {typesOfSet?.rest}
-                </Typography>
-              </InputAdornment>
-            ),
-          }}
-        />
+        <Box sx={{ textAlign: 'center', p: 1, borderRadius: 1, bgcolor: 'background.paper' }}>
+          <Typography variant="caption" color="text.secondary" display="block">
+            Rest
+          </Typography>
+          <Typography variant="h6" color="primary" sx={{ mt: 0.5 }}>
+            {rest}
+            <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
+              {typesOfSet?.rest}
+            </Typography>
+          </Typography>
+        </Box>
       </Grid>
+
       <Grid item xs={3} sm={3} md={3} lg={3}>
-        <TextField
-          disabled
-          label="Tempo"
-          value={tempo}
-          size="small"
-          fullWidth
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <Typography color={"primary"}>
-                  {typesOfSet?.tempo}
-                </Typography>
-              </InputAdornment>
-            ),
-          }}
-        />
+        <Box sx={{ textAlign: 'center', p: 1, borderRadius: 1, bgcolor: 'background.paper' }}>
+          <Typography variant="caption" color="text.secondary" display="block">
+            Tempo
+          </Typography>
+          <Typography variant="h6" color="primary" sx={{ mt: 0.5 }}>
+            {tempo}
+            <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
+              {typesOfSet?.tempo}
+            </Typography>
+          </Typography>
+        </Box>
       </Grid>
     </Grid>
   );
@@ -112,7 +97,7 @@ const WorkoutDetail = ({ exercise }) => {
             borderRadius: '6px',
           }}
         >
-          {exercise.note || 'No note available'}
+          {exercise.note || ''}
         </Typography>
       </Box>
 
