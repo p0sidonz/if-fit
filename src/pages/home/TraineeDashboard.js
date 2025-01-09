@@ -100,7 +100,7 @@ const TrainerRelationshipCard = ({ relationship }) => {
               <Chip
                 key={diet.id}
                 label={diet.dietInfo.title}
-                onClick={() => navigateTo(`/diet/${diet.dietInfo.id}`)}
+                onClick={() => navigateTo(`/diet/${diet.dietInfo.id}/${relationship.id}`)}
                 size="small"
                 variant="outlined"
                 sx={{ 
@@ -728,7 +728,7 @@ const TraineeDashboard = () => {
                             variant="outlined"
                           />
                         ) : (
-                          <Chip label="No Subscription" variant="outlined" />
+                          <Chip label={relationship?.type === 'offline' ? 'Offline' : 'No Subscription'} variant="outlined" />
                         )}
                       </TableCell>
                       <TableCell>
