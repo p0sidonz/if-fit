@@ -147,11 +147,11 @@ const LoginPage = () => {
     <Box className='content-center'>
       <RightWrapper sx={skin === 'bordered' && !hidden ? { borderLeft: `1px solid ${theme.palette.divider}` } : {}}>
       <Card sx={{ zIndex: 1 }}>
-      <CardContent sx={{ p: theme => `${theme.spacing(13, 7, 6.5)} !important` }}>
-      <Logo />
+        
+      <CardContent sx={{ p: theme => `${theme.spacing(1, 1, 1)} !important` }}>
         <Box
           sx={{
-            p: 7,
+            p: 4,
             height: '100%',
             display: 'flex',
             alignItems: 'center',
@@ -160,8 +160,9 @@ const LoginPage = () => {
           }}
         >
           <BoxWrapper>
-            
-            <Box sx={{ mb: 6, mt: 2, textAlign: 'center' }}>
+          <Logo />
+
+            <Box sx={{ mb: 1, mt: 2, textAlign: 'center' }}>
               <TypographyStyled variant='h6'>{`Welcome to ${themeConfig.templateName}! 👋🏻`}</TypographyStyled>
               <Typography variant='body2'>Please sign-in to your account and start the adventure</Typography>
             </Box>

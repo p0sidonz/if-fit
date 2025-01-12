@@ -207,10 +207,10 @@ const Register = () => {
         }
       >
          <Card sx={{ zIndex: 1 }}>
-         <CardContent sx={{ p: theme => `${theme.spacing(13, 7, 6.5)} !important` }}>
+         <CardContent sx={{ p: theme => `${theme.spacing(1, 1, 1)} !important` }}>
         <Box
           sx={{
-            p: 7,
+            p: 4,
             height: "100%",
             display: "flex",
             alignItems: "center",
