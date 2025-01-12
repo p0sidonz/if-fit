@@ -1,8 +1,13 @@
 // ** Next Import
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'react-hot-toast'
-import axios from  "../../../src/utils/axios"
+import axios from  "../../../../src/utils/axios"
+import { useRouter } from 'next/router'
+import Logo from 'src/views/components/Logo'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import jwt from 'jsonwebtoken'
 
 // ** MUI Components
 import Button from '@mui/material/Button'
@@ -11,9 +16,6 @@ import Box from '@mui/material/Box'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { styled, useTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
-import Logo from 'src/views/components/Logo'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -82,36 +84,69 @@ const LinkStyled = styled(Link)(({ theme }) => ({
   color: theme.palette.primary.main
 }))
 
-const ForgotPassword = () => {
+const ForgotChangePassword = () => {
   // ** Hooks
   const theme = useTheme()
   const { settings } = useSettings()
+  const router = useRouter()
+  const { token } = router.query
 
   // ** Vars
   const { skin } = settings
+  const hidden = useMediaQuery(theme.breakpoints.down('md'))
 
-  // Add state for email and loading
-  const [email, setEmail] = useState('')
+  // Update state for password fields
+  const [formData, setFormData] = useState({
+    password: '',
+    rePassword: ''
+  })
   const [loading, setLoading] = useState(false)
+
+  // Add useEffect to check token on component mount
+  useEffect(() => {
+    if (token) {
+      const decoded = jwt.decode(token)
+      
+      if (!decoded) {
+        toast.error('Invalid reset token')
+        router.push('/login')
+        return
+      }
+
+      // Check if token is expired
+      const currentTime = Date.now() / 1000 // Convert to seconds
+      if (decoded.exp && decoded.exp < currentTime) {
+        toast.error('Password reset link has expired. Please request a new one.')
+        router.push('/forgot-password')
+        return
+      }
+    }
+  }, [token, router])
 
   const handleSubmit = async e => {
     e.preventDefault()
     setLoading(true)
     
     try {
-      const response = await axios.post('/auth/forgot', {
-        email: email
+      // Validate passwords match
+      if (formData.password !== formData.rePassword) {
+        throw new Error('Passwords do not match')
+      }
+
+      const response = await axios.post(`/auth/change-password/${token}`, {
+        password: formData.password,
+        rePassword: formData.rePassword
       })
       
       if (!response?.data?.ok) {
-        throw new Error('Failed to send reset link')
+        throw new Error(response?.data?.message || 'Failed to reset password')
       }
 
-      // Show success message
-      toast.success(response?.data?.message || 'Reset link sent to your email')
+      toast.success('Password reset successful')
+      router.push('/login')
     } catch (error) {
       console.error(error)
-      toast.error('Failed to send reset link. Please try again.')
+      toast.error(error?.response?.data?.message || 'Failed to reset password. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -120,53 +155,73 @@ const ForgotPassword = () => {
   const imageSource =
     skin === 'bordered' ? 'auth-v2-forgot-password-illustration-bordered' : 'auth-v2-forgot-password-illustration'
 
+
+    if(token){
+      const decoded = jwt.decode(token)
+      console.log(decoded)
+    }
+
+    
   return (
     <Box className='content-center'>
       <Card sx={{ zIndex: 1, width: '100%', maxWidth: 450 }}>
         <CardContent sx={{ p: theme => `${theme.spacing(7)} !important` }}>
           <Box sx={{ mb: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Logo />
+            <Logo sx={{ width: '35px', height: '35px' }} />
           </Box>
           
           <Box sx={{ mb: 6, textAlign: 'center' }}>
-            <TypographyStyled variant='h5'>Forgot Password? 🔒</TypographyStyled>
+            <TypographyStyled variant='h5'>Change Password 🔒</TypographyStyled>
             <Typography variant='body2'>
-              Enter your email and we&prime;ll send you instructions to reset your password
+              Enter your new password
             </Typography>
           </Box>
 
           <form noValidate autoComplete='off' onSubmit={handleSubmit}>
-            <TextField 
-              autoFocus 
-              type='email' 
-              label='Email' 
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              sx={{ display: 'flex', mb: 4 }} 
+            <TextField
+              autoFocus
+              type='password'
+              label='New Password'
+              value={formData.password}
+              onChange={e => setFormData({ ...formData, password: e.target.value })}
+              sx={{ display: 'flex', mb: 4 }}
+              fullWidth
             />
-            <Button 
-              fullWidth 
-              size='large' 
-              type='submit' 
-              variant='contained' 
+            <TextField
+              type='password'
+              label='Confirm Password'
+              value={formData.rePassword}
+              onChange={e => setFormData({ ...formData, rePassword: e.target.value })}
+              sx={{ display: 'flex', mb: 4 }}
+              fullWidth
+            />
+            <Button
+              fullWidth
+              size='large'
+              type='submit'
+              variant='contained'
               sx={{ mb: 5.25 }}
               disabled={loading}
             >
-              {loading ? 'Sending...' : 'Send reset link'}
+              {loading ? 'Resetting...' : 'Reset Password'}
             </Button>
-            <Typography sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <LinkStyled href='/login'>
                 <Icon icon='mdi:chevron-left' fontSize='2rem' />
                 <span>Back to login</span>
               </LinkStyled>
-            </Typography>
+            </Box>
           </form>
         </CardContent>
       </Card>
+
+      {!hidden ? (
+        <FooterIllustrationsV2 />
+      ) : null}
     </Box>
   )
 }
-ForgotPassword.guestGuard = true
-ForgotPassword.getLayout = page => <BlankLayout>{page}</BlankLayout>
+ForgotChangePassword.guestGuard = true
+ForgotChangePassword.getLayout = page => <BlankLayout>{page}</BlankLayout>
 
-export default ForgotPassword
+export default ForgotChangePassword
