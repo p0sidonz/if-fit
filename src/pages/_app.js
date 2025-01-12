@@ -102,7 +102,7 @@ const App = (props) => {
         <meta name="description" content={`${themeConfig.templateName} `} />
         <meta
           name="keywords"
-          content="Material Design, MUI, Admin Template, React Admin Template"
+          content="A Software for Fitness trainers to manage their clients online and track their progress"
         />
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>

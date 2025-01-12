@@ -46,6 +46,7 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 // ** Demo Imports
 import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustrationsV1'
+import { LoadingButton } from '@mui/lab'
 
 // ** Styled Components
 const LoginIllustrationWrapper = styled(Box)(({ theme }) => ({
@@ -110,6 +111,7 @@ const defaultValues = {
 const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   // ** Hooks
   const auth = useAuth()
@@ -132,9 +134,11 @@ const LoginPage = () => {
     resolver: yupResolver(schema)
   })
 
-  const onSubmit = data => {
+  const onSubmit = async data => {
     const { email, password } = data
+    setIsLoading(true)
     auth.login({ email: email.toLowerCase(), password, rememberMe }, () => {
+      setIsLoading(false)
       setError('email', {
         type: 'manual',
         message: 'Email or Password is invalid'
@@ -240,9 +244,16 @@ const LoginPage = () => {
                   Forgot Password?
                 </Typography>
               </Box>
-              <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 7 }}>
+              <LoadingButton
+                fullWidth 
+                size='large' 
+                type='submit' 
+                variant='contained' 
+                sx={{ mb: 7 }}
+                loading={isLoading}
+              >
                 Login
-              </Button>
+              </LoadingButton>
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <Typography sx={{ mr: 2, color: 'text.secondary' }}>New on our platform?</Typography>
                 <Typography href='/register' component={Link} sx={{ color: 'primary.main', textDecoration: 'none' }}>

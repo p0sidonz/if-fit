@@ -27,6 +27,7 @@ import FooterIllustrationsV1 from "src/views/pages/auth/FooterIllustrationsV1";
 import Logo from "src/views/components/Logo";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
+import LoadingButton from '@mui/lab/LoadingButton';
 
 // ** Third Party Imports
 import * as yup from "yup";
@@ -112,6 +113,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordMatch, setPasswordMatch] = useState(true);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // ** Hooks
   const theme = useTheme();
@@ -153,17 +155,20 @@ const Register = () => {
       setPasswordMatch(false);
       return;
     }
+    
+    setIsLoading(true);
     const { password, firstName, lastName } = data;
-    // Convert username and email to lowercase
     const username = data.username.toLowerCase();
     const email = data.email.toLowerCase();
     
     auth.register(
       { username, email, password, firstName, lastName },
       () => {
+        setIsLoading(false);
         router.push('/login');
       },
       (error) => {
+        setIsLoading(false);
         if (error?.response?.data?.message) {
           setError('email', {
             type: 'manual',
@@ -445,15 +450,16 @@ const Register = () => {
                 </FormHelperText>
               )}
 
-              <Button
+              <LoadingButton
                 fullWidth
                 size="large"
                 type="submit"
                 variant="contained"
                 sx={{ mb: 7 }}
+                loading={isLoading}
               >
                 Sign up
-              </Button>
+              </LoadingButton>
               <Box
                 sx={{
                   display: "flex",
