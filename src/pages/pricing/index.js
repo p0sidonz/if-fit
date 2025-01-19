@@ -122,19 +122,19 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments, hasTrialAcces
 
 
 
-  useEffect(() => {
-    function checkIfUserAviledTrial() {
-      // Check both payments history and hasTrialAccess prop
-      const hasTrialInPayments = payments?.some(payment => 
-        payment.packageInfo.title === "Trial" && 
-        payment.status === "COMPLETED"
-      );
+  // useEffect(() => {
+  //   function checkIfUserAviledTrial() {
+  //     // Check both payments history and hasTrialAccess prop
+  //     const hasTrialInPayments = payments?.some(payment => 
+  //       payment.packageInfo.title === "Trial" && 
+  //       payment.status === "COMPLETED"
+  //     );
       
-      // Set trial availability based on both conditions
-      setIsTrialAvailable(hasTrialInPayments || hasTrialAccess);
-    }
-    checkIfUserAviledTrial();
-  }, [payments, hasTrialAccess]);
+  //     // Set trial availability based on both conditions
+  //     setIsTrialAvailable(hasTrialInPayments || hasTrialAccess);
+  //   }
+  //   checkIfUserAviledTrial();
+  // }, [payments, hasTrialAccess]);
 
   const handlePurchase = async () => {
     const userData = authenticatedUser;
@@ -160,13 +160,16 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments, hasTrialAcces
 
         // Call trial subscription API with required body
         const result = await handleTrailSubscription.mutateAsync({
-          order_id: trialOrderId,
-          package_id: selectedPlan.id,
-          browser_info: browserInfo,
-          ip_address: window.location.hostname,
-          page_url: window.location.href,
-          user_email: authenticatedUser?.email,
-          user_id: authenticatedUser?.id
+          data: {
+            order_id: trialOrderId,
+            package_id: selectedPlan.id,
+            browser_info: browserInfo,
+            ip_address: window.location.hostname,
+            page_url: window.location.href,
+            user_email: authenticatedUser?.email,
+            user_id: authenticatedUser?.id
+          },
+          token: token
         });
 
         if (result.ok) {
@@ -179,10 +182,18 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments, hasTrialAcces
           
           return; // Add early return here to prevent Razorpay execution
         } else {
+          // toast.error(`Error: ${result.message}`, {
+          //   duration: 10000,
+          // });
+          setActiveStep(0);
           throw new Error(result.message);
         }
         return; // Add return here as well for the trial case
       } catch (error) {
+        // toast.error(`Error: ${error.message}. ${error.response?.data?.message || ""}`, {
+        //   duration: 10000,
+        // });
+        setActiveStep(0);
         console.error("Error creating trial subscription:", error);
         return; // Add return here to prevent Razorpay execution even in case of error
       }
