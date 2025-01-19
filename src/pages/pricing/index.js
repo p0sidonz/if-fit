@@ -1,5 +1,6 @@
 // ** React Imports
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Stepper,
   Step,
@@ -50,6 +51,8 @@ const isIndianTimeZone = () => {
 
 const CheckoutStepper = ({ userData, customToken, pkgId, payments, hasTrialAccess }) => {
   const auth = useAuth();
+  const searchParams = useSearchParams();
+  const pkgIdFromUrl = searchParams.get('packageId');
   const handleTrailSubscription = useHandleTrailSubscription();
   const [Razorpay] = useRazorpay();
   const [activeStep, setActiveStep] = useState(0);
@@ -99,15 +102,16 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments, hasTrialAcces
   }, [customToken, userData, token]);
 
   useEffect(() => {
-    if (pkgId && pricingPlans?.result) {
+    if ( pkgIdFromUrl && pricingPlans?.result) {
       const selectedPackage = pricingPlans.result.find(
-        (plan) => plan.id === pkgId
+        (plan) => plan.id === parseInt(pkgIdFromUrl)
       );
       if (selectedPackage) {
         setSelectedPlan(selectedPackage);
+        setActiveStep(1);
       }
     }
-  }, [pkgId, pricingPlans]);
+  }, [pkgIdFromUrl, pricingPlans]);
 
   const createOrderTrainerPublicWithToken =
     useCreateOrderTrainerPublicWithToken(token);
@@ -605,6 +609,11 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments, hasTrialAcces
               </Box>
             ) : (
               <>
+              {selectedPlan && <Box sx={{ textAlign: "center", my: 4 }}>
+                <Typography color="primary" variant="h4" align="center" gutterBottom>
+                  Selected Plan: {selectedPlan?.title}
+                </Typography>
+              </Box>}
                 <Typography variant="h4" align="center" gutterBottom>
                   {isExistingUser ? "Welcome Back!" : "Create Account"}
                 </Typography>
