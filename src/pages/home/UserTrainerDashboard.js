@@ -610,24 +610,24 @@ const UserTrainerDashboard = () => {
   if (isLoading) return <p>Loading...</p>
 
   // Sample data preparation
-  const data = relationships.map((rel) => ({
+  const data = relationships?.map((rel) => ({
     username: rel?.userInfo?.username,
     assignedDiets: rel?.Assigned_Diet?.length,
     assignedPrograms: rel?.Assigned_Program?.length,
   }));
 
   // Modify the filter function to hide expired clients
-  const filteredRelationships = relationships.filter(relationship => {
+  const filteredRelationships = relationships?.filter(relationship => {
     if (!hideExpiredClients) return true;
     
-    const subscription = relationship.userInfo.UserAndTrainerSubscription[0];
-    return !subscription || new Date(subscription.end_date) >= new Date();
+    const subscription = relationship?.userInfo?.UserAndTrainerSubscription[0];
+    return !subscription || new Date(subscription?.end_date) >= new Date();
   });
 
   // Add this helper function
-  const hasExpiredClients = relationships.some(r => 
-    r.userInfo.UserAndTrainerSubscription[0] && 
-    new Date(r.userInfo.UserAndTrainerSubscription[0].end_date) < new Date()
+  const hasExpiredClients = relationships?.some(r => 
+    r?.userInfo?.UserAndTrainerSubscription[0] && 
+    new Date(r?.userInfo?.UserAndTrainerSubscription[0]?.end_date) < new Date()
   );
 
   const toggleRowExpansion = (id) => {
@@ -1173,25 +1173,25 @@ const UserTrainerDashboard = () => {
         {[
           {
             title: 'Total Users',
-            value: relationships.length,
+            value: relationships?.length,
             icon: <PersonIcon sx={{ color: 'primary.main' }} />,
           },
           {
             title: 'Active Diets',
-            value: relationships.filter(r => r.Assigned_Diet.length > 0).length,
+            value: relationships?.filter(r => r?.Assigned_Diet?.length > 0)?.length,
             icon: <DietIcon sx={{ color: 'primary.main' }} />,
           },
           {
             title: 'Active Programs',
-            value: relationships.filter(r => r.Assigned_Program.length > 0).length,
+            value: relationships?.filter(r => r?.Assigned_Program?.length > 0)?.length,
             icon: <ProgramIcon sx={{ color: 'primary.main' }} />,
           },
           {
             title: 'Expired Subscriptions',
-            value: relationships.filter(r => 
-              r.userInfo.UserAndTrainerSubscription.length > 0 && 
-              new Date(r.userInfo.UserAndTrainerSubscription[0].end_date) < new Date()
-            ).length,
+            value: relationships?.filter(r => 
+              r?.userInfo?.UserAndTrainerSubscription?.length > 0 && 
+              new Date(r?.userInfo?.UserAndTrainerSubscription[0]?.end_date) < new Date()
+            )?.length,
             icon: <TimerOffIcon sx={{ color: 'error.main' }} />,
           },
         ].map((stat, index) => (
@@ -1275,7 +1275,7 @@ const UserTrainerDashboard = () => {
      
       {/* Table/Card View */}
       {viewMode === 'table' ? (
-        filteredRelationships.length > 0 ? (
+        filteredRelationships?.length > 0 ? (
           <Card>
             <TableContainer component={Paper}>
               <Table>
@@ -1318,33 +1318,33 @@ const UserTrainerDashboard = () => {
                               {relationship.userInfo.first_name[0]}{relationship.userInfo.last_name[0]}
                             </Avatar>
                             <Typography className="username">
-                              {`${relationship.userInfo.first_name} ${relationship.userInfo.last_name}`}
+                              {`${relationship?.userInfo?.first_name} ${relationship?.userInfo?.last_name}`}
                             </Typography>
                           </Box>
                         </TableCell>
-                        <TableCell>{relationship.userInfo.email}</TableCell>
+                        <TableCell>{relationship?.userInfo?.email}</TableCell>
                         <TableCell>
-                          {relationship.userInfo.UserAndTrainerSubscription.length > 0 ? (
+                          {relationship?.userInfo?.UserAndTrainerSubscription?.length > 0 ? (
                             <Typography sx={{ 
-                              color: new Date(relationship.userInfo.UserAndTrainerSubscription[0].end_date) < new Date() 
+                              color: new Date(relationship?.userInfo?.UserAndTrainerSubscription[0]?.end_date) < new Date() 
                                 ? 'error.main' 
                                 : 'success.main'
                             }}>
-                              {new Date(relationship.userInfo.UserAndTrainerSubscription[0].end_date).toLocaleDateString()}
+                              {new Date(relationship?.userInfo?.UserAndTrainerSubscription[0]?.end_date)?.toLocaleDateString()}
                             </Typography>
                           ) : (
-                            <Typography color="text.secondary">{relationship.type === 'offline' ? <Chip label="Offline Client" variant="outlined" size="small" /> : '-'}</Typography>
+                            <Typography color="text.secondary">{relationship?.type === 'offline' ? <Chip label="Offline Client" variant="outlined" size="small" /> : '-'}</Typography>
                           )}
                         </TableCell>
-                        <TableCell>{relationship.Assigned_Diet.length}</TableCell>
-                        <TableCell>{relationship.Assigned_Program.length}</TableCell>
+                        <TableCell>{relationship?.Assigned_Diet?.length}</TableCell>
+                        <TableCell>{relationship?.Assigned_Program?.length}</TableCell>
                         <TableCell>
-                          <IconButton onClick={() => toggleRowExpansion(relationship.id)}>
-                            {expandedRows[relationship.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                          <IconButton onClick={() => toggleRowExpansion(relationship?.id)}>
+                            {expandedRows[relationship?.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                           </IconButton>
                         </TableCell>
                       </TableRow>
-                      {expandedRows[relationship.id] && renderExpandedRow(relationship)}
+                      {expandedRows[relationship?.id] && renderExpandedRow(relationship)}
                     </React.Fragment>
                   ))}
                 </TableBody>
@@ -1354,15 +1354,15 @@ const UserTrainerDashboard = () => {
         ) : null
       ) : (
         <Grid container spacing={3}>
-          {filteredRelationships.map(relationship => (
-            <Grid item xs={12} sm={6} md={4} key={relationship.id}>
+          {filteredRelationships?.map(relationship => (
+              <Grid item xs={12} sm={6} md={4} key={relationship?.id}>
               <TrainerRelationshipCard relationship={relationship} />
             </Grid>
           ))}
         </Grid>
       )}
 
-      {filteredRelationships.length === 0 && (
+      {filteredRelationships?.length === 0 && (
         <Alert 
           severity="info" 
           sx={{ mb: 3, mt: 3 }}

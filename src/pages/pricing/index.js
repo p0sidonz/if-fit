@@ -58,7 +58,7 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments, hasTrialAcces
   const [activeStep, setActiveStep] = useState(0);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const { data: pricingPlans, isFetched } = useGetUpgradePackages();
-  const [isExistingUser, setIsExistingUser] = useState(true);
+  const [isExistingUser, setIsExistingUser] = useState(false);
   const [isModalDismissed, setIsModalDismissed] = useState(false);
   const [isTrialAvailable, setIsTrialAvailable] = useState(false);
   const [isPreviousButtonDisabled, setIsPreviousButtonDisabled] =
@@ -1015,6 +1015,10 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments, hasTrialAcces
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  if(pkgIdFromUrl && localStorage.getItem('accessToken')){
+    return <><Typography>You are already logged in click here to continue</Typography></>
+  }
 
   return (
     <Paper sx={{ p: 4, maxWidth: 1200, mx: "auto" }}>

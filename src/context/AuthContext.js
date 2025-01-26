@@ -63,7 +63,12 @@ const AuthProvider = ({ children }) => {
           .then(async (response) => {
             setLoading(false);
             dispatch(setUserDetails(response.data.user));
-            setUser({ ...response.user });
+            setUser({ ...response.data.user });
+            
+            // Check if on pricing page and redirect if authenticated
+            if (router.pathname === '/pricing') {
+              router.replace('/already');
+            }
            
           })
           .catch(() => {
@@ -84,7 +89,7 @@ const AuthProvider = ({ children }) => {
         socket.disconnect();
       }
     };
-  }, [socket]);
+  }, [socket, router]);
 
   const initializeSocket = (token) => {
     if (typeof window === "undefined" || !token) return;
@@ -193,7 +198,11 @@ const AuthProvider = ({ children }) => {
       });
   };
 
-  const handleLogout = () => {
+  const handleLogout = (params = {}) => {
+    // Handle both object parameter and direct string parameter
+    const returnUrl = typeof params === 'string' ? params : (params.returnUrl || '/login');
+    const callback = typeof params === 'object' ? params.callback : undefined;
+
     if (socket) {
       socket.disconnect();
       setSocket(null);
@@ -202,7 +211,8 @@ const AuthProvider = ({ children }) => {
     setIsInitialized(false);
     window.localStorage.removeItem("userData");
     window.localStorage.removeItem(authConfig.storageTokenKeyName);
-    router.push("/login");
+    
+    router.push(returnUrl);
   };
 
   const handleRegister = (params, errorCallback) => {
