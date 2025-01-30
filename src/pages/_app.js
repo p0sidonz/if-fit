@@ -1,5 +1,6 @@
 // ** Next Imports
 import Head from "next/head";
+import Script from "next/script";
 import { Router } from "next/router";
 import store from "../store/store";
 import { Provider } from "react-redux";
@@ -106,6 +107,25 @@ const App = (props) => {
         />
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
+
+      {/* Add Google Analytics Scripts */}
+      <Script
+        strategy="afterInteractive"
+        src="https://www.googletagmanager.com/gtag/js?id=G-GFVE6H2T8Y"
+      />
+      <Script
+        id="google-analytics"
+        strategy="afterInteractive"
+      >
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-GFVE6H2T8Y');
+        `}
+      </Script>
+
       <QueryClientProvider client={queryClient}>
         <Provider store={store}>
           <AuthProvider>
