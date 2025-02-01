@@ -45,13 +45,23 @@ const TabList = styled(MuiTabList)(({ theme }) => ({
   }
 }))
 
-const AccountSettings = ({ tab = "account"}) => {
+const AccountSettings = () => {
+
+  //get param and set the state
+
+
+  // ** Hooks
+  const router = useRouter()
+  const { tab } = router.query
+
+
+
   // ** State
   const [activeTab, setActiveTab] = useState(tab)
   const [isLoading, setIsLoading] = useState(false)
 
-  // ** Hooks
-  const router = useRouter()
+
+  
   const hideText = useMediaQuery(theme => theme.breakpoints.down('md'))
 
   const handleChange = (event, value) => {
