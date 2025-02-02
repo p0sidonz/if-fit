@@ -61,7 +61,7 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
-import { format, startOfWeek, startOfMonth, startOfYear, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, subMonths, subYears } from 'date-fns';
+import { format, startOfWeek, startOfMonth, startOfYear, isWithinInterval,eachDayOfInterval, addMonths,eachWeekOfInterval, eachMonthOfInterval, subMonths, subYears } from 'date-fns';
 // import UserAssignmentsChart from './Stats';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -432,16 +432,15 @@ const TrainerRelationshipCard = ({ relationship }) => {
   );
 };
 
-
 const ClientAcquisitionChart = ({ relationships }) => {
   const theme = useTheme();
   const [timeRange, setTimeRange] = useState('all'); // week, month, year, all
-
   const prepareChartData = () => {
     // Sort relationships by created_at date
     const sortedRelationships = [...relationships].sort((a, b) => 
       new Date(a.created_at) - new Date(b.created_at)
     );
+    console.log("sortedRelationships", sortedRelationships);
 
     let intervals;
     let formatDate;
@@ -453,41 +452,58 @@ const ClientAcquisitionChart = ({ relationships }) => {
           start: startOfWeek(now),
           end: now
         });
-        formatDate = (date) => format(date, 'EEE');
+        formatDate = (date) => format(date, 'EEE'); // Short weekday name
         break;
-      
+
       case 'month':
-        intervals = eachWeekOfInterval({
+        intervals = eachMonthOfInterval({
           start: startOfMonth(subMonths(now, 1)),
           end: now
         });
-        formatDate = (date) => `Week ${format(date, 'w')}`;
+        formatDate = (date) => format(date, 'MMM yyyy'); // Month and Year
         break;
-      
+
       case 'year':
         intervals = eachMonthOfInterval({
-          start: startOfYear(now),
+          start: startOfYear(now), // Start of 2025
           end: now
         });
-        formatDate = (date) => format(date, 'MMM');
+        formatDate = (date) => format(date, 'MMM yyyy'); // Month and Year
         break;
-      
+
       case 'all':
         intervals = eachMonthOfInterval({
-          start: startOfYear(subYears(now, 2)),
+          start: startOfYear(subYears(now, 1)), // Reduced to 1 year back for testing
           end: now
         });
-        formatDate = (date) => format(date, 'MMM yyyy');
+        formatDate = (date) => format(date, 'MMM yyyy'); // Month and Year
         break;
-      
+
       default:
         return [];
     }
 
     return intervals.map(interval => {
-      const count = sortedRelationships.filter(rel => 
-        new Date(rel.created_at) <= interval
-      ).length;
+      let count = 0;
+      if (timeRange === "week") {
+        count = sortedRelationships.filter(rel => {
+          const createdAt = new Date(rel.created_at);
+          // Ensure the created date falls within the specific week
+          return createdAt >= interval && createdAt < addWeeks(interval, 1); // Filter by week
+        }).length;
+      } else if (timeRange === "month") {
+        count = sortedRelationships.filter(rel => {
+          const createdAt = new Date(rel.created_at);
+          // Ensure the created date falls within the specific month
+          return createdAt >= interval && createdAt < addMonths(interval, 1); // Filter by month
+        }).length;
+      } else {
+        // Handle year and all cases similarly
+        count = sortedRelationships.filter(rel => {
+          const createdAt = new Date(rel.created_at);
+          return createdAt >= interval && createdAt < addMonths(interval, 1); // Filter by month
+        }).length;
+      }
 
       return {
         date: formatDate(interval),
@@ -512,7 +528,7 @@ const ClientAcquisitionChart = ({ relationships }) => {
           <ToggleButton value="all">All Time</ToggleButton>
         </ToggleButtonGroup>
       </Box>
-      
+
       <ResponsiveContainer width="100%" height={300}>
         <LineChart
           data={prepareChartData()}
@@ -543,6 +559,8 @@ const ClientAcquisitionChart = ({ relationships }) => {
     </Card>
   );
 };
+
+
 
 
 const UserTrainerDashboard = () => {
