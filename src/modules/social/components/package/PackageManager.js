@@ -218,8 +218,8 @@ const handleBillingSubmit = (data) => {
       });
 
       const options = {
-        key: 'rzp_test_XzVgCoZd6ruTtE',
-        amount: finalAmount,
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,
+        amount: order.amount * 100,
         currency: order.currency,
         name: title,
         description: `Purchase of ${title}`,

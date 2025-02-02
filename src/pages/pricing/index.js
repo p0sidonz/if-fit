@@ -220,7 +220,7 @@ const CheckoutStepper = ({ userData, customToken, pkgId, payments, hasTrialAcces
       });
 
       const options = {
-        key: "rzp_test_XzVgCoZd6ruTtE",
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY,
         amount: order.amount * 100,
         currency: isIndianTimeZone() ? 'INR' : selectedPlan?.currency,
         name: selectedPlan?.title,
