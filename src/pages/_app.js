@@ -108,7 +108,7 @@ const App = (props) => {
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
 
-      {/* Add Google Analytics Scripts */}
+      {/* Google Analytics Script */}
       <Script
         strategy="afterInteractive"
         src="https://www.googletagmanager.com/gtag/js?id=G-GFVE6H2T8Y"
@@ -123,6 +123,24 @@ const App = (props) => {
           gtag('js', new Date());
 
           gtag('config', 'G-GFVE6H2T8Y');
+        `}
+      </Script>
+
+      {/* Google Ads Script */}
+      <Script
+        strategy="afterInteractive"
+        src="https://www.googletagmanager.com/gtag/js?id=AW-16853228766"
+      />
+      <Script
+        id="google-ads"
+        strategy="afterInteractive"
+      >
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'AW-16853228766');
         `}
       </Script>
 
